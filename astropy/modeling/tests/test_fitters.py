@@ -6,6 +6,7 @@ Module to test fitting routines
 # pylint: disable=invalid-name
 import os.path
 import unittest.mock as mk
+import warnings
 from contextlib import nullcontext
 from importlib.metadata import EntryPoint
 from itertools import combinations
@@ -1391,6 +1392,35 @@ class TestFittingUncertanties:
         assert_allclose(
             np.sqrt(np.diag(cov_2d_set_linlsq[0])), fit_2d_set_linlsq.stds[0].stds
         )
+
+    @pytest.mark.parametrize("fitter", [LinearLSQFitter, *non_linear_fitters])
+    def test_2d_models_dof(self, fitter):
+        """
+        Test that the covariance of 2D fits is scaled using the total number
+        of data points, rather than the number of rows of the input arrays.
+        """
+        fitter = fitter(calc_uncertainties=True)
+        model = models.Polynomial2D(1)
+        z_grid = model(self.x_grid, self.y_grid) + self.rand_grid
+
+        # ordinary least squares covariance: s**2 (A^T A)^-1, with
+        # s**2 = RSS / (n_points - n_params)
+        design = np.column_stack(
+            [np.ones(100), self.x_grid.ravel(), self.y_grid.ravel()]
+        )
+        coeffs, rss, _, _ = np.linalg.lstsq(design, z_grid.ravel())
+        expected = rss[0] / (100 - 3) * np.linalg.inv(design.T @ design)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore", "Model is linear in parameters", AstropyUserWarning
+            )
+            fit_grid = fitter(model, self.x_grid, self.y_grid, z_grid)
+            fit_flat = fitter(
+                model, self.x_grid.ravel(), self.y_grid.ravel(), z_grid.ravel()
+            )
+        assert_allclose(fit_grid.cov_matrix.cov_matrix, expected, rtol=1e-6)
+        assert_allclose(fit_flat.cov_matrix.cov_matrix, expected, rtol=1e-6)
 
     def test_covariance_std_printing_indexing(self, capsys):
         """

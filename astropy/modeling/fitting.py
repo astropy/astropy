@@ -451,8 +451,8 @@ class LinearLSQFitter(Fitter):
                     )
                     return
                 xx, _ = np.ma.array(x, mask=mask), np.ma.array(y, mask=mask)
-                # len(xx) instead of xx.count. this will break if values are masked?
-                RSS = [(1 / (len(xx) - n_coeff)) * resids]
+                # xx.size instead of xx.count. this will break if values are masked?
+                RSS = [(1 / (xx.size - n_coeff)) * resids]
             else:
                 RSS = []
                 for j in range(len(model)):
@@ -464,7 +464,7 @@ class LinearLSQFitter(Fitter):
                         eval_z = np.rollaxis(eval_z, 1)
                     eval_z = eval_z[j]
                     RSS.append(
-                        [(1 / (len(x) - n_coeff)) * np.sum((z[j] - eval_z) ** 2)]
+                        [(1 / (np.size(x) - n_coeff)) * np.sum((z[j] - eval_z) ** 2)]
                     )
 
         covs = [inv_x_dot_x_prime * r for r in RSS]
@@ -858,7 +858,8 @@ class LinearLSQFitter(Fitter):
 
         # calculate and set covariance matrix and standard devs. on model
         if self._calc_uncertainties:
-            if len(y) > len(lacoef):
+            n_points = len(y) if z is None else np.size(x)
+            if n_points > len(lacoef):
                 self._add_fitting_uncertainties(
                     model_copy, a * scl, len(lacoef), x, y, z, resids
                 )
@@ -1283,10 +1284,11 @@ class _NonLinearLSQFitter(Fitter):
                 ]
 
     def _compute_param_cov(  # ruff: ignore[PLR0917]
-        self, model, y, init_values, cov_x, fitparams, farg, fkwarg, weights=None
+        self, model, data, init_values, cov_x, fitparams, farg, fkwarg, weights=None
     ):
         # now try to compute the true covariance matrix
-        if (len(y) > len(init_values)) and cov_x is not None:
+        n_points = np.size(data)
+        if (n_points > len(init_values)) and cov_x is not None:
             self.fit_info["param_cov"] = cov_x
             if weights is None:
                 # if there are no measurement uncertainties given in `weights`,
@@ -1300,7 +1302,7 @@ class _NonLinearLSQFitter(Fitter):
                 sum_sqrs = np.sum(
                     self.objective_function(fitparams, *farg, **fkwarg) ** 2
                 )
-                dof = len(y) - len(init_values)
+                dof = n_points - len(init_values)
                 self.fit_info["param_cov"] *= sum_sqrs / dof
         else:
             self.fit_info["param_cov"] = None
@@ -1436,7 +1438,14 @@ class _NonLinearLSQFitter(Fitter):
         )
 
         self._compute_param_cov(
-            model_copy, y, init_values, cov_x, fitparams, farg, fkwarg, weights
+            model_copy,
+            y if z is None else z,
+            init_values,
+            cov_x,
+            fitparams,
+            farg,
+            fkwarg,
+            weights,
         )
 
         model_copy.sync_constraints = True
