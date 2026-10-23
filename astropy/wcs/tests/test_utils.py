@@ -3,6 +3,9 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from hypothesis import example, given
+from hypothesis import strategies as st
+from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
@@ -27,6 +30,7 @@ from astropy.utils import unbroadcast
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.shapes import simplify_basic_index
 from astropy.wcs.utils import (
     FRAME_WCS_MAPPINGS,
     SUPPORTED_PRJ_CODES,
@@ -318,6 +322,53 @@ def test_slice_step_preserve_units():
     assert slice_wcs.world_axis_units == ["arcsec", "arcsec", "nm"]
 
 
+@pytest.mark.parametrize("linear", ["cdelt", "pc", "cd", "crota", "sip"])
+def test_slice_step_linear_transformation(linear):
+    # Regression test for a bug that caused slicing with a step to give
+    # incorrect coordinates if the PCi_j or CDi_j matrix mixed pixel axes, or
+    # if SIP distortions were present, since the step was applied to CDELTi,
+    # which scales a world axis rather than a pixel axis.
+
+    full_wcs = WCS(naxis=2)
+    full_wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+    full_wcs.wcs.crval = 30, 40
+    full_wcs.wcs.crpix = 4.3, -2.7
+    if linear == "cd":
+        full_wcs.wcs.cd = [[-0.008, 0.003], [0.002, 0.011]]
+    else:
+        full_wcs.wcs.cdelt = -0.01, 0.012
+    if linear == "pc":
+        full_wcs.wcs.pc = [[0.9, -0.4], [0.4, 0.9]]
+    elif linear == "crota":
+        full_wcs.wcs.crota = 0, 25
+    elif linear == "sip":
+        full_wcs.wcs.ctype = "RA---TAN-SIP", "DEC--TAN-SIP"
+        a = np.zeros((3, 3))
+        b = np.zeros((3, 3))
+        a[2, 0], a[1, 1], b[0, 2], b[2, 0] = 1e-3, 2e-3, 1.5e-3, -1e-3
+        full_wcs.sip = Sip(a, b, None, None, full_wcs.wcs.crpix)
+
+    # Use different starts and steps for x and y so that mixing up the axes
+    # gives incorrect results.
+    start_x, step_x = 2, 2
+    start_y, step_y = 1, 3
+    sliced_wcs = full_wcs[start_y::step_y, start_x::step_x]
+
+    # Slicing with a step means binning, so pixel x of the sliced WCS
+    # corresponds to the center of pixels start + step * x to
+    # start + step * (x + 1) - 1 of the original WCS, and likewise for y.
+    x, y = np.meshgrid(np.arange(5), np.arange(4))
+    assert_allclose(
+        sliced_wcs.pixel_to_world_values(x, y),
+        full_wcs.pixel_to_world_values(
+            start_x + step_x * x + (step_x - 1) / 2,
+            start_y + step_y * y + (step_y - 1) / 2,
+        ),
+        rtol=0,
+        atol=1e-10,
+    )
+
+
 def test_slice_pixel_bounds():
     # Regression test for a bug that caused pixel_bounds to not be updated
     # when slicing a WCS without dropping any dimensions.
@@ -460,6 +511,219 @@ def test_slice_negative_values(negative, positive):
             mywcs[negative]
     else:
         assert_allclose(mywcs[negative].wcs.crpix, mywcs[positive].wcs.crpix)
+
+
+SLICING_TEST_SHAPE = (5, 7, 9)
+
+
+def _slicing_test_wcs(linear, preserve_units=False):
+    """
+    Return a 3D celestial and spectral WCS with SLICING_TEST_SHAPE, with the
+    linear transformation or units chosen by ``linear``.
+    """
+    full_wcs = WCS(naxis=3, preserve_units=preserve_units)
+    full_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "WAVE"
+    full_wcs.wcs.crval = 30, 40, 500
+    # Non-integer and different on every axis so that off-by-one and axis order
+    # mistakes don't cancel out.
+    full_wcs.wcs.crpix = 4.3, -2.7, 1.5
+    if linear == "cd":
+        full_wcs.wcs.cd = [[-0.008, 0.003, 0], [0.002, 0.011, 0], [0, 0, 2.5]]
+    else:
+        full_wcs.wcs.cdelt = -0.01, 0.012, 2.5
+    if linear == "pc":
+        full_wcs.wcs.pc = [[0.9, -0.4, 0], [0.4, 0.9, 0], [0, 0, 1]]
+    elif linear == "crota":
+        full_wcs.wcs.crota = 0, 25, 0
+    elif linear == "units":
+        # Non-SI spectral units, so that set() rescales cdelt and crval
+        full_wcs.wcs.cunit = "deg", "deg", "nm"
+    full_wcs.array_shape = SLICING_TEST_SHAPE
+    return full_wcs
+
+
+def st_positive_step_slices(shape):
+    """
+    Generate tuples of slices with positive steps, the only case where steps
+    are supported, since these are rare in the output of basic_indices.
+    """
+    return st.tuples(
+        *(
+            st.builds(
+                slice,
+                st.none() | st.integers(-size, size),
+                st.none() | st.integers(-size, size),
+                st.none() | st.integers(1, size),
+            )
+            for size in shape
+        )
+    )
+
+
+def st_pixel_bounds(shape):
+    """
+    Generate pixel bounds, in FITS order, that can be None either overall or
+    for individual dimensions.
+
+    The bounds are a quarter of a pixel away from multiples of 0.5, which are
+    the positions at which the test evaluates the WCS, since rounding errors
+    could otherwise change which of these positions are in bounds (positions
+    out of bounds give NaN world coordinates).
+    """
+    return st.none() | st.tuples(
+        *(
+            st.none()
+            | st.lists(
+                st.integers(-2 * size, 4 * size).map(lambda n: n / 2 + 0.25),
+                min_size=2,
+                max_size=2,
+            ).map(sorted)
+            for size in shape[::-1]
+        )
+    )
+
+
+@pytest.mark.parametrize("linear", ["cdelt", "pc", "cd", "crota", "units"])
+@given(
+    index=(
+        basic_indices(SLICING_TEST_SHAPE, min_dims=1)
+        | st_positive_step_slices(SLICING_TEST_SHAPE)
+    ),
+    numpy_order=st.booleans(),
+    preserve_units=st.booleans(),
+    pixel_bounds=st_pixel_bounds(SLICING_TEST_SHAPE),
+    shape_known=st.booleans(),
+)
+# basic_indices rarely generates an ellipsis that stands for one or more
+# dimensions and is not at the end, so we include explicit examples to check
+# that the ellipsis is expanded in the right place and is not counted as a
+# dimension.
+@example(
+    index=(Ellipsis, 2),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+@example(
+    index=(1, Ellipsis, slice(1, 4)),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+@example(
+    index=(Ellipsis, 1, 2, slice(1, 4)),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+def test_slice_basic_indices(
+    linear, index, numpy_order, preserve_units, pixel_bounds, shape_known
+):
+    # Check that slicing a WCS behaves the same as slicing the corresponding
+    # data, for any valid Numpy basic index. If the shape is not known, the
+    # data is still assumed to have SLICING_TEST_SHAPE but the WCS does not
+    # know this.
+
+    full_wcs = _slicing_test_wcs(linear, preserve_units=preserve_units)
+    full_wcs.pixel_bounds = pixel_bounds
+    if not shape_known:
+        full_wcs.array_shape = None
+    shape = SLICING_TEST_SHAPE
+    full_index = simplify_basic_index(index, shape=shape)
+    dropped = [not isinstance(view, slice) for view in full_index]
+    steps = [view.step if isinstance(view, slice) else 1 for view in full_index]
+
+    if numpy_order:
+        do_slice = lambda: full_wcs[index]
+    else:
+        do_slice = lambda: full_wcs.slice(full_index[::-1], numpy_order=False)
+
+    # If the shape is not known, negative values cannot be interpreted, except
+    # for the stop value of slices since this only affects the (unknown) shape.
+    if not shape_known:
+        try:
+            simplify_basic_index(index, shape=[None] * len(shape))
+        except ValueError:
+            with pytest.raises(ValueError, match="size is not known"):
+                full_wcs[index]
+            return
+
+    # Steps are not supported when dropping dimensions, and negative steps
+    # are not supported at all.
+    if any(dropped) and any(step != 1 for step in steps):
+        with pytest.raises(IndexError, match="with a step is not supported"):
+            do_slice()
+        return
+    if any(step < 0 for step in steps):
+        with pytest.raises(NotImplementedError, match="Reversing an axis"):
+            do_slice()
+        return
+
+    header = full_wcs.to_header_string()
+    original_bounds = full_wcs.pixel_bounds
+    sliced_wcs = do_slice()
+    assert full_wcs.to_header_string() == header
+    assert full_wcs.pixel_bounds == original_bounds
+
+    expected_shape = np.empty(shape)[index].shape
+    if 0 in expected_shape:
+        # A zero length axis cannot be represented since NAXISi = 0 means that
+        # the size of the axis is not known.
+        return
+    if shape_known:
+        assert sliced_wcs.array_shape == expected_shape
+    else:
+        assert sliced_wcs.array_shape is None
+
+    # The world axes kept are the ones correlated with at least one of the
+    # pixel axes kept. The latter are in the reverse order to the array axes.
+    keep_pixel = np.logical_not(dropped)[::-1]
+    keep_world = full_wcs.axis_correlation_matrix[:, keep_pixel].any(axis=1)
+    assert sliced_wcs.pixel_n_dim == keep_pixel.sum()
+    assert sliced_wcs.world_n_dim == keep_world.sum()
+    assert_equal(
+        sliced_wcs.world_axis_physical_types,
+        np.array(full_wcs.world_axis_physical_types)[keep_world],
+    )
+
+    # Slicing with a step means binning, so element k of the sliced array
+    # corresponds to the center of elements start + k * step to
+    # start + (k + 1) * step - 1 in the original array.
+    original_indices = [
+        indices[index] + (step - 1) / 2
+        for indices, step in zip(np.indices(shape, dtype=float), steps)
+    ]
+    expected = np.array(full_wcs.array_index_to_world_values(*original_indices))
+    actual = sliced_wcs.array_index_to_world_values(*np.indices(expected_shape))
+    if sliced_wcs.world_n_dim == 1:
+        actual = [actual]
+    assert_allclose(actual, expected[keep_world], rtol=0, atol=1e-10)
+
+    # The same relation between the original and sliced pixel coordinates
+    # applies to the pixel bounds, for the dimensions that are kept.
+    if pixel_bounds is None:
+        assert sliced_wcs.pixel_bounds is None
+    else:
+        expected_bounds = []
+        for view, bounds in zip(full_index[::-1], pixel_bounds):
+            if not isinstance(view, slice):
+                continue
+            if bounds is None:
+                expected_bounds.append(None)
+            else:
+                offset = view.start + (view.step - 1) / 2
+                expected_bounds.append(
+                    tuple((bound - offset) / view.step for bound in bounds)
+                )
+        assert len(sliced_wcs.pixel_bounds) == len(expected_bounds)
+        for actual_bounds, bounds in zip(sliced_wcs.pixel_bounds, expected_bounds):
+            if bounds is None:
+                assert actual_bounds is None
+            else:
+                assert_allclose(actual_bounds, bounds, rtol=0, atol=1e-10)
 
 
 def test_axis_names():
