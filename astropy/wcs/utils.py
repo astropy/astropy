@@ -1247,7 +1247,7 @@ def fit_wcs_from_points(  # noqa: PLR0917
         wcs.wcs.crval = (converted_point.data.lon.deg, converted_point.data.lat.deg)
         wcs.wcs.crpix = (
             close(lon - wcs.wcs.crval[0], xp),
-            close(lon - wcs.wcs.crval[1], yp),
+            close(lat - wcs.wcs.crval[1], yp),
         )
 
     # fit linear terms, assign to wcs
