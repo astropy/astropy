@@ -13,7 +13,7 @@ from astropy.modeling.fitting import (
     LMLSQFitter,
     TRFLSQFitter,
 )
-from astropy.modeling.physical_models import NFW, BlackBody
+from astropy.modeling.physical_models import NFW, BlackBody, Drude1D
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyUserWarning
@@ -219,6 +219,21 @@ def test_blackbody_dimensionless_fit():
     bb2_fit = fitter(bb2, wav, fnu, maxiter=1000)
 
     assert bb1_fit.temperature == bb2_fit.temperature
+
+
+def test_drude1d_fit_deriv():
+    # Compare the analytic derivatives with numerical ones.
+    x = np.linspace(5, 11, 13)
+    params = np.array([1.5, 8.0, 1.2])
+    deriv = Drude1D.fit_deriv(x, *params)
+    h = 1e-6
+    for i in range(len(params)):
+        dp = np.zeros(3)
+        dp[i] = h
+        numerical = (
+            Drude1D.evaluate(x, *(params + dp)) - Drude1D.evaluate(x, *(params - dp))
+        ) / (2 * h)
+        np.testing.assert_allclose(deriv[i], numerical, rtol=1e-6, atol=1e-9)
 
 
 @pytest.mark.parametrize("mass", (2.0000000000000e15 * u.M_sun, 3.976819741e45 * u.kg))
