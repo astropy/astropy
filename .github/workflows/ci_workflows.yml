@@ -135,6 +135,26 @@ jobs:
           cache-path: .tox
           cache-key: doubletest-${{ github.ref_name }}
 
+  test_optimized_mode:
+    # tox itself doesn't support optimized mode so we'll run pytest directly
+    # see https://github.com/tox-dev/tox/issues/3006
+    needs: [initial_checks]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: 3.x
+      - name: Build
+        run: python -m pip install -e '.[test]'
+      - name: Run pytest
+        run: pytest --color=yes -ra -n4
+        env:
+          PYTHONOPTIMIZE: 2
+
   allowed_failures:
     needs: [initial_checks]
     uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@8d5ad7efc8e84a051639373f6ea0d10441eafee1  # v3.2.1
