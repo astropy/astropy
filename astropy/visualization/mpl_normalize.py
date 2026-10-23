@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from matplotlib.image import AxesImage
 
 if HAS_MATPLOTLIB:
-    import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
 else:
 
@@ -443,6 +442,7 @@ class SimpleNorm:
         if ax is None:
             if not HAS_MATPLOTLIB:
                 raise ModuleNotFoundError("matplotlib is required for imshow")
+            import matplotlib.pyplot as plt
 
             ax = plt.gca()
 
@@ -662,6 +662,8 @@ def imshow_norm(data, ax=None, **kwargs) -> ImShowNormResults:
         if not HAS_MATPLOTLIB:
             raise ModuleNotFoundError("matplotlib is required for imshow norm")
 
+        import matplotlib.pyplot as plt
+
         ax = plt.gca()
 
     if "norm" in kwargs:
@@ -733,6 +735,8 @@ def imshow_simple_norm(data, ax=None, **kwargs) -> ImShowNormResults:
     if ax is None:
         if not HAS_MATPLOTLIB:
             raise ModuleNotFoundError("matplotlib is required for imshow_simple_norm")
+
+        import matplotlib.pyplot as plt
 
         ax = plt.gca()
 
