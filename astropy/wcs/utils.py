@@ -90,7 +90,7 @@ def add_stokes_axis_to_wcs(wcs, add_before_ind):
     Parameters
     ----------
     wcs : `~astropy.wcs.WCS`
-        The WCS to add to
+        The WCS to add to.
     add_before_ind : int
         Index of the WCS to insert the new Stokes axis in front of.
         To add at the end, do add_before_ind = wcs.wcs.naxis
@@ -320,7 +320,7 @@ def wcs_to_celestial_frame(wcs):
     Parameters
     ----------
     wcs : :class:`~astropy.wcs.WCS` instance
-        The WCS to find the frame for
+        The WCS to find the frame for.
 
     Returns
     -------
@@ -338,7 +338,6 @@ def wcs_to_celestial_frame(wcs):
         >>> from astropy.wcs.utils import wcs_to_celestial_frame, custom_wcs_to_frame_mappings
         >>> with custom_wcs_to_frame_mappings(my_function):
         ...     wcs_to_celestial_frame(...)
-
     """
     for mapping_set in WCS_FRAME_MAPPINGS:
         for func in mapping_set:
@@ -361,14 +360,27 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
     ----------
     frame : :class:`~astropy.coordinates.BaseCoordinateFrame` subclass instance
         An instance of a :class:`~astropy.coordinates.BaseCoordinateFrame`
-        subclass instance for which to find the WCS
+        subclass instance for which to find the WCS.
     projection : str
-        Projection code to use in ctype, if applicable
+        Projection code to use in ctype, if applicable.
 
     Returns
     -------
     wcs : :class:`~astropy.wcs.WCS` instance
         The corresponding WCS object
+
+    Notes
+    -----
+    To extend this function to frames not defined in astropy.coordinates, you
+    can write your own function which should take a
+    :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
+    instance and a projection (given as a string) and should return either a WCS
+    instance, or `None` if the WCS could not be determined. You can register
+    this function temporarily with::
+
+        >>> from astropy.wcs.utils import celestial_frame_to_wcs, custom_frame_to_wcs_mappings
+        >>> with custom_frame_to_wcs_mappings(my_function):
+        ...     celestial_frame_to_wcs(...)
 
     Examples
     --------
@@ -394,21 +406,6 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
         LATPOLE =                  0.0 / [deg] Native latitude of celestial pole
         RADESYS = 'FK5'                / Equatorial coordinate system
         EQUINOX =               2010.0 / [yr] Equinox of equatorial coordinates
-
-
-    Notes
-    -----
-    To extend this function to frames not defined in astropy.coordinates, you
-    can write your own function which should take a
-    :class:`~astropy.coordinates.BaseCoordinateFrame` subclass
-    instance and a projection (given as a string) and should return either a WCS
-    instance, or `None` if the WCS could not be determined. You can register
-    this function temporarily with::
-
-        >>> from astropy.wcs.utils import celestial_frame_to_wcs, custom_frame_to_wcs_mappings
-        >>> with custom_frame_to_wcs_mappings(my_function):
-        ...     celestial_frame_to_wcs(...)
-
     """
     for mapping_set in FRAME_WCS_MAPPINGS:
         for func in mapping_set:
@@ -459,7 +456,6 @@ def proj_plane_pixel_scales(wcs):
     See Also
     --------
     astropy.wcs.utils.proj_plane_pixel_area
-
     """
     return np.sqrt((wcs.pixel_scale_matrix**2).sum(axis=0, dtype=float))
 
@@ -507,16 +503,15 @@ def proj_plane_pixel_area(wcs):
         `~astropy.wcs.Wcsprm.cd` matrix of the `~astropy.wcs.WCS.celestial`
         WCS is not a square matrix of second order.
 
+    See Also
+    --------
+    astropy.wcs.utils.proj_plane_pixel_scales
+
     Notes
     -----
     Depending on the application, square root of the pixel area can be used to
     represent a single pixel scale of an equivalent square pixel
     whose area is equal to the area of a generally non-square pixel.
-
-    See Also
-    --------
-    astropy.wcs.utils.proj_plane_pixel_scales
-
     """
     psm = wcs.celestial.pixel_scale_matrix
     if psm.shape != (2, 2):
@@ -554,8 +549,7 @@ def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
     Parameters
     ----------
     wcs : `~astropy.wcs.WCS`
-        World coordinate system object
-
+        World coordinate system object.
     maxerr : float, optional
         Accuracy to which the CD matrix, **normalized** such
         that :math:`|det(CD)|=1`, should be close to being an
@@ -567,7 +561,6 @@ def is_proj_plane_distorted(wcs, maxerr=1.0e-5):
     distorted : bool
         Returns `True` if focal (projection) plane is distorted and `False`
         otherwise.
-
     """
     cwcs = wcs.celestial
     return not _is_cd_orthogonal(cwcs.pixel_scale_matrix, maxerr) or _has_distortion(cwcs)  # fmt: skip
@@ -619,6 +612,11 @@ def non_celestial_pixel_scales(inwcs):
 def _has_distortion(wcs):
     """
     `True` if contains any SIP or image distortion components.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        The WCS to check for distortion components.
     """
     return any(
         getattr(wcs, dist_attr) is not None
@@ -631,6 +629,18 @@ def _swap_pixel_order(wcs, native_pixel_order, function):
     Whether pixel coordinates should be swapped relative to the native order of
     the pixel axes of the (celestial) WCS, to preserve the historical behavior
     of ``function`` for WCS objects in which latitude comes before longitude.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.WCS`
+        The (celestial) WCS whose longitude and latitude axis order is checked.
+    native_pixel_order : bool or None
+        The value of the ``native_pixel_order`` argument passed to ``function``.
+        If `None`, a deprecation warning is emitted when the latitude axis
+        comes before the longitude axis, and the historical (swapped) behavior
+        is used.
+    function : str
+        The name of the calling function, used in the deprecation warning.
     """
     if wcs.wcs.lng < wcs.wcs.lat:
         return False
@@ -787,6 +797,11 @@ def _unique_with_order_preserved(items):
     """
     Return a list of unique items in the list provided, preserving the order
     in which they are found.
+
+    Parameters
+    ----------
+    items : iterable
+        The items from which to extract unique values.
     """
     new_items = []
     for item in items:
@@ -803,6 +818,11 @@ def _pixel_to_world_correlation_matrix(wcs):
 
     The shape of the matrix is ``(n_world, n_pix)``, where ``n_world`` is the
     number of high level world coordinates.
+
+    Parameters
+    ----------
+    wcs : `~astropy.wcs.wcsapi.BaseHighLevelWCS`
+        The high-level WCS for which to compute the correlation matrix.
     """
     # We basically want to collapse the world dimensions together that are
     # combined into the same high-level objects.
@@ -834,6 +854,13 @@ def _pixel_to_pixel_correlation_matrix(wcs_in, wcs_out):
     transformation and the second WCS specified is the one used for the world ->
     pixel transformation. The shape of the matrix is
     ``(n_pixel_out, n_pixel_in)``.
+
+    Parameters
+    ----------
+    wcs_in : `~astropy.wcs.wcsapi.BaseHighLevelWCS`
+        The WCS used for the pixel -> world transformation.
+    wcs_out : `~astropy.wcs.wcsapi.BaseHighLevelWCS`
+        The WCS used for the world -> pixel transformation.
     """
     matrix1, classes1 = _pixel_to_world_correlation_matrix(wcs_in)
     matrix2, classes2 = _pixel_to_world_correlation_matrix(wcs_out)
@@ -885,6 +912,11 @@ def _split_matrix(matrix):
                [False, False,  True]])
 
     and this function will return ``[([0, 1], [0, 1]), ([2], [2])]``.
+
+    Parameters
+    ----------
+    matrix : `~numpy.ndarray`
+        The boolean axis correlation matrix, with shape ``(n_world, n_pixel)``.
     """
     pixel_used = []
 
@@ -1012,13 +1044,13 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):  # ruff: ignore[PLR0917]
     Parameters
     ----------
     params : array
-        6 element array. First 4 elements are PC matrix, last 2 are CRPIX.
-    lon, lat: array
+        6 element array. First 4 elements are CD matrix, last 2 are CRPIX.
+    lon, lat : array
         Sky coordinates.
-    x, y: array
-        Pixel coordinates
-    w_obj: `~astropy.wcs.WCS`
-        WCS object
+    x, y : array
+        Pixel coordinates.
+    w_obj : `~astropy.wcs.WCS`
+        WCS object, which is modified in place.
     """
     cd = params[0:4]
     crpix = params[4:6]
@@ -1043,13 +1075,20 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):  # ruff: ignore
     Parameters
     ----------
     params : array
-        Fittable parameters. First 4 elements are PC matrix, last 2 are CRPIX.
-    lon, lat: array
+        Fittable parameters. First 2 elements are CRPIX, next 4 are the CD
+        matrix, followed by the SIP ``A`` coefficients and then the SIP ``B``
+        coefficients, in the order given by ``coeff_names``.
+    lon, lat : array
         Sky coordinates.
-    u, v: array
-        Pixel coordinates
-    w_obj: `~astropy.wcs.WCS`
-        WCS object
+    u, v : array
+        Pixel coordinates.
+    w_obj : `~astropy.wcs.WCS`
+        WCS object, which is modified in place.
+    order : int
+        The order of the SIP polynomials.
+    coeff_names : list of str
+        The names of the SIP coefficients (without the ``A_``/``B_`` prefix),
+        e.g. ``'1_1'``, in the order they appear in ``params``.
     """
     from astropy.modeling.models import SIP  # here to avoid circular import
 
@@ -1110,24 +1149,10 @@ def fit_wcs_from_points(  # noqa: PLR0917
     point, but take care when using this option as non-projection related
     keywords in the input might cause unexpected behavior.
 
-    Notes
-    -----
-    - The fiducial point for the spherical projection can be set to 'center'
-      to use the mean position of input sky coordinates, or as an
-      `~astropy.coordinates.SkyCoord` object.
-    - Units in all output WCS objects will always be in degrees.
-    - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
-      objects passed in for ``world_coords`` and ``proj_point``, the frame for
-      ``world_coords``  will override as the frame for the output WCS.
-    - If a WCS object is passed in to ``projection`` the CD/PC matrix will
-      be used as an initial guess for the fit. If this is known to be
-      significantly off and may throw off the fit, set to the identity matrix
-      (for example, by doing wcs.wcs.pc = [(1., 0.,), (0., 1.)])
-
     Parameters
     ----------
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
-        x & y pixel coordinates.  These should be in FITS convention, starting
+        The x & y pixel coordinates.  These should be in FITS convention, starting
         from (1,1) as the center of the bottom-left pixel.
 
     world_coords : `~astropy.coordinates.SkyCoord`
@@ -1159,6 +1184,20 @@ def fit_wcs_from_points(  # noqa: PLR0917
     -------
     wcs : `~astropy.wcs.WCS`
         The best-fit WCS to the points given.
+
+    Notes
+    -----
+    - The fiducial point for the spherical projection can be set to 'center'
+      to use the mean position of input sky coordinates, or as an
+      `~astropy.coordinates.SkyCoord` object.
+    - Units in all output WCS objects will always be in degrees.
+    - If the coordinate frame differs between `~astropy.coordinates.SkyCoord`
+      objects passed in for ``world_coords`` and ``proj_point``, the frame for
+      ``world_coords``  will override as the frame for the output WCS.
+    - If a WCS object is passed in to ``projection`` the CD/PC matrix will
+      be used as an initial guess for the fit. If this is known to be
+      significantly off and may throw off the fit, set to the identity matrix
+      (for example, by doing wcs.wcs.pc = [(1., 0.,), (0., 1.)])
     """
     from scipy.optimize import least_squares
 
@@ -1362,7 +1401,6 @@ def obsgeo_to_frame(obsgeo, obstime):
     In the case where both the spherical and cartesian coordinates have some
     non-finite values the spherical coordinates will be returned with the
     non-finite values included.
-
     """
     if (
         obsgeo is None

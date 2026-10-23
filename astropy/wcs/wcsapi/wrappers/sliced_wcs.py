@@ -14,9 +14,16 @@ __all__ = ["SlicedLowLevelWCS", "sanitize_slices"]
 @deprecated(since="8.1", alternative="astropy.utils.shapes.simplify_basic_index")
 def sanitize_slices(slices, ndim):
     """
-    Given a slice as input sanitise it to an easier to parse format.format.
+    Given a slice as input sanitise it to an easier to parse format.
 
     This function returns a list ``ndim`` long containing slice objects (or ints).
+
+    Parameters
+    ----------
+    slices : `slice` or `int` or tuple
+        The slice to sanitize, which may contain an `Ellipsis`.
+    ndim : int
+        The number of dimensions of the array being sliced.
     """
     slices = list(simplify_basic_index(slices, shape=[None] * ndim))
     if any(isinstance(slc, slice) and slc.step not in (None, 1) for slc in slices):
@@ -29,6 +36,14 @@ def combine_slices(slice1, slice2):
     Given two slices that can be applied to a 1-d array, find the resulting
     slice that corresponds to the combination of both slices. We assume that
     slice2 can be an integer, but slice1 cannot.
+
+    Parameters
+    ----------
+    slice1 : `slice`
+        The first slice to apply.
+    slice2 : `slice` or int
+        The second slice (or index) to apply, to the result of the first
+        slice.
     """
     if isinstance(slice1, slice) and slice1.step not in (None, 1):
         raise ValueError("Only slices with steps of 1 are supported")
@@ -82,7 +97,6 @@ class SlicedLowLevelWCS(BaseWCSWrapper):
         The WCS to slice.
     slices : `slice` or `tuple` or `int`
         A valid array slice to apply to the WCS.
-
     """
 
     def __init__(self, wcs, slices):
