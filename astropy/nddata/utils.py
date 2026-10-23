@@ -673,7 +673,11 @@ class Cutout2D:
                         pixel_scales = u.Quantity(
                             proj_plane_pixel_scales(wcs), wcs.wcs.cunit[axis]
                         )
-                    shape[axis] = int(np.round((side / pixel_scales[axis]).decompose()))
+                    # size is in (ny, nx) order, but the pixel scales are in
+                    # (x, y) order
+                    shape[axis] = int(
+                        np.round((side / pixel_scales[1 - axis]).decompose())
+                    )
                 else:
                     raise ValueError(
                         "shape can contain Quantities with only pixel or angular units"

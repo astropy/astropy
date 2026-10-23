@@ -593,6 +593,17 @@ class TestCutout2D:
         assert c.slices_original == (slice(1, 3), slice(1, 3))
         assert c.slices_cutout == (slice(0, 2), slice(0, 2))
 
+    def test_size_angle_non_square_pixels(self):
+        # Pixels are 1" along x and 2" along y; size is given as (ny, nx).
+        wcs = WCS(naxis=2)
+        wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+        wcs.wcs.cdelt = [-1 / 3600, 2 / 3600]
+        data = np.zeros((100, 100))
+        c = Cutout2D(data, (50, 50), (10 * u.arcsec, 10 * u.arcsec), wcs=wcs)
+        assert c.data.shape == (5, 10)
+        c = Cutout2D(data, (50, 50), (20 * u.arcsec, 10 * u.arcsec), wcs=wcs)
+        assert c.data.shape == (10, 10)
+
     def test_size_angle_without_wcs(self):
         with pytest.raises(ValueError):
             Cutout2D(self.data, (2, 2), (3, 3 * u.arcsec))
