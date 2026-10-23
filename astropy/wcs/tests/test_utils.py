@@ -1854,6 +1854,31 @@ def test_fit_wcs_from_points_proj_point_frame():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_fit_wcs_from_points_rotated():
+    # Regression test for the initial guess of the y CRPIX being based on
+    # longitude instead of latitude, which made this fit fail.
+    crval = [348.0, -60.8]
+    theta = np.radians(284)
+
+    true_wcs = WCS(naxis=2)
+    true_wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    true_wcs.wcs.crval = crval
+    true_wcs.wcs.crpix = [1787, 2919]
+    true_wcs.wcs.cd = 2.2e-3 * np.array(
+        [[-np.cos(theta), np.sin(theta)], [np.sin(theta), np.cos(theta)]]
+    )
+
+    rng = np.random.default_rng(0)
+    x, y = rng.uniform([0, 0], [1840, 3600], (40, 2)).T
+    world_coords = true_wcs.pixel_to_world(x, y)
+    proj_point = SkyCoord(crval[0] * u.deg, crval[1] * u.deg)
+
+    fit_wcs = fit_wcs_from_points((x, y), world_coords, origin=0, proj_point=proj_point)
+
+    assert world_coords.separation(fit_wcs.pixel_to_world(x, y)).max() < 1 * u.mas
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_issue10991():
     # test issue #10991 (it just needs to run and set the user defined crval)
     xy = np.array(
