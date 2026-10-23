@@ -362,6 +362,25 @@ def test_model(with_units, freq):
     assert_quantity_allclose(y_fit[2][80:], y[80:])
 
 
+def test_model_center_data():
+    # Bands with different mean values, with the observations grouped by
+    # band (rather than alternating between bands).
+    rand = np.random.default_rng(0)
+    t = 10 * rand.random(120)
+    band = np.array(40 * ["a"] + 40 * ["b"] + 40 * ["c"])
+    means = {"a": 10.0, "b": 20.0, "c": 30.0}
+    y = np.array([means[b] for b in band]) + np.sin(2 * np.pi * t)
+
+    ls = LombScargleMultiband(t, y, band)
+    y_fit = ls.model(t, 1.0, bands_fit=None)
+    assert_allclose(y_fit[0][0:40], y[0:40], rtol=1e-4)
+    assert_allclose(y_fit[1][40:80], y[40:80], rtol=1e-4)
+    assert_allclose(y_fit[2][80:], y[80:], rtol=1e-4)
+
+    offset = ls.offset(t_fit=np.array([0.25, 0.5]))
+    assert_allclose(offset, np.repeat([y[band == b].mean() for b in "abc"], 2))
+
+
 @pytest.mark.parametrize("t_unit", [u.second, u.day])
 @pytest.mark.parametrize("frequency_unit", [u.Hz, 1.0 / u.second])
 @pytest.mark.parametrize("y_unit", [u.mag, u.jansky])

@@ -141,12 +141,14 @@ def periodic_fit(  # ruff: ignore[PLR0917]
     ymeans = np.zeros(
         y.shape
     )  # An array of shape y, with each index given a filter specific mean
+    band_means = np.zeros(len(unique_bands))  # the mean of each of unique_bands
     if center_data:
-        for band in unique_bands:
+        for j, band in enumerate(unique_bands):
             mask = bands == band
-            ymeans[mask] = np.average(y[mask], weights=1 / dy[mask] ** 2)
+            band_means[j] = np.average(y[mask], weights=1 / dy[mask] ** 2)
+            ymeans[mask] = band_means[j]
         y = y - ymeans
-    ymeans_fit = ymeans[i[: -len(unique_bands)]]
+    ymeans_fit = band_means[i[: -len(unique_bands)]]
 
     # Theta -- Construct X and M from t and bands, using weighting
     X = design_matrix(

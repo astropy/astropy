@@ -612,10 +612,12 @@ class LombScargleMultiband(LombScargle):
 
         # Calculate ymeans -- per band
         ymeans = np.zeros(y.shape)  # filter specific means
-        for band in unique_bands:
+        band_means = np.zeros(len(unique_bands))  # the mean of each of unique_bands
+        for j, band in enumerate(unique_bands):
             mask = self.bands == band
-            ymeans[mask] = np.average(y[mask], weights=1 / dy[mask] ** 2)
-        ymeans_fit = ymeans[i[: -len(unique_bands)]]
+            band_means[j] = np.average(y[mask], weights=1 / dy[mask] ** 2)
+            ymeans[mask] = band_means[j]
+        ymeans_fit = band_means[i[: -len(unique_bands)]]
 
         if on_fit:
             return ymeans_fit * get_unit(self.y)
