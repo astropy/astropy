@@ -1,0 +1,4 @@
+Fixed ``BaseBodycentricRepresentation`` using the wrong distance to the
+spheroid surface, so that heights were not measured from the surface along
+the radial direction. For non-spherical bodies this changes the Cartesian
+positions and heights by up to about 0.001% of the equatorial radius.
