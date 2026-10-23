@@ -1,0 +1,3 @@
+Fixed ``LombScargleMultiband.model`` and ``LombScargleMultiband.offset`` using
+the wrong band means when ``center_data=True``, unless the observations
+happened to alternate between bands.
