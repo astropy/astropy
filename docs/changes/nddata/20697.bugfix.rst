@@ -1,0 +1,3 @@
+Fixed ``Cutout2D`` using the pixel scale of the wrong axis to convert an
+angular ``size`` to pixels, which gave the wrong cutout shape for images with
+non-square pixels.
