@@ -1,0 +1,2 @@
+The ``"surface tension"`` physical type is now correctly associated with
+units of ``N / m`` (the same dimensions as ``Jy``), instead of ``J m**2``.
