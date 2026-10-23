@@ -646,7 +646,7 @@ def test__fcache():
         3: np.asanyarray(1),
         4: 2,
         2: 2.0,
-        5: -4.0,
+        5: 2.0,
     }
 
     model = Legendre2D(x_degree=2, y_degree=2)
@@ -668,6 +668,30 @@ def test__fcache():
         4: np.asanyarray(1),
         5: 1.0,
     }
+
+
+@pytest.mark.parametrize(
+    "model_class, numpy_val2d",
+    [
+        (Hermite2D, np.polynomial.hermite.hermval2d),
+        (Legendre2D, np.polynomial.legendre.legval2d),
+        (Chebyshev2D, np.polynomial.chebyshev.chebval2d),
+    ],
+)
+@pytest.mark.parametrize("x_degree, y_degree", [(2, 3), (3, 2), (4, 4)])
+def test_ortho_polynomial_2d_against_numpy(
+    model_class, numpy_val2d, x_degree, y_degree
+):
+    rng = np.random.default_rng(0)
+    coeffs = rng.normal(size=(x_degree + 1, y_degree + 1))
+    params = {
+        f"c{i}_{j}": coeffs[i, j]
+        for i in range(x_degree + 1)
+        for j in range(y_degree + 1)
+    }
+    model = model_class(x_degree, y_degree, **params)
+    x, y = rng.uniform(-1, 1, size=(2, 10))
+    assert_allclose(model(x, y), numpy_val2d(x, y, coeffs))
 
 
 def test_fit_deriv_shape_error():
