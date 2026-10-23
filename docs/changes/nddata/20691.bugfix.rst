@@ -1,0 +1,3 @@
+Fixed uncertainty propagation in ``NDDataArray.sum`` and ``NDDataArray.mean``
+for ``VarianceUncertainty`` and ``InverseVariance``, which were treated as if
+they were standard deviations.
