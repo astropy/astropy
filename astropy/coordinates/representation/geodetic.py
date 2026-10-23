@@ -135,6 +135,17 @@ class BaseBodycentricRepresentation(BaseRepresentation):
                 f"{self.__class__.__name__} requires height with units of length."
             )
 
+    @classmethod
+    def _surface_radius(cls, coslat, sinlat):
+        # Distance from the center to the spheroid surface along the
+        # direction with the given bodycentric latitude.
+        polar_radius = cls._equatorial_radius * (1 - cls._flattening)
+        return (
+            cls._equatorial_radius
+            * polar_radius
+            / np.hypot(polar_radius * coslat, cls._equatorial_radius * sinlat)
+        )
+
     def to_cartesian(self):
         """
         Converts bodycentric coordinates to 3D rectangular (geocentric)
@@ -144,10 +155,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         sinlat = np.sin(self.lat)
         coslon = np.cos(self.lon)
         sinlon = np.sin(self.lon)
-        r = (
-            self._equatorial_radius * np.hypot(coslat, (1 - self._flattening) * sinlat)
-            + self.height
-        )
+        r = self._surface_radius(coslat, sinlat) + self.height
         x = r * coslon * coslat
         y = r * sinlon * coslat
         z = r * sinlat
@@ -163,10 +171,7 @@ class BaseBodycentricRepresentation(BaseRepresentation):
         p = np.hypot(cart.x, cart.y)
         d = np.hypot(p, cart.z)
         lat = np.arctan2(cart.z, p)
-        p_spheroid = cls._equatorial_radius * np.cos(lat)
-        z_spheroid = cls._equatorial_radius * (1 - cls._flattening) * np.sin(lat)
-        r_spheroid = np.hypot(p_spheroid, z_spheroid)
-        height = d - r_spheroid
+        height = d - cls._surface_radius(np.cos(lat), np.sin(lat))
         lon = np.arctan2(cart.y, cart.x)
         return cls(lon, lat, height, copy=False)
 

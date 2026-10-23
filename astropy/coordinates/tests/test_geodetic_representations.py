@@ -4,6 +4,7 @@
 
 from copy import deepcopy
 
+import numpy as np
 import pytest
 
 from astropy import units as u
@@ -132,6 +133,30 @@ class TestCustomGeodeticRepresentations:
         assert_quantity_allclose(initial_geodetic.lon, roundtripped.lon)
         assert_quantity_allclose(initial_geodetic.lat, roundtripped.lat)
         assert_quantity_allclose(initial_geodetic.height, roundtripped.height)
+
+    def test_bodycentric_zero_height_on_spheroid(self):
+        # Points with zero height should lie on the spheroid surface, and
+        # points on the surface should have zero height.
+        rep_cls = self.IAUMARS2000BodycentricRepresentation
+        a = rep_cls._equatorial_radius
+        b = a * (1 - rep_cls._flattening)
+        lat = np.linspace(-90, 90, 13) * u.deg
+        bc = rep_cls(lon=np.linspace(0, 360, 13) * u.deg, lat=lat)
+        cart = bc.to_cartesian()
+        assert_quantity_allclose(
+            (cart.x**2 + cart.y**2) / a**2 + cart.z**2 / b**2, 1, rtol=1e-12
+        )
+        assert_quantity_allclose(
+            rep_cls.from_cartesian(cart).height, 0 * u.m, atol=1e-6 * u.m
+        )
+        # A point on the surface, found by scaling a direction vector
+        # with the given latitude onto the spheroid.
+        direction = np.array([np.cos(lat), np.zeros(lat.shape), np.sin(lat)])
+        scale = 1 / np.sqrt(direction[0] ** 2 / a**2 + direction[2] ** 2 / b**2)
+        surface = CartesianRepresentation(direction * scale)
+        roundtripped = rep_cls.from_cartesian(surface)
+        assert_quantity_allclose(roundtripped.lat, lat)
+        assert_quantity_allclose(roundtripped.height, 0 * u.m, atol=1e-6 * u.m)
 
     def test_geocentric_to_geodetic(self):
         """Test that we reproduce erfa/src/t_erfa_c.c t_gc2gd"""
