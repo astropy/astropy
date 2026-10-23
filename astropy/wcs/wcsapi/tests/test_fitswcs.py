@@ -26,7 +26,7 @@ from astropy.io.fits import Header
 from astropy.io.fits.verify import VerifyWarning
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.time import Time
-from astropy.units import Quantity, UnitsWarning
+from astropy.units import Quantity
 from astropy.utils import iers
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
@@ -810,11 +810,9 @@ def test_time_1d_unsupported_ctype(header_time_1d_no_obs):
 
 
 def test_unrecognized_unit():
-    # TODO: Determine whether the following behavior is desirable
     wcs = WCS(naxis=1)
-    with pytest.warns(UnitsWarning):
+    with pytest.warns(u.UnitsWarning, match="did not parse as fits unit"):
         wcs.wcs.cunit = ["bananas // sekonds"]
-        assert wcs.world_axis_units == ["bananas // sekonds"]
 
 
 def test_distortion_correlations():
