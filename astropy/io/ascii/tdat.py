@@ -385,7 +385,7 @@ class TdatHeader(basic.BasicHeader):
                         col.meta["comment"] = comment[:80]
 
                 # Flags
-                flag_match = list(re.finditer(r" \((.*?)\)", definition))
+                flag_match = list(re.finditer(r"\s+\((.*?)\)", definition))
                 if flag_match:
                     flag = flag_match[0].group(1)
                     if len(flag_match) > 1:
@@ -396,7 +396,7 @@ class TdatHeader(basic.BasicHeader):
                         raise TdatFormatError(
                             f"{col.name} has flag '({flag})' which is neither 'index' nor 'key'."
                         )
-                    col.meta["flag"] = flag
+                    col.meta["index"] = flag
                     definition = definition[: flag_match[0].start()].strip()
 
                 # UCD validation
@@ -415,8 +415,10 @@ class TdatHeader(basic.BasicHeader):
                             ucd_text, check_controlled_vocabulary=True
                         )
                     except Exception as e:
-                        raise TdatFormatError(
-                            f"Validation of the UCD for '{col.name}' failed with the following error: {e}"
+                        warn(
+                            TdatFormatWarning(
+                                f"Validation of the UCD for '{col.name}' failed with the following error: {e}"
+                            )
                         )
                     col.meta["ucd"] = ucd_text
 
@@ -453,13 +455,14 @@ class TdatHeader(basic.BasicHeader):
                         col.dtype = str
                         # Special case for char, grab number and format
                         # Format can be anything but don't want to set col.format
-                        char_len = match.group(1)
-                        if not (1 <= int(char_len) <= 9999):
+                        char_len = int(match.group(1))
+                        if not (1 <= char_len <= 9999):
                             raise TdatFormatError(
                                 f"The character string length must be in the range of 1 to 9999: '{col.name}' has length '{char_len}'."
                             )
                         col.meta["char_len"] = char_len
-                        col.meta["char_fmt"] = col.format
+                        if col.format is not None:
+                            col.meta["char_fmt"] = col.format
                         col.format = None
                     else:
                         raise TdatFormatError(
@@ -610,14 +613,14 @@ class TdatHeader(basic.BasicHeader):
 
             if col.info.format is not None:
                 field_line += f":{col.info.format}"
-            if "char_fmt" in col_info_meta and "char" in ctype:
+            if "char" in ctype and col_info_meta.get("char_fmt") is not None:
                 field_line += f":{col_info_meta['char_fmt']}"
             if col.info.unit is not None:
                 field_line += f"_{col.info.unit:cds}"
             if "ucd" in col_info_meta:
                 field_line += f" [{col_info_meta['ucd']}]"
-            if "flag" in col_info_meta:
-                field_line += f" ({col_info_meta['flag']})"
+            if "index" in col_info_meta:
+                field_line += f" ({col_info_meta['index']})"
             elif (indices != []) and (col.info.name == indices[0]):
                 field_line += " (key)"
             elif col.info.name in indices:
@@ -774,8 +777,8 @@ class TdatOutputter(core.TableOutputter):
                     setattr(out_col, attr, getattr(col, attr))
             if hasattr(col, "meta"):
                 out_col.meta.update(col.meta)
-                if "flag" in col.meta:
-                    if col.meta["flag"] == "key":
+                if "index" in col.meta:
+                    if col.meta["index"] == "key":
                         indices.insert(0, col.name)
                     else:
                         indices.append(col.name)
