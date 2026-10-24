@@ -1036,7 +1036,7 @@ class TestEnvvarRegressions:
     ) -> None:
         monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
 
-        ref = 0x4D3D3D3
+        ref = 0x4D3_D3D3
         conf.max_width = ref
 
         with TemporaryDirectory() as td, set_temp_config(td):
