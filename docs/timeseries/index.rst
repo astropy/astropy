@@ -350,6 +350,7 @@ Periodogram Algorithms
    lombscargle
    lombscarglemb
    bls
+   pdm
 
 Reference/API
 =============
