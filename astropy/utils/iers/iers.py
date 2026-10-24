@@ -11,7 +11,7 @@ celestial-to-terrestrial coordinate transformations
 
 import os
 import re
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Self
 from urllib.parse import urlparse
 from warnings import warn
@@ -26,20 +26,18 @@ from astropy_iers_data import (
     IERS_B_FILE,
     IERS_B_README,
     IERS_B_URL,
-    IERS_LEAP_SECOND_FILE,
-    IERS_LEAP_SECOND_URL,
 )
-from astropy_iers_data import IERS_LEAP_SECOND_URL_MIRROR as IETF_LEAP_SECOND_URL
+from astropy_iers_data import IERS_LEAP_SECOND_FILE as _IERS_LEAP_SECOND_FILE
+from astropy_iers_data import IERS_LEAP_SECOND_URL as _IERS_LEAP_SECOND_URL
+from astropy_iers_data import IERS_LEAP_SECOND_URL_MIRROR as _IETF_LEAP_SECOND_URL
 
 from astropy import config as _config
 from astropy import units as u
 from astropy import utils
 from astropy.table import MaskedColumn, QTable
-from astropy.time import Time, TimeDelta
+from astropy.time import Time
 from astropy.utils.data import (
-    clear_download_cache,
     get_readable_fileobj,
-    is_url_in_cache,
 )
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
@@ -59,9 +57,6 @@ __all__ = [
     "IERS_B_FILE",
     "IERS_B_README",
     "IERS_B_URL",
-    "IERS_LEAP_SECOND_FILE",
-    "IERS_LEAP_SECOND_URL",
-    "IETF_LEAP_SECOND_URL",
     "TIME_BEFORE_IERS_RANGE",
     "TIME_BEYOND_IERS_RANGE",
     "Conf",
@@ -160,6 +155,27 @@ def _none_to_float(value):
     return value if value is not None else np.finfo(float).max
 
 
+_DEPRECATED_LEAP_SECOND_CONSTANTS = {
+    "IERS_LEAP_SECOND_FILE": _IERS_LEAP_SECOND_FILE,
+    "IERS_LEAP_SECOND_URL": _IERS_LEAP_SECOND_URL,
+    "IETF_LEAP_SECOND_URL": _IETF_LEAP_SECOND_URL,
+}
+
+
+def __getattr__(name):
+    if name in _DEPRECATED_LEAP_SECOND_CONSTANTS:
+        warn(
+            f"{name} is deprecated since 8.1 and may be removed in a future "
+            "version. Leap seconds have been discontinued, so the table built "
+            "into ERFA is final; use LeapSeconds.from_erfa() to get it.",
+            AstropyDeprecationWarning,
+            stacklevel=2,
+        )
+        return _DEPRECATED_LEAP_SECOND_CONSTANTS[name]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 class Conf(_config.ConfigNamespace):
     """
     Configuration parameters for `astropy.utils.iers`.
@@ -170,9 +186,7 @@ class Conf(_config.ConfigNamespace):
         "Enable auto-downloading of the latest IERS-A data.  If set to False "
         "then the bundled IERS-A file will be used by default (even if a "
         "newer version of the IERS-A file was previously downloaded and cached). "
-        "This parameter also controls whether internet resources will be "
-        "queried to update the leap second table if the installed version is "
-        "out of date. Default is True.",
+        "Default is True.",
     )
     auto_max_age = _config.ConfigItem(
         30.0,
@@ -195,12 +209,18 @@ class Conf(_config.ConfigNamespace):
         "cover the times when converting time scales, potentially leading "
         "to degraded accuracy.",
     )
-    system_leap_second_file = _config.ConfigItem("", "System file with leap seconds.")
+    # The three leap-second items below are deprecated since 8.1 and unused:
+    # leap seconds have been discontinued, so the table is never updated.
+    system_leap_second_file = _config.ConfigItem(
+        "", "Deprecated and unused. System file with leap seconds."
+    )
     iers_leap_second_auto_url = _config.ConfigItem(
-        IERS_LEAP_SECOND_URL, "URL for auto-downloading leap seconds."
+        _IERS_LEAP_SECOND_URL,
+        "Deprecated and unused. URL for auto-downloading leap seconds.",
     )
     ietf_leap_second_auto_url = _config.ConfigItem(
-        IETF_LEAP_SECOND_URL, "Alternate URL for auto-downloading leap seconds."
+        _IETF_LEAP_SECOND_URL,
+        "Deprecated and unused. Alternate URL for auto-downloading leap seconds.",
     )
 
 
@@ -1029,31 +1049,22 @@ class earth_orientation_table(ScienceState):
 class LeapSeconds(QTable):
     """Leap seconds class, holding TAI-UTC differences.
 
-    The table should hold columns 'year', 'month', 'tai_utc'.
-
-    Methods are provided to initialize the table from IERS ``Leap_Second.dat``,
-    IETF/ntp ``leap-seconds.list``, or built-in ERFA/SOFA, and to update the
-    list used by ERFA.
+    The table holds columns 'year', 'month', 'day', 'mjd' and 'tai_utc', with
+    one row for each date on which TAI-UTC changed.  Use
+    `~astropy.utils.iers.LeapSeconds.from_erfa` to get the table built into
+    ERFA, which is the table `~astropy.time.Time` uses.
 
     Notes
     -----
-    Astropy has a built-in ``iers.IERS_LEAP_SECONDS_FILE``. Up to date versions
-    can be downloaded from ``iers.IERS_LEAP_SECONDS_URL`` or
-    ``iers.LEAP_SECONDS_LIST_URL``.  Many systems also store a version
-    of ``leap-seconds.list`` for use with ``ntp`` (e.g., on Debian/Ubuntu
-    systems, ``/usr/share/zoneinfo/leap-seconds.list``).
-
     Leap seconds have been discontinued: under Resolution 5 of the 28th CGPM
     (2026), UTC is continuous from 2027 May 20, and IERS Bulletin C 72 had
-    already ruled out a leap second before 2027 June 28.  The table built into
-    ERFA, which `~astropy.time.Time` uses, already includes the last leap
-    second (2017 January 1, TAI-UTC = 37 s), so `~astropy.time.Time` no longer
-    checks for or loads newer tables, and the expiration date of a table no
-    longer matters.
+    already ruled out a leap second before 2027 June 28.  The last leap second
+    was inserted on 2017 January 1 (TAI-UTC = 37 s), and the table built into
+    ERFA already includes it, so it is final.
 
-    To prevent `~astropy.utils.iers.LeapSeconds.auto_open` from querying
-    internet resources if the available local leap second file(s) are out of
-    date, set ``iers.conf.auto_download = False``.
+    Reading leap-second files (``Leap_Second.dat`` from IERS or
+    ``leap-seconds.list`` from IETF) and loading tables into ERFA are
+    deprecated since 8.1, since they can no longer give a different table.
     """
 
     # Note: Time instances in this class should use scale='tai' to avoid
@@ -1061,151 +1072,108 @@ class LeapSeconds(QTable):
 
     _re_expires = re.compile(r"^#.*File expires on[:\s]+(\d+\s\w+\s\d+)\s*$")
     _expires = None
-    _auto_open_files = [
-        "erfa",
-        IERS_LEAP_SECOND_FILE,
-        "system_leap_second_file",
-        "iers_leap_second_auto_url",
-        "ietf_leap_second_auto_url",
-    ]
-    """Files or conf attributes to try in auto_open."""
 
     @classmethod
-    def open(cls, file=None, cache=False):
+    def open(cls, file="erfa", cache=False):
         """Open a leap-second list.
 
         Parameters
         ----------
-        file : path-like or None
-            Full local or network path to the file holding leap-second data,
-            for passing on to the various ``from_`` class methods.
-            If 'erfa', return the data used by the ERFA library.
-            If `None`, use default locations from file and configuration to
-            find a table that is not expired.
+        file : str
+            'erfa' (default), to get the table used by the ERFA library.
+            Passing anything else, i.e., a local or network path to a file
+            holding leap-second data, or `None`, is deprecated since 8.1.
         cache : bool
-            Whether to use cache. Defaults to False, since leap-second files
-            are regularly updated.
+            Whether to use the download cache for a network path.  Defaults
+            to False.
 
         Returns
         -------
         leap_seconds : `~astropy.utils.iers.LeapSeconds`
             Table with 'year', 'month', and 'tai_utc' columns, plus possibly
             others.
-
-        Notes
-        -----
-        Bulletin C is released about 10 days after a possible leap second is
-        introduced, i.e., mid-January or mid-July.  Expiration days are thus
-        generally at least 150 days after the present.  For the auto-loading,
-        a list comprised of the table shipped with astropy, and files and
-        URLs in `~astropy.utils.iers.Conf` are tried, returning the first
-        that is sufficiently new, or the newest among them all.
         """
-        if file is None:
-            return cls.auto_open()
-
-        if file.lower() == "erfa":
+        if isinstance(file, str) and file.lower() == "erfa":
             return cls.from_erfa()
 
+        warn(
+            "Calling LeapSeconds.open() with anything other than 'erfa' is "
+            "deprecated since 8.1 and may be removed in a future version. Leap "
+            "seconds have been discontinued, so the table built into ERFA is "
+            "final; use LeapSeconds.from_erfa() instead.",
+            AstropyDeprecationWarning,
+            stacklevel=2,
+        )
+        return cls._open(file, cache=cache)
+
+    @classmethod
+    def _open(cls, file=None, cache=False):
+        # Implementation of the deprecated part of open, to be removed with it.
+        if file is None:
+            return cls._auto_open()
+
+        if isinstance(file, str) and file.lower() == "erfa":
+            return cls.from_erfa()
+
+        file = os.fspath(file)
         if urlparse(file).netloc:
             file = download_file(file, cache=cache)
 
         # Just try both reading methods.
         try:
-            return cls.from_iers_leap_seconds(file)
+            return cls._from_iers_leap_seconds(file)
         except Exception:
-            return cls.from_leap_seconds_list(file)
-
-    @staticmethod
-    def _today():
-        # Get current day in scale='tai' without going through a scale change
-        # (so we do not need leap seconds).
-        s = "{0.year:04d}-{0.month:02d}-{0.day:02d}".format(datetime.now(tz=UTC))
-        return Time(s, scale="tai", format="iso", out_subfmt="date")
+            return cls._from_leap_seconds_list(file)
 
     @classmethod
+    @deprecated(
+        since="8.1",
+        message=(
+            "LeapSeconds.auto_open is deprecated and may be removed in a future "
+            "version. Leap seconds have been discontinued, so the table built "
+            "into ERFA is final; use LeapSeconds.from_erfa() instead."
+        ),
+    )
     def auto_open(cls, files=None):
-        """Attempt to get an up-to-date leap-second list.
-
-        The routine will try the files in sequence until it finds one
-        whose expiration date is "good enough" (see below).  If none
-        are good enough, it returns the one with the most recent expiration
-        date, warning if that file is expired.
-
-        For remote files that are cached already, the cached file is tried
-        first before attempting to retrieve it again.
+        """Get the leap-second list with the latest expiration date.
 
         Parameters
         ----------
         files : list of path-like, optional
-            List of files/URLs to attempt to open.  By default, uses
-            ``cls._auto_open_files``.
+            List of files/URLs to attempt to open.  By default, uses the
+            leap-second file bundled with ``astropy-iers-data``.
 
         Returns
         -------
         leap_seconds : `~astropy.utils.iers.LeapSeconds`
-            Up to date leap-second table
-
-        Notes
-        -----
-        Bulletin C is released about 10 days after a possible leap second is
-        introduced, i.e., mid-January or mid-July.  Expiration days are thus
-        generally at least 150 days after the present.  We look for a file
-        that expires more than 180 - `~astropy.utils.iers.Conf.auto_max_age`
-        after the present.
+            The table from the readable file with the latest expiration date.
         """
-        offset = 180 - (30 if conf.auto_max_age is None else conf.auto_max_age)
-        good_enough = cls._today() + TimeDelta(offset, format="jd")
+        return cls._auto_open(files)
 
+    @classmethod
+    def _auto_open(cls, files=None):
+        # Implementation of the deprecated auto_open, to be removed with it.
         if files is None:
-            # Basic files to go over (entries in _auto_open_files can be
-            # configuration items, which we want to be sure are up to date).
-            files = [getattr(conf, f, f) for f in cls._auto_open_files]
-
-        # Remove empty entries and normalize Path objects to string
-        files = [os.fspath(f) for f in files if f]
-
-        # Our trials start with normal files and remote ones that are
-        # already in cache.  The bools here indicate that the cache
-        # should be used.
-        trials = [
-            (f, True)
-            for f in files
-            if not urlparse(f).netloc or is_url_in_cache(f, on_missing="ignore")
-        ]
-        # If we are allowed to download, we try downloading new versions
-        # if none of the above worked.
-        if conf.auto_download:
-            trials += [(f, False) for f in files if urlparse(f).netloc]
+            files = [_IERS_LEAP_SECOND_FILE]
 
         self = None
         err_list = []
-        # Go through all entries, and return the first one that
-        # is not expired, or the most up to date one.
-        for f, allow_cache in trials:
-            if not allow_cache:
-                clear_download_cache(f)
-
+        for f in (os.fspath(f) for f in files if f):
             try:
-                trial = cls.open(f, cache=True)
+                trial = cls._open(f, cache=True)
             except Exception as exc:
                 err_list.append(exc)
                 continue
 
             if self is None or trial.expires > self.expires:
                 self = trial
-                self.meta["data_url"] = str(f)
-                if self.expires > good_enough:
-                    break
+                self.meta["data_url"] = f
 
         if self is None:
             raise ValueError(
                 "none of the files could be read. The "
                 f"following errors were raised:\n {err_list}"
             )
-
-        if self.expires < self._today() and conf.auto_max_age is not None:
-            warn("leap-second file is expired.", IERSStaleWarning)
 
         return self
 
@@ -1238,7 +1206,15 @@ class LeapSeconds(QTable):
         return self
 
     @classmethod
-    def from_iers_leap_seconds(cls, file=IERS_LEAP_SECOND_FILE):
+    @deprecated(
+        since="8.1",
+        message=(
+            "LeapSeconds.from_iers_leap_seconds is deprecated and may be removed "
+            "in a future version. Leap seconds have been discontinued, so the "
+            "table built into ERFA is final; use LeapSeconds.from_erfa() instead."
+        ),
+    )
+    def from_iers_leap_seconds(cls, file=_IERS_LEAP_SECOND_FILE):
         """Create a table from a file like the IERS ``Leap_Second.dat``.
 
         Parameters
@@ -1246,18 +1222,31 @@ class LeapSeconds(QTable):
         file : path-like, optional
             Full local or network path to the file holding leap-second data
             in a format consistent with that used by IERS.  By default, uses
-            ``iers.IERS_LEAP_SECOND_FILE``.
+            the file bundled with ``astropy-iers-data``.
 
         Notes
         -----
         The file *must* contain the expiration date in a comment line, like
         '#  File expires on 28 June 2020'
         """
+        return cls._from_iers_leap_seconds(file)
+
+    @classmethod
+    def _from_iers_leap_seconds(cls, file=_IERS_LEAP_SECOND_FILE):
+        # Implementation of the deprecated from_iers_leap_seconds.
         return cls._read_leap_seconds(
             file, names=["mjd", "day", "month", "year", "tai_utc"]
         )
 
     @classmethod
+    @deprecated(
+        since="8.1",
+        message=(
+            "LeapSeconds.from_leap_seconds_list is deprecated and may be removed "
+            "in a future version. Leap seconds have been discontinued, so the "
+            "table built into ERFA is final; use LeapSeconds.from_erfa() instead."
+        ),
+    )
     def from_leap_seconds_list(cls, file):
         """Create a table from a file like the IETF ``leap-seconds.list``.
 
@@ -1265,14 +1254,18 @@ class LeapSeconds(QTable):
         ----------
         file : path-like, optional
             Full local or network path to the file holding leap-second data
-            in a format consistent with that used by IETF.  Up to date versions
-            can be retrieved from ``iers.IETF_LEAP_SECOND_URL``.
+            in a format consistent with that used by IETF.
 
         Notes
         -----
         The file *must* contain the expiration date in a comment line, like
         '# File expires on:  28 June 2020'
         """
+        return cls._from_leap_seconds_list(file)
+
+    @classmethod
+    def _from_leap_seconds_list(cls, file):
+        # Implementation of the deprecated from_leap_seconds_list.
         from astropy.io.ascii import convert_numpy  # Here to avoid circular import
 
         names = ["ntp_seconds", "tai_utc", "comment", "day", "month", "year"]
@@ -1303,8 +1296,21 @@ class LeapSeconds(QTable):
             If `False` (default), retrieve the list currently used by ERFA,
             which may have been updated.  If `True`, retrieve the list shipped
             with erfa.
+
+        Notes
+        -----
+        The 'day' column is always 1 and 'mjd' is the corresponding Modified
+        Julian Date, as in tables read from leap-second files.  Unlike those,
+        the ERFA table also has entries from before 1972, when UTC was not yet
+        an integer number of seconds from TAI.  For those entries, 'tai_utc'
+        is only the offset at the given date, since ERFA adds a drift with
+        time that is not part of this table.
         """
         current = cls(erfa.leap_seconds.get())
+        current["day"] = np.ones_like(current["month"])
+        current["mjd"] = erfa.cal2jd(current["year"], current["month"], 1)[1].astype(
+            int
+        )
         # Leap seconds were discontinued (CGPM 2026, Resolution 5), so the leap-second
         # table built into ERFA is final and cannot expire.  pyerfa versions that
         # include liberfa/pyerfa#359 report this themselves; for older ones, which
@@ -1334,6 +1340,15 @@ class LeapSeconds(QTable):
         finally:
             erfa.leap_seconds.set(current)
 
+    @deprecated(
+        since="8.1",
+        message=(
+            "LeapSeconds.update_erfa_leap_seconds is deprecated and may be removed "
+            "in a future version. Leap seconds have been discontinued, so the "
+            "table built into ERFA is final; if you need to change it anyway, "
+            "use erfa.leap_seconds.set() or erfa.leap_seconds.update()."
+        ),
+    )
     def update_erfa_leap_seconds(self, initialize_erfa=False):
         """Add any leap seconds not already present to the ERFA table.
 

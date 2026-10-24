@@ -1,0 +1,11 @@
+Since leap seconds have been discontinued, the table built into ERFA is the only
+leap-second table still supported. Deprecated are ``LeapSeconds.auto_open()``,
+``LeapSeconds.from_iers_leap_seconds()``, ``LeapSeconds.from_leap_seconds_list()``
+and ``LeapSeconds.update_erfa_leap_seconds()``; calling ``LeapSeconds.open()``
+with anything other than ``'erfa'``, which is now the default; the
+``IERS_LEAP_SECOND_FILE``, ``IERS_LEAP_SECOND_URL`` and ``IETF_LEAP_SECOND_URL``
+constants in ``astropy.utils.iers``; and the ``system_leap_second_file``,
+``iers_leap_second_auto_url`` and ``ietf_leap_second_auto_url`` items of
+``astropy.utils.iers.conf``, which are no longer used. Use
+``LeapSeconds.from_erfa()`` to get the table. ``IERSStaleWarning`` is no longer
+emitted for an expired leap-second file.
