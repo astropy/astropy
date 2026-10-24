@@ -11,7 +11,6 @@ Ref: https://journals.aas.org/mrt-standards
 import re
 import warnings
 from io import StringIO
-from math import ceil, floor
 from string import Template
 from textwrap import wrap
 
@@ -336,30 +335,8 @@ class MrtHeader(cds.CdsHeader):
             else:
                 col_unit = "---"
 
-            # Add col limit values to col description
-            lim_vals = ""
-            if (
-                col.min
-                and col.max
-                and not any(
-                    x in col.name for x in ["RA", "DE", "LON", "LAT", "PLN", "PLT"]
-                )
-            ):
-                # No col limit values for coordinate columns.
-                if col.fortran_format[0] == "I":
-                    if (
-                        abs(col.min) < MAX_COL_INTLIMIT
-                        and abs(col.max) < MAX_COL_INTLIMIT
-                    ):
-                        if col.min == col.max:
-                            lim_vals = f"[{col.min}]"
-                        else:
-                            lim_vals = f"[{col.min}/{col.max}]"
-                elif col.fortran_format[0] in ("E", "F"):
-                    lim_vals = f"[{floor(col.min * 100) / 100.0}/{ceil(col.max * 100) / 100.0}]"
-
-            if lim_vals != "" or nullflag != "":
-                description = f"{lim_vals}{nullflag} {description}"
+            if nullflag != "":
+                description = f"{nullflag} {description}"
 
             # Find the maximum label and description column widths.
             max_label_width = max(len(col.name), max_label_width)
