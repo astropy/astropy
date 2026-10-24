@@ -52,7 +52,7 @@ class TETE(BaseRADecFrame):
     An equatorial coordinate or frame using the True Equator and True Equinox (TETE).
 
     Equatorial coordinate frames measure RA with respect to the equinox and declination
-    with with respect to the equator. The location of the equinox and equator vary due
+    with respect to the equator. The location of the equinox and equator vary due
     the gravitational torques on the oblate Earth. This variation is split into precession
     and nutation, although really they are two aspects of a single phenomena. The smooth,
     long term variation is known as precession, whilst smaller, periodic components are

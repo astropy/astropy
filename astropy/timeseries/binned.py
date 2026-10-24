@@ -251,7 +251,7 @@ class BinnedTimeSeries(BaseTimeSeries):
         return super().__getitem__(item)
 
     @classmethod
-    def read(
+    def read(  # ruff: ignore[PLR0917]
         cls,
         filename,
         time_bin_start_column=None,
@@ -287,8 +287,6 @@ class BinnedTimeSeries(BaseTimeSeries):
         ----------
         filename : str
             File to parse.
-        format : str
-            File format specifier.
         time_bin_start_column : str
             The name of the column with the start time for each bin.
         time_bin_end_column : str, optional
@@ -304,6 +302,8 @@ class BinnedTimeSeries(BaseTimeSeries):
             The time format for the start and end columns.
         time_scale : str, optional
             The time scale for the start and end columns.
+        format : str, optional
+            File format specifier.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
         **kwargs : dict, optional
@@ -313,7 +313,6 @@ class BinnedTimeSeries(BaseTimeSeries):
         -------
         out : `astropy.timeseries.binned.BinnedTimeSeries`
             BinnedTimeSeries corresponding to the file.
-
         """
         try:
             # First we try the readers defined for the BinnedTimeSeries class

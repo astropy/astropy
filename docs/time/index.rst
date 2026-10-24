@@ -340,7 +340,7 @@ Time from Epoch Formats
 The formats ``cxcsec``, ``gps``, ``unix``, and ``unix_tai`` are special in that
 they provide a floating point representation of the elapsed time in seconds
 (with the caveat that ``unix`` does not include leap seconds)
-since a particular reference date. These formats have a intrinsic time scale
+since a particular reference date. These formats have an intrinsic time scale
 which is used to compute the elapsed seconds since the reference date.
 
 ============ ====== ========================
@@ -636,7 +636,7 @@ The ``precision`` setting affects string formats when outputting a value that
 includes seconds. It must be an integer between 0 and 9. There is no effect
 when inputting time values from strings. The default precision is 3. Note
 that the limit of 9 digits is driven by the way that |ERFA| handles fractional
-seconds. In practice this should should not be an issue.  ::
+seconds. In practice this should not be an issue.  ::
 
   >>> t = Time('B1950.0', precision=3)
   >>> t.byear_str
@@ -1149,6 +1149,16 @@ scale along with the auto-download feature::
     accuracy of IERS predictions if your science depends on that. If you
     request ``UT1-UTC`` for times beyond the range of IERS table data then the
     nearest available values will be provided.
+
+.. _time-leap-seconds:
+
+The UTC to TAI offset is the number of leap seconds inserted since 1972, which
+`astropy.time` takes from the table built into |PyERFA|. Leap seconds have been
+discontinued: `Resolution 5 of the 28th CGPM (2026)
+<https://www.bipm.org/en/cgpm-2026/resolution-5>`_ makes UTC continuous from
+2027 May 20, and IERS Bulletin C 72 had already ruled out a leap second before
+2027 June 28. The table, whose last entry is 2017 January 1 (TAI - UTC = 37 s),
+is therefore final and needs no updates.
 
 In the case of the TDB to TT offset, most users need only provide the
 ``location`` when creating the |Time| object. If the

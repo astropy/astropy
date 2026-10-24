@@ -38,20 +38,20 @@ class LombScargle(BasePeriodogram):
     Parameters
     ----------
     t : array-like or `~astropy.units.Quantity` ['time']
-        sequence of observation times
+        Sequence of observation times.
     y : array-like or `~astropy.units.Quantity`
-        sequence of observations associated with times t
+        Sequence of observations associated with times t.
     dy : float, array-like, or `~astropy.units.Quantity`, optional
-        error or sequence of observational errors associated with times t
+        Error or sequence of observational errors associated with times t.
     fit_mean : bool, optional
-        if True, include a constant offset as part of the model at each
+        If True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if fit_mean = False
+        If True, pre-center the data by subtracting the weighted mean
+        of the input data. This is especially important if fit_mean = False.
     nterms : int, optional
-        number of terms to use in the Fourier fit
+        Number of terms to use in the Fourier fit.
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         Normalization to use for the periodogram.
 
@@ -103,7 +103,7 @@ class LombScargle(BasePeriodogram):
 
     available_methods = available_methods()
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         t,
         y,
@@ -218,7 +218,7 @@ class LombScargle(BasePeriodogram):
         Parameters
         ----------
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
@@ -229,7 +229,7 @@ class LombScargle(BasePeriodogram):
             If specified, then use this maximum frequency rather than one
             chosen based on the average nyquist frequency.
         return_freq_limits : bool, optional
-            if True, return only the frequency limits rather than the full
+            If True, return only the frequency limits rather than the full
             frequency grid.
 
         Returns
@@ -256,7 +256,7 @@ class LombScargle(BasePeriodogram):
         else:
             return minimum_frequency + df * np.arange(Nf)
 
-    def autopower(
+    def autopower(  # ruff: ignore[PLR0917]
         self,
         method="auto",
         method_kwds=None,
@@ -271,7 +271,7 @@ class LombScargle(BasePeriodogram):
         Parameters
         ----------
         method : str, optional
-            specify the lomb scargle implementation to use. Options are:
+            Specify the lomb scargle implementation to use. Options are:
 
             - 'auto': choose the best method based on the input
             - 'fast': use the O[N log N] fast method. Note that this requires
@@ -289,11 +289,11 @@ class LombScargle(BasePeriodogram):
               heteroskedastic errors.
 
         method_kwds : dict, optional
-            additional keywords to pass to the lomb-scargle method
+            Additional keywords to pass to the lomb-scargle method.
         normalization : {'standard', 'model', 'log', 'psd'}, optional
             If specified, override the normalization specified at instantiation.
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
@@ -343,11 +343,13 @@ class LombScargle(BasePeriodogram):
         Parameters
         ----------
         frequency : array-like or `~astropy.units.Quantity` ['frequency']
-            frequencies (not angular frequencies) at which to evaluate the
+            Frequencies (not angular frequencies) at which to evaluate the
             periodogram. Note that in order to use method='fast', frequencies
             must be regularly-spaced.
+        normalization : {'standard', 'model', 'log', 'psd'}, optional
+            If specified, override the normalization specified at instantiation.
         method : str, optional
-            specify the lomb scargle implementation to use. Options are:
+            Specify the lomb scargle implementation to use. Options are:
 
             - 'auto': choose the best method based on the input
             - 'fast': use the O[N log N] fast method. Note that this requires
@@ -365,14 +367,11 @@ class LombScargle(BasePeriodogram):
               heteroskedastic errors.
 
         assume_regular_frequency : bool, optional
-            if True, assume that the input frequency is of the form
+            If True, assume that the input frequency is of the form
             freq = f0 + df * np.arange(N). Only referenced if method is 'auto'
             or 'fast'.
-        normalization : {'standard', 'model', 'log', 'psd'}, optional
-            If specified, override the normalization specified at instantiation.
-
         method_kwds : dict, optional
-            additional keywords to pass to the lomb-scargle method
+            Additional keywords to pass to the lomb-scargle method.
 
         Returns
         -------
@@ -400,6 +399,19 @@ class LombScargle(BasePeriodogram):
         Convert the provided times (if absolute) to relative times using the
         current _tstart value. If the times provided are relative, they are
         returned without conversion (though we still do some checks).
+
+        Parameters
+        ----------
+        name : str
+            The name of the argument the times were provided as, used in error
+            messages.
+        times : `~astropy.time.Time`, `~astropy.time.TimeDelta`, `~astropy.units.Quantity`, or array-like
+            The times to convert.
+
+        Returns
+        -------
+        times : `~astropy.units.Quantity` or array-like
+            The times relative to the reference time of the time series.
         """
         if isinstance(times, TimeDelta):
             times = times.to("day")
@@ -434,7 +446,7 @@ class LombScargle(BasePeriodogram):
         t : array-like or `~astropy.units.Quantity` ['time']
             Times (length ``n_samples``) at which to compute the model.
         frequency : float
-            the frequency for the model
+            The frequency for the model.
 
         Returns
         -------
@@ -468,7 +480,8 @@ class LombScargle(BasePeriodogram):
 
         Returns
         -------
-        offset : scalar
+        offset : float or `~astropy.units.Quantity`
+            The offset of the model, in the units of ``y``.
 
         See Also
         --------
@@ -501,7 +514,7 @@ class LombScargle(BasePeriodogram):
         Parameters
         ----------
         frequency : float
-            the frequency for the model
+            The frequency for the model.
         units : bool
             If True (default), return design matrix with data units.
 
@@ -535,7 +548,7 @@ class LombScargle(BasePeriodogram):
         Parameters
         ----------
         frequency : float
-            the frequency for the model
+            The frequency for the model.
         t : array-like, `~astropy.units.Quantity`, or `~astropy.time.Time` (optional)
             Times (length ``n_samples``) at which to compute the model.
             If not specified, then the times and uncertainties of the input
@@ -591,7 +604,7 @@ class LombScargle(BasePeriodogram):
         dist = _statistics.cdf_single if cumulative else _statistics.pdf_single
         return dist(power, len(self._trel), self.normalization, dH=dH, dK=dK)
 
-    def false_alarm_probability(
+    def false_alarm_probability(  # ruff: ignore[PLR0917]
         self,
         power,
         method="baluev",
@@ -614,7 +627,7 @@ class LombScargle(BasePeriodogram):
         method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
             The approximation method to use.
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.
@@ -686,7 +699,7 @@ class LombScargle(BasePeriodogram):
             method_kwds=method_kwds,
         )
 
-    def false_alarm_level(
+    def false_alarm_level(  # ruff: ignore[PLR0917]
         self,
         false_alarm_probability,
         method="baluev",
@@ -709,7 +722,7 @@ class LombScargle(BasePeriodogram):
         method : {'baluev', 'davies', 'naive', 'bootstrap'}, optional
             The approximation method to use; default='baluev'.
         samples_per_peak : float, optional
-            The approximate number of desired samples across the typical peak
+            The approximate number of desired samples across the typical peak.
         nyquist_factor : float, optional
             The multiple of the average nyquist frequency used to choose the
             maximum frequency if maximum_frequency is not provided.

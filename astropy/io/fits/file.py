@@ -294,6 +294,15 @@ class _File:
                 # Test mmap.flush--see
                 # https://github.com/astropy/astropy/issues/968
                 self.memmap = False
+            elif not self.readonly and sys.platform == "emscripten":
+                # Emscripten's munmap writes a writeable shared mapping back
+                # to whichever file currently holds the file descriptor number
+                # the mapping was created with, so once that descriptor is
+                # closed and reused (as happens when a resized file is
+                # rewritten in update mode), another file gets overwritten.
+                # Emscripten's mmap is an in-memory copy anyway, so nothing is
+                # lost by not using it.
+                self.memmap = False
 
     def __repr__(self):
         return f"<{self.__module__}.{self.__class__.__name__} {self._file}>"

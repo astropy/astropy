@@ -403,7 +403,6 @@ lint.extend-select = [
     "C4",    # flake8-comprehensions
     "C90",   # mccabe
     "COM",   # flake8-commas
-    # "CPY",   # flake8-copyright  # TODO: enable when out of preview
     "D",     # pydocstyle
     "DJ",    # flake8-django
     # "DOC",   # pydocstyle  # TODO: enable when out of preview
@@ -543,6 +542,7 @@ exclude = [
     "B018",  # UselessExpression
     "D",  # pydocstyle
     "S101",  # Use of assert detected
+    "PLR0917", # too-many-positional-arguments, not relevant for pytest fixtures
 ]
 ".pyinstaller/*.py" = ["INP001"]  # Not a package.
 "conftest.py" = ["INP001"]  # Part of configuration, not a package.
@@ -834,7 +834,6 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/table/.*',
     '^astropy/tests/.*',
     '^astropy/time/.*',
-    '^astropy/timeseries/.*',
     '^astropy/uncertainty/.*',
     '^astropy/units/.*',
     '^astropy/utils/.*',
@@ -1026,7 +1025,11 @@ url = "https://pypi.org/simple"
 # exclude packages published less than a week ago (ISO 8601)
 exclude-newer = "P7D"
 # always allow arbitrarily new versions of astropy-iers-data
-exclude-newer-package = { "astropy-iers-data" = false }
+exclude-newer-package.astropy-iers-data = false
+# eMudhra "we have a problem" was here
+exclude-newer-package.certify = false
+exclude-newer-package.pip = false # bundles certify
+exclude-newer-package.virtualenv = false # bundles pip (hence, bundles certify)
 
 [[tool.uv.index]]
 name = "sp-nightlies"
@@ -1045,6 +1048,7 @@ cache-control = { api = "max-age=600", files = "max-age=43200, immutable" }
 [tool.mypy]
 follow_imports = "silent"
 packages = [
+    "astropy.config",
     "astropy.coordinates.sites",
     "astropy.cosmology",  # See `exclude` for skipped modules
 ]
@@ -1052,6 +1056,7 @@ packages = [
 # they must not start with `/`: the path is `astropy/...` from the repository
 # root, but `../../.tox/<...>/astropy/<...>` under tox.
 exclude = [
+    "astropy/config/_tempfile_shim.py", # backport module
     # Private `astropy.cosmology`, not type checked yet.
     "astropy/cosmology/_src/",
     # Tests are out of scope for now. `test_scalar_inv_efuncs.py` additionally

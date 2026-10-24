@@ -8,6 +8,16 @@ def bitceil(N):
     Find the bit (i.e., power of 2) immediately greater than or equal to N.
     Note: this works for numbers up to 2 ** 64.
     Roughly equivalent to int(2 ** np.ceil(np.log2(N))).
+
+    Parameters
+    ----------
+    N : int
+        The number to round up to a power of 2.
+
+    Returns
+    -------
+    int
+        The smallest power of 2 greater than or equal to N.
     """
     return 1 << int(N - 1).bit_length()
 
@@ -61,12 +71,12 @@ def extirpolate(x, y, N=None, M=4):
     Parameters
     ----------
     x : array-like
-        Array of abscissas
+        Array of abscissas.
     y : array-like
-        Array of ordinates
+        Array of ordinates.
     N : int
         Number of integer bins to use. For best performance, N should be larger
-        than the maximum of x
+        than the maximum of x.
     M : int
         Number of adjoining points on which to extirpolate.
 
@@ -74,6 +84,11 @@ def extirpolate(x, y, N=None, M=4):
     -------
     yN : ndarray
         N extirpolated values associated with range(N)
+
+    Notes
+    -----
+    This code is based on the C implementation of ``spread()`` presented in
+    Numerical Recipes in C, Second Edition (Press et al. 1989; p.583).
 
     Examples
     --------
@@ -85,11 +100,6 @@ def extirpolate(x, y, N=None, M=4):
     >>> f = lambda x: np.sin(x / 10)
     >>> np.allclose(np.sum(y * f(x)), np.sum(y_hat * f(x_hat)))
     True
-
-    Notes
-    -----
-    This code is based on the C implementation of spread() presented in
-    Numerical Recipes in C, Second Edition (Press et al. 1989; p.583).
     """
     x, y = map(np.ravel, np.broadcast_arrays(x, y))
 
@@ -126,6 +136,21 @@ def jn(n, x, num_terms=8):
     of an integer order n for small values of x.
     Approximately equivalent to scipy.special.jv(n, x)
     for -π/4 < x < π/4.
+
+    Parameters
+    ----------
+    n : int or array-like of int
+        The order of the Bessel function.
+    x : float or array-like
+        The value at which to evaluate the Bessel function.
+    num_terms : int, optional
+        The number of terms of the power series to sum.
+
+    Returns
+    -------
+    result : ndarray
+        The approximate value of the Bessel function, with ``n`` and ``x``
+        broadcast against each other.
     """
     n = np.asarray(n, dtype=np.int32)
     x = np.asarray(x)
@@ -376,7 +401,7 @@ def nufft1_lra(x, y, N, eps):
     return s[:N]
 
 
-def trig_sum(
+def trig_sum(  # ruff: ignore[PLR0917]
     t,
     h,
     df,
@@ -403,29 +428,29 @@ def trig_sum(
     Parameters
     ----------
     t : array-like
-        array of input times
+        Array of input times.
     h : array-like
-        array weights for the sum
+        Array weights for the sum.
     df : float
-        frequency spacing
+        Frequency spacing.
     N : int
-        number of frequency bins to return
+        Number of frequency bins to return.
     f0 : float, optional
-        The low frequency to use
+        The low frequency to use.
     freq_factor : float, optional
-        Factor which multiplies the frequency
-    use_fft : bool
-        if True, use the approximate FFT algorithm to compute the result.
+        Factor which multiplies the frequency.
     oversampling : int (default = 5)
-        oversampling freq_factor for the approximation; roughly the number of
+        Oversampling freq_factor for the approximation; roughly the number of
         time samples across the highest-frequency sinusoid. This parameter
         contains the trade-off between accuracy and speed.
-        Referenced only when use_fft is True and algorithm is set to 'fasper'
+        Referenced only when use_fft is True and algorithm is set to 'fasper'.
+    use_fft : bool
+        If True, use the approximate FFT algorithm to compute the result.
     Mfft : int
         The number of adjacent points to use in the FFT approximation.
         Not referenced if use_fft is False.
     algorithm : 'fasper' (default), or 'lra'
-        This option is ignored if if use_fft is False.
+        This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Currently there are two available options:
 
@@ -439,7 +464,7 @@ def trig_sum(
     Returns
     -------
     S, C : ndarray
-        summation arrays for frequencies f = df * np.arange(1, N + 1)
+        Summation arrays for frequencies f = df * np.arange(1, N + 1)
     """
     if df <= 0:
         raise ValueError("df must be positive")

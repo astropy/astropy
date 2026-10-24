@@ -28,7 +28,7 @@ from textwrap import TextWrapper
 from typing import Final
 from warnings import warn
 
-import configobj
+import configobj  # type: ignore[import-untyped]
 import numpy as np
 from configobj import validate
 
@@ -304,6 +304,8 @@ class ConfigItem:
     """
     Rootname sets the base path for all config files.
     """
+
+    name: str  # this attribute is set by the parent ConfigNamespace
 
     def __init__(
         self, defaultvalue="", description=None, cfgtype=None, module=None, aliases=None
@@ -599,13 +601,12 @@ def get_config(
         from cannot be determined.
     """
     if packageormod is None:
-        packageormod = find_current_module(2)
-        if packageormod is None:
+        if (mod := find_current_module(2)) is None:
             msg1 = "Cannot automatically determine get_config module, "
             msg2 = "because it is not called from inside a valid module"
             raise RuntimeError(msg1 + msg2)
         else:
-            packageormod = packageormod.__name__
+            packageormod = mod.__name__
 
         _autopkg = True
 

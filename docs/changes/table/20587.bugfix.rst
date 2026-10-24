@@ -1,0 +1,4 @@
+Fixed ``MaskedColumn.quantity`` and ``MaskedColumn.to()`` silently dropping the
+mask. They now return a masked ``Quantity``, as ``QTable`` already does when it
+converts a ``MaskedColumn``. ``quantity`` remains a view, now sharing the mask
+as well as the data with the column.

@@ -20,6 +20,10 @@ applies the subclass to those arrays, so they are returned as Column instances
 (when really they're just an array that was in a Column).  This overrides that
 behavior in the case where the element returned from a single row of the
 Column is itself an array.
+
+This module also provides fast per-element scans used to choose string dtypes
+without relying on NumPy's implicit bytes/text promotion, which NumPy is
+deprecating (numpy/numpy#32757).
 """
 
 import sys
@@ -27,6 +31,7 @@ import sys
 import numpy as np
 cimport numpy as np
 from cpython.ref cimport PyTypeObject
+from libc.math cimport isnan
 
 np.import_array()
 
@@ -87,3 +92,79 @@ cdef inline object masked_column_getitem(object self, object item):
 cdef class _MaskedColumnGetitemShim(_ColumnGetitemShim):
     def __getitem__(self, item):
         return base_getitem(self, item, masked_column_getitem)
+
+
+def _get_string_dtype(value):
+    """
+    Choose a string dtype for a flat list or tuple of bytes, text and numbers.
+
+    Parameters
+    ----------
+    value : object
+        Value to classify.
+
+    Returns
+    -------
+    dtype : {"S", "U", None}
+        ``"S"`` if all elements are bytes, ``"U"`` if any element is text, or None
+        if NumPy should infer the dtype (e.g., nested sequences, arrays, or only
+        bytes and numbers).
+    """
+    cdef bint has_text = False
+    cdef bint all_bytes = True
+    # Long sequences usually repeat one type, so skip re-checking it.
+    cdef type scalar_type = None
+
+    if not isinstance(value, (list, tuple)):
+        return None
+    for item in value:
+        if isinstance(item, bytes) or type(item) is scalar_type:
+            continue
+        if isinstance(item, str):
+            has_text = True
+        elif not isinstance(item, (int, float, complex, np.number, np.bool_)):
+            # Let NumPy handle nested sequences and other types.
+            return None
+        scalar_type = type(item)
+        all_bytes = False
+    # With dtype "U", NumPy decodes bytes as ASCII, like the deprecated promotion.
+    if has_text:
+        return "U"
+    return "S" if all_bytes else None
+
+
+def _get_string_fill_value(data, *, bint legacy_pandas=False):
+    """
+    Choose a placeholder for missing values in a string-like object column.
+
+    The placeholder matches the type of the first string, so NumPy infers ``U``
+    or ``S`` from the filled values without mixing bytes and text.
+
+    Parameters
+    ----------
+    data : ndarray
+        Object array of column values.
+    legacy_pandas : bool, optional
+        If True, only the ``np.nan`` object counts as missing (``from_pandas``).
+        If False, None and any NaN count as missing (``from_df``).  Default is
+        False.
+
+    Returns
+    -------
+    fill : str, bytes or None
+        ``""`` or ``b""`` matching the first string (``b""`` if there are no
+        strings), or None if any value is neither a string nor missing.
+    """
+    cdef object fill = None
+    cdef object nan = np.nan
+
+    for value in data:
+        if isinstance(value, (str, bytes)):
+            if fill is None:
+                fill = "" if isinstance(value, str) else b""
+        elif legacy_pandas:
+            if value is not nan:
+                return None
+        elif value is not None and not isnan(value):
+            return None
+    return b"" if fill is None else fill

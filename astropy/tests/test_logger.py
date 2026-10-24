@@ -65,6 +65,22 @@ def test_warnings_logging_overridden():
         log.disable_warnings_logging()
 
 
+def test_set_defaults_with_overridden_warnings_hook():
+    log.enable_warnings_logging()
+
+    def third_party_hook(*args, **kwargs):
+        pass
+
+    warnings.showwarning = third_party_hook
+
+    with conf.set_temp("log_warnings", False):
+        log._set_defaults()
+
+    assert warnings.showwarning is third_party_hook
+    assert log._showwarning_orig is None
+    assert not log.warnings_logging_enabled()
+
+
 def test_warnings_logging():
     # Without warnings logging
     with pytest.warns(AstropyUserWarning, match="This is a warning") as warn_list:
@@ -194,7 +210,28 @@ def test_exception_logging_overridden():
         log.disable_exception_logging()
 
 
-@pytest.mark.xfail("_WITHIN_IPYTHON")
+@pytest.mark.xfail(
+    "_WITHIN_IPYTHON", reason="Cannot override exception handler in IPython"
+)
+def test_set_defaults_with_overridden_exception_hook():
+    log.enable_exception_logging()
+
+    def third_party_hook(etype, evalue, tb):
+        pass
+
+    sys.excepthook = third_party_hook
+
+    with conf.set_temp("log_exceptions", False):
+        log._set_defaults()
+
+    assert sys.excepthook is third_party_hook
+    assert log._excepthook_orig is None
+    assert not log.exception_logging_enabled()
+
+
+@pytest.mark.xfail(
+    "_WITHIN_IPYTHON", reason="Cannot override exception handler in IPython"
+)
 def test_exception_logging():
     # Without exception logging
     with pytest.raises(Exception, match="This is an Exception"):
@@ -232,7 +269,9 @@ def test_exception_logging():
     assert len(log_list) == 0
 
 
-@pytest.mark.xfail("_WITHIN_IPYTHON")
+@pytest.mark.xfail(
+    "_WITHIN_IPYTHON", reason="Cannot override exception handler in IPython"
+)
 def test_exception_logging_origin():
     # The point here is to get an exception raised from another location
     # and make sure the error's origin is reported correctly

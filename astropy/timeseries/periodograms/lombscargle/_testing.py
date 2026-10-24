@@ -11,8 +11,8 @@ def assert_not_strictly_equal(
 
     Parameters
     ----------
-    a : array-like
-    b : array-like
+    a, b : array-like
+        The arrays to compare.
     err : str (optional)
         Custom error message for the assertion failure.
     """

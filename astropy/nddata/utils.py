@@ -203,7 +203,7 @@ def extract_array[DT: np.generic](
 ) -> NDArray[DT]: ...
 
 
-def extract_array(
+def extract_array(  # ruff: ignore[PLR0917]
     array_large,
     shape,
     position,
@@ -620,7 +620,7 @@ class Cutout2D:
      [nan  4.  5.]]
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         data,
         position,
@@ -638,7 +638,9 @@ class Cutout2D:
         if isinstance(position, SkyCoord):
             if wcs is None:
                 raise ValueError("wcs must be input if position is a SkyCoord")
-            position = skycoord_to_pixel(position, wcs, mode="all")  # (x, y)
+            position = skycoord_to_pixel(
+                position, wcs, mode="all", native_pixel_order=True
+            )  # (x, y)
 
         if np.isscalar(size):
             size = np.repeat(size, 2)

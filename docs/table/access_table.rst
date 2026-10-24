@@ -353,7 +353,7 @@ We can check table data equality using two different methods:
 
 - The ``==`` comparison operators. In the general case, this returns a 1D array
   with ``dtype=bool`` mapping each row to ``True`` if and only if the *entire row*
-  matches. For incomparable data (different ``dtype`` or unbroacastable lengths),
+  matches. For incomparable data (different ``dtype`` or unbroadcastable lengths),
   a boolean ``False`` is returned.
   This is in contrast to the behavior of ``numpy`` where trying to compare
   structured arrays might raise exceptions.
@@ -915,6 +915,19 @@ changes to the :attr:`~astropy.table.Column.quantity` property::
   45000.0
   50000.0
   60000.0
+
+For a |MaskedColumn|, the :attr:`~astropy.table.MaskedColumn.quantity` property
+and the :meth:`~astropy.table.Column.to` method return a masked |Quantity|
+(see :ref:`utils-masked`), so masked elements stay masked. The
+:attr:`~astropy.table.MaskedColumn.quantity` view shares the mask as well as
+the data with the column::
+
+  >>> from astropy.table import MaskedColumn
+  >>> mc = MaskedColumn([1., 2., 3.], unit=u.m, mask=[False, False, True])
+  >>> mc.quantity
+  <MaskedQuantity [1., 2., ——] m>
+  >>> mc.to(u.cm)
+  <MaskedQuantity [100., 200.,  ———] cm>
 
 Even without explicit conversion, columns with units can be treated like a
 |Quantity| in *some* arithmetic expressions (see the warning below for caveats

@@ -11,13 +11,13 @@ def compute_chi2_ref(y, dy=None, center_data=True, fit_mean=True):
     Parameters
     ----------
     y : array-like
-        data values
+        Data values.
     dy : float, array, or None, optional
-        data uncertainties
+        Data uncertainties.
     center_data : bool
-        specify whether data should be pre-centered
+        Specify whether data should be pre-centered.
     fit_mean : bool
-        specify whether model should fit the mean of the data
+        Specify whether model should fit the mean of the data.
 
     Returns
     -------
@@ -44,12 +44,12 @@ def convert_normalization(Z, N, from_normalization, to_normalization, chi2_ref=N
     Parameters
     ----------
     Z : array-like
-        the periodogram output
+        The periodogram output.
     N : int
-        the number of data points
+        The number of data points.
     from_normalization, to_normalization : str
-        the normalization to convert from and to. Options are
-        ['standard', 'model', 'log', 'psd']
+        The normalization to convert from and to. Options are
+        ['standard', 'model', 'log', 'psd'].
     chi2_ref : float
         The reference chi-square, required for converting to or from the
         psd normalization.

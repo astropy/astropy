@@ -1,0 +1,7 @@
+``Column.searchsorted()`` and ``MaskedColumn.searchsorted()``, and therefore
+``np.searchsorted()`` on a column, now raise a ``ValueError`` when the value to search
+for is a ``Quantity``. Previously the unit of the ``Quantity`` was ignored and the search
+used its raw numbers, so ``Column([1., 2., 3.], unit="m").searchsorted(2 * u.km)``
+returned ``1``. This also affects ``Table.loc`` lookups with a ``Quantity`` key on a
+column indexed with the default ``SortedArray`` engine. For a unit-aware search, use
+``col.quantity.searchsorted()`` or a ``QTable``.

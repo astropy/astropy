@@ -18,13 +18,18 @@ from astropy.utils.compat import NUMPY_LT_2_5, NUMPY_LT_2_6
 from astropy.utils.console import color_print
 from astropy.utils.data_info import BaseColumnInfo, dtype_info_name
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.masked import Masked
 from astropy.utils.metadata import MetaData
 from astropy.utils.misc import dtype_bytes_or_chars
 
 from . import groups, pprint
 
 # These "shims" provide __getitem__ implementations for Column and MaskedColumn
-from ._column_mixins import _ColumnGetitemShim, _MaskedColumnGetitemShim
+from ._column_mixins import (
+    _ColumnGetitemShim,
+    _get_string_dtype,
+    _MaskedColumnGetitemShim,
+)
 from ._typing import ColumnFormat, ColumnLike, DataLike
 
 if TYPE_CHECKING:
@@ -530,7 +535,7 @@ class ColumnInfo(BaseColumnInfo):
 class BaseColumn(_ColumnGetitemShim, np.ndarray):
     meta = MetaData(default_factory=dict)
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917]
         cls,
         data: DataLike = None,
         name: str | None = None,
@@ -1048,6 +1053,45 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
         side: Literal["left", "right"] = "left",
         sorter: npt.ArrayLike | None = None,
     ) -> int | np.integer | npt.NDArray:
+        """
+        Find indices where elements of ``v`` should be inserted to maintain order.
+
+        This is equivalent to `numpy.searchsorted` applied to the column data.
+
+        Parameters
+        ----------
+        v : array-like
+            Values to insert into the column. A `~astropy.units.Quantity` is not
+            allowed, since the column ``unit`` is not used in the comparison.
+        side : {'left', 'right'}, optional
+            If 'left', the index of the first suitable location found is given.
+            If 'right', return the last such index.
+        sorter : 1-D array-like, optional
+            Optional array of integer indices that sort the column into
+            ascending order.
+
+        Returns
+        -------
+        indices : int or array of ints
+            Array of insertion points with the same shape as ``v``, or an
+            integer if ``v`` is a scalar.
+
+        Raises
+        ------
+        ValueError
+            If ``v`` is a `~astropy.units.Quantity`. For a unit-aware search use
+            ``col.quantity.searchsorted(v)`` or a `~astropy.table.QTable`.
+        """
+        # Not TypeError: np.searchsorted(col, v) calls this method via numpy's
+        # _wrapfunc, which catches TypeError and silently retries on plain arrays.
+        if isinstance(v, Quantity):
+            name = f" {self.info.name!r}" if self.info.name is not None else ""
+            raise ValueError(
+                f"cannot search Column{name} with a Quantity, since the column unit "
+                "is not used in the comparison; use col.quantity.searchsorted(...) "
+                "or a QTable for a unit-aware search"
+            )
+
         # For bytes type data, encode the `v` value as UTF-8 (if necessary) before
         # calling searchsorted. This prevents a factor of 1000 slowdown in
         # searchsorted in this case.
@@ -1057,8 +1101,6 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
             if v.dtype.kind == "U":
                 v = np.strings.encode(v, "utf-8")
         return np.searchsorted(a, v, side=side, sorter=sorter)
-
-    searchsorted.__doc__ = np.ndarray.searchsorted.__doc__
 
     def convert_unit_to(self, new_unit: UnitLike, equivalencies: list = []) -> None:
         """
@@ -1187,15 +1229,29 @@ class BaseColumn(_ColumnGetitemShim, np.ndarray):
     @staticmethod
     def _encode_str(value) -> Any:
         """
-        Encode anything that is unicode-ish as utf-8.  This method is only
-        called for Py3+.
+        Encode anything that is unicode-ish as utf-8.
+
+        Parameters
+        ----------
+        value : object
+            Value assigned to, compared with, or used to create a bytes column.
+
+        Returns
+        -------
+        value : object
+            ``value`` with any text encoded as utf-8 bytes; masked input stays
+            masked.
         """
         if isinstance(value, str):
             value = value.encode("utf-8")
         elif isinstance(value, bytes) or value is np.ma.masked:
             pass
         else:
-            arr = np.asarray(value)
+            dtype = _get_string_dtype(value)
+            if dtype == "S":
+                # Nothing to encode, so skip the array conversion.
+                return value
+            arr = np.asarray(value, dtype=dtype)
             if arr.dtype.char == "U":
                 arr = np.strings.encode(arr, encoding="utf-8")
                 if isinstance(value, np.ma.MaskedArray):
@@ -1288,7 +1344,7 @@ class Column(BaseColumn):
         col.value
     """
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917]
         cls,
         data: DataLike = None,
         name: str | None = None,
@@ -1669,7 +1725,7 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
 
     info = MaskedColumnInfo()
 
-    def __new__(
+    def __new__(  # ruff: ignore[PLR0917]
         cls,
         data: DataLike = None,
         name: str | None = None,
@@ -1689,7 +1745,12 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
             # If mask is None then we need to determine the mask (if any) from the data.
             # The naive method is looking for a mask attribute on data, but this can fail,
             # see #8816.  Instead use ``MaskedArray`` to do the work.
-            mask = ma.MaskedArray(data).mask
+            # Use an object array so that inferring the mask does not convert mixed
+            # bytes and text (which can raise UnicodeDecodeError).
+            mask_dtype = None
+            if isinstance(data, (list, tuple)) and np.dtype(dtype).kind in "SUO":
+                mask_dtype = object
+            mask = ma.MaskedArray(data, dtype=mask_dtype).mask
             if mask is np.ma.nomask:
                 # Handle odd-ball issue with np.ma.nomask (numpy #13758), and see below.
                 mask = False
@@ -1848,6 +1909,17 @@ class MaskedColumn(Column, _MaskedColumnGetitemShim, ma.MaskedArray):
         # to return a plain MaskedArray, we reset the baseclass accordingly.
         out._baseclass = np.ndarray
         return out
+
+    @property
+    def quantity(self) -> Quantity:
+        """
+        Return view of this table column as a masked `~astropy.units.Quantity`.
+
+        The result is a `~astropy.utils.masked.Masked` quantity that shares
+        the unit, data, and the mask with this column, even if no elements are
+        masked.
+        """
+        return Masked(super().quantity, mask=self.mask, copy=False)
 
     def filled(self, fill_value=None) -> Column:
         """Return a copy of self, with masked values filled with a given value.

@@ -13,15 +13,15 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     Parameters
     ----------
     t, y : array-like
-        times, values, and errors of the data points. These should be
+        Times, values, and errors of the data points. These should be
         broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     frequency : array-like
-        frequencies (not angular frequencies) at which to calculate periodogram
+        Frequencies (not angular frequencies) at which to calculate periodogram.
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
+        If True, pre-center the data by subtracting the weighted mean
         of the input data.
 
     Returns

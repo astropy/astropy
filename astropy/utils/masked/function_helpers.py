@@ -9,6 +9,7 @@ the documentation so that there is a place to find out how the mask is
 interpreted.
 
 """
+# ruff: file-ignore[PLR0917]
 
 import warnings
 
@@ -17,7 +18,13 @@ import numpy._core as np_core
 from numpy.lib._function_base_impl import _quantile_is_valid, _ureduce
 
 from astropy.units.quantity_helper.function_helpers import FunctionAssigner
-from astropy.utils.compat import NUMPY_LT_2_1, NUMPY_LT_2_2, NUMPY_LT_2_4, NUMPY_LT_2_5
+from astropy.utils.compat import (
+    NUMPY_LT_2_1,
+    NUMPY_LT_2_2,
+    NUMPY_LT_2_4,
+    NUMPY_LT_2_5,
+    NUMPY_LT_2_6,
+)
 
 # This module should not really be imported, but we define __all__
 # such that sphinx can typeset the functions with docstrings.
@@ -101,7 +108,8 @@ if not NUMPY_LT_2_2:
 MASKED_SAFE_FUNCTIONS |= {
     getattr(np, name)
     for name in np_core.fromnumeric.__all__
-    if name not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp"}
+    if name
+    not in {"choose", "put", "resize", "searchsorted", "where", "alen", "ptp", "minmax"}
 }
 MASKED_SAFE_FUNCTIONS |= {
     # built-in from multiarray
@@ -521,6 +529,47 @@ def bincount(x, /, weights=None, minlength=0):
             mask = np.bincount(x, w_mask.astype(int), minlength=minlength).astype(bool)
     result = np.bincount(x, weights, minlength=0)
     return result, mask, None
+
+
+if not NUMPY_LT_2_6:
+
+    @dispatched_function
+    def minmax(
+        a,
+        axis=None,
+        out=None,
+        keepdims=np._NoValue,
+        initial=np._NoValue,
+        where=np._NoValue,
+    ):
+        if where is np._NoValue:
+            where = ~a.mask
+
+        kwargs_min = {"axis": axis, "keepdims": keepdims, "where": where}
+        kwargs_max = kwargs_min.copy()
+
+        match initial:
+            case tuple(imin, imax):
+                pass
+            case np._NoValue:
+                imin = np.nanmax(a.unmasked)
+                imax = np.nanmin(a.unmasked)
+            case _:
+                imin = imax = initial
+        kwargs_min["initial"] = imin
+        kwargs_max["initial"] = imax
+
+        match out:
+            case tuple(omin, omax):
+                pass
+            case None:
+                omin = omax = None
+            case _:
+                raise TypeError
+        kwargs_min["out"] = omin
+        kwargs_max["out"] = omax
+
+        return (np.min(a, **kwargs_min), np.max(a, **kwargs_max)), None, None
 
 
 # Used to work via ptp method, but now need to override, otherwise

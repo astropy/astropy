@@ -296,7 +296,7 @@ def binom_conf_interval(
     return conf_interval
 
 
-def binned_binom_proportion(
+def binned_binom_proportion(  # ruff: ignore[PLR0917]
     x: ArrayLike,
     success: ArrayLike,
     bins: int | ArrayLike = 10,
@@ -940,7 +940,7 @@ def mad_std(
     return MAD * 1.482602218505602
 
 
-def signal_to_noise_oir_ccd(
+def signal_to_noise_oir_ccd(  # ruff: ignore[PLR0917]
     t: float | NDArray,
     source_eps: float,
     sky_eps: float,
@@ -1168,7 +1168,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
-        calculate the matching s_min that has has eqn7(S_max) =
+        calculate the matching s_min that has eqn7(S_max) =
         eqn7(S_min) here.
         """
         y_S_max = eqn7(S_max, N, B)
@@ -1251,7 +1251,7 @@ def _mpmath_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, fl
         directions at once, so that S_min and S_max move similarly (see
         the article for details). Here, this is implemented differently:
         Treat S_max as the optimization parameters in func and then
-        calculate the matching s_min that has has eqn7(S_max) =
+        calculate the matching s_min that has eqn7(S_max) =
         eqn7(S_min) here.
         """
         y_S_max = eqn7(S_max, N, B)
@@ -1567,6 +1567,10 @@ def fold_intervals(
         breaks.add(fa)
         r.append((0, fa, -wt))
         fb = b % 1
+        if fb == 0:
+            # b lies on a period boundary, so ceil(b) already counts no
+            # partial final period and nothing should be removed.
+            fb = 1.0
         breaks.add(fb)
         r.append((fb, 1, -wt))
 

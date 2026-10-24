@@ -478,7 +478,7 @@ a config object in another package will lead to a configuration file taking the
 name of that package in the ``astropy`` config directory (i.e.,
 ``<astropy_config>/packagename.cfg``).
 
-It is possible to configure this behavior so that the a custom configuration
+It is possible to configure this behavior so that a custom configuration
 directory is created for your package, for example,
 ``~/.packagename/packagename.cfg``. To do this, create a ``packagename.config``
 subpackage and put the following into the ``__init__.py`` file::

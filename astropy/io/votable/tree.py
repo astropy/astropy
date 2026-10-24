@@ -3,6 +3,7 @@
 
 # STDLIB
 import base64
+import binascii
 import codecs
 import gzip
 import io
@@ -214,7 +215,7 @@ def _lookup_by_id_or_name_factory(iterator, element_name, doc):
 
     def lookup_by_id_or_name(self, ref, before=None):
         """
-        Given an key *ref*, finds the first element in the iterator
+        Given a key *ref*, finds the first element in the iterator
         with the attribute ID == *ref* or name == *ref*.  If *before*
         is provided, will stop searching at the object *before*.  This
         is important, since "forward references" are not allowed in
@@ -660,7 +661,7 @@ class Link(SimpleElement, _IDProperty):
     ]
     _element_name = "LINK"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         ID=None,
         title=None,
@@ -782,7 +783,7 @@ class Info(SimpleElementWithContent, _IDProperty, _XtypeProperty, _UtypeProperty
     _attr_list_12 = _attr_list_11 + ["xtype", "ref", "unit", "ucd", "utype"]
     _utype_in_v1_2 = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         ID=None,
         name=None,
@@ -953,7 +954,7 @@ class Values(Element, _IDProperty):
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         votable,
         field,
@@ -1331,7 +1332,7 @@ class Field(
     _attr_list_12 = _attr_list_11 + ["xtype"]
     _element_name = "FIELD"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         votable,
         ID=None,
@@ -1793,7 +1794,7 @@ class Param(Field):
     _attr_list_12 = Field._attr_list_12 + ["value"]
     _element_name = "PARAM"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         votable,
         ID=None,
@@ -1874,7 +1875,7 @@ class CooSys(SimpleElement):
     _element_name = "COOSYS"
     _reference_frames = None
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         ID=None,
         equinox=None,
@@ -2064,7 +2065,7 @@ class TimeSys(SimpleElement):
     _attr_list = ["ID", "timeorigin", "timescale", "refposition"]
     _element_name = "TIMESYS"
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         ID=None,
         timeorigin=None,
@@ -2198,7 +2199,7 @@ class FieldRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self, table, ref, ucd=None, utype=None, config=None, pos=None, **extra
     ):
         """
@@ -2271,7 +2272,7 @@ class ParamRef(SimpleElement, _UtypeProperty, _UcdProperty):
     _utype_in_v1_2 = True
     _ucd_in_v1_2 = True
 
-    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None):
+    def __init__(self, table, ref, ucd=None, utype=None, config=None, pos=None):  # ruff: ignore[PLR0917]
         if config is None:
             config = {}
 
@@ -2338,7 +2339,7 @@ class Group(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         table,
         ID=None,
@@ -2499,7 +2500,7 @@ class TableElement(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         votable,
         ID=None,
@@ -3126,7 +3127,9 @@ class TableElement(
                     break
 
         if have_local_stream:
-            buffer = base64.b64decode(buffer.encode("ascii"))
+            # binascii reads the ASCII str in place without copying it, which
+            # keeps memory usage down for large files.
+            buffer = binascii.a2b_base64(buffer)
             string_io = io.BytesIO(buffer)
             string_io.seek(0)
             read = string_io.read
@@ -3824,7 +3827,7 @@ class Resource(
     name, documented below.
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         name=None,
         ID=None,

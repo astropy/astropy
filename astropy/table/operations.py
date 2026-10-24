@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import numpy as np
 import numpy.typing as npt
 
-from astropy.units import Quantity
+from astropy.units import Quantity, UnitConversionError
 from astropy.utils import metadata
 from astropy.utils.compat.optional_deps import HAS_PANDAS, HAS_SCIPY
 from astropy.utils.masked import Masked
@@ -414,7 +414,7 @@ def join(
         Join type ('inner' | 'outer' | 'left' | 'right' | 'cartesian'), default is 'inner'
     keys_left : str or list of str or list of column-like, optional
         Left column(s) used to match rows instead of ``keys`` arg. This can be
-        be a single left table column name or list of column names, or a list of
+        a single left table column name or list of column names, or a list of
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
@@ -1158,9 +1158,27 @@ def _get_join_sortable_arrays(
         # get_sortable_arrays() returns a list of ndarrays that can be lexically
         # sorted to represent the order of the column. In most cases this is just
         # a single element of the column itself.
+        left_col = left[key]
+        right_col = right[key]
+
+        # Quantity keys are compared as raw values, so express the right key in the
+        # unit of the left key. Otherwise 1 m would match 1 km.
+        if (
+            isinstance(left_col, Quantity)
+            and isinstance(right_col, Quantity)
+            and right_col.unit != left_col.unit
+        ):
+            try:
+                right_col = right_col.to(left_col.unit)
+            except UnitConversionError as err:
+                raise TableMergeError(
+                    f"key column {key!r} has incompatible units in left and right "
+                    f"tables ({left_col.unit} and {right_col.unit})"
+                ) from err
+
         try:
-            left_sort_cols = left[key].info.get_sortable_arrays()
-            right_sort_cols = right[key].info.get_sortable_arrays()
+            left_sort_cols = left_col.info.get_sortable_arrays()
+            right_sort_cols = right_col.info.get_sortable_arrays()
         except NotImplementedError as err:
             raise TypeError("one or more key columns are not sortable") from err
 
@@ -1311,7 +1329,7 @@ def _select_join_engine(engine: str) -> tuple[str, Callable[..., Any]]:
     return engine, compute_join_indices
 
 
-def _join(
+def _join(  # ruff: ignore[PLR0917]
     left: Table,
     right: Table,
     keys: str | list[str] | None = None,
@@ -1354,7 +1372,7 @@ def _join(
         See `~astropy.table.join_skycoord` for an example and details.
     keys_left : str or list of str or list of column-like, optional
         Left column(s) used to match rows instead of ``keys`` arg. This can be
-        be a single left table column name or list of column names, or a list of
+        a single left table column name or list of column names, or a list of
         column-like values with the same lengths as the left table.
     keys_right : str or list of str or list of column-like, optional
         Same as ``keys_left``, but for the right side of the join.
@@ -1478,11 +1496,19 @@ def _join(
             out[out_name] = col_cls.info.new_like(
                 cols, n_out, metadata_conflicts, out_name
             )
-            out[out_name][:] = np.where(
-                right_mask,
-                left[left_name].take(left_out),
-                right[right_name].take(right_out),
-            )
+            # Take unmatched rows from the left and the rest from the right.  Assign
+            # each side separately so that bytes and text keys are not promoted.
+            for col, indices, mask in zip(
+                cols, (left_out, right_out), (right_mask, ~right_mask)
+            ):
+                indices = indices[mask]
+                if len(indices) == 0:  # e.g., the left side of an inner join
+                    continue
+                values = col.take(indices)
+                if _dtype.kind == "U" and col.dtype.kind == "S":
+                    # Decode here so the setitem truncation check doesn't decode again.
+                    values = values.astype("U")
+                out[out_name][mask] = values
             continue
         elif left_name:  # out_name came from the left table
             name, array, array_out, array_mask = left_name, left, left_out, left_mask
@@ -1663,7 +1689,7 @@ def _compute_join_indices_pandas(
     return masked, n_out, left_out, left_mask, right_out, right_mask
 
 
-def _join_keys_left_right(
+def _join_keys_left_right(  # ruff: ignore[PLR0917]
     left: Table,
     right: Table,
     keys: str | list[str] | None,

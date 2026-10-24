@@ -1,0 +1,5 @@
+Fixed ``join`` on ``Quantity`` key columns (e.g. in a ``QTable``) whose units
+differ between the left and right tables. Key values were previously compared
+as raw numbers, so ``1 m`` matched ``1 km`` while ``1 m`` did not match
+``0.001 km``. The right key is now converted to the unit of the left key before
+matching, and a ``TableMergeError`` is raised if the units are not convertible.

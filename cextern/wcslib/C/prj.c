@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  WCSLIB 8.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,7 +19,7 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: prj.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
+  $Id: prj.c,v 8.10 2026/09/27 05:44:33 mcalabre Exp $
 *===========================================================================*/
 
 #include <math.h>
@@ -1101,7 +1101,7 @@ int szpx2s(
 
 
   // Do bounds checking on the native coordinates.
-  if (prj->bounds&4 && prjbchk(1.0e-13, nx, my, spt, phi, theta, stat)) {
+  if (prj->bounds&4 && prjbchk(2.0e-13, nx, my, spt, phi, theta, stat)) {
     if (!status) status = PRJERR_BAD_PIX_SET("szpx2s");
   }
 

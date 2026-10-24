@@ -4382,7 +4382,7 @@ static const yy_state_type yy_NUL_trans[217] =
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "wcsutrn.l"
 /*============================================================================
-  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  WCSLIB 8.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -4402,7 +4402,7 @@ static const yy_state_type yy_NUL_trans[217] =
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: wcsutrn.c,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
+  $Id: wcsutrn.c,v 8.10 2026/09/27 05:44:33 mcalabre Exp $
 *=============================================================================
 *
 * wcsutrn.l is a Flex description file containing the definition of a lexical

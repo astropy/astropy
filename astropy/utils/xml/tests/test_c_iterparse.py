@@ -24,7 +24,7 @@ VALID_XML_CASES = [
                 (True, "root", {}, (1, 21)),
                 (True, "child", {}, (1, 27)),
                 (False, "child", "text", (1, 34)),
-                (False, "root", "text", (1, 34)),
+                (False, "root", "", (1, 34)),
             ),
         ),
         id="happy_path_standard_xml",
@@ -78,3 +78,32 @@ def test_c_iterparser_malformed_raises_error() -> None:
 
     with pytest.raises(ValueError, match="no element found"):
         list(parser)
+
+
+def test_c_iterparser_two_elements_each_over_1mb_of_text() -> None:
+    """
+    IterParser on two elements in a row, each holding 2 MB of text, gives each
+    end event its own text in full.
+
+    After handing over more than 1 MB of text, the parser frees its buffer and
+    starts again with a small one, so the second element checks that the
+    buffer grows again correctly. Only the C parser has a text buffer, so this
+    calls it directly.
+    """
+    first = "a" * 2**21
+    second = "b" * 2**21
+    stream = io.BytesIO(f"<root><one>{first}</one><two>{second}</two></root>".encode())
+    parser = _iterparser.IterParser(stream.read, buffersize=1024)
+
+    events = [event[:3] for event in parser]
+
+    # Each end event has exactly its own element's text: "two" has none of the
+    # "a"s left over from before the buffer was freed, and "root" has no text.
+    assert events == [
+        (True, "root", {}),
+        (True, "one", {}),
+        (False, "one", first),
+        (True, "two", {}),
+        (False, "two", second),
+        (False, "root", ""),
+    ]

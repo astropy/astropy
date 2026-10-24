@@ -44,7 +44,7 @@ You must be careful to clean up the final commit message before pushing the butt
   Merge commits, if any, do not have to be mentioned.
 * Fix typo, as needed.
 * Fill in details about the pull request, as needed.
-* Remove all the directives to skip CI (``[ci skip]`` or ``[skip ci]``).
+* Remove all the directives to skip CI (``[ci skip]``,``[skip ci]``, or ``[skip docs]``).
 * Ensure co-authors are properly credited at the bottom of the final message.
 * Make sure it is the correct button! Your browser remembers a previous selection even from
   a different GitHub repository, which might or might not be the button you want to push.
@@ -150,7 +150,7 @@ issues. The bot makes use of the pre-commit hook described in detail in :ref:`pr
 
 By default the bot will run a code-style check on every push to a pull request with the
 results reported in the checks section of the pull request.  The bot will skip running
-its check if a commit message contains ``[skip ci]``, ``[ci skip]``, ``[skip pre-commit.ci]``,
+its check if a commit message contains ``[skip pre-commit.ci]``
 or ``[pre-commit.ci skip]``.
 
 One can control the bot by making comments on the pull request:
@@ -179,7 +179,7 @@ Benchmarks
 If a pull request explicitly deals with a performance improvement, maintainers should
 use the ``benchmark`` label to run a comparative benchmark on the pull request. This
 will run a benchmark comparing the ``HEAD`` commit of the pull request branch with
-the ``main`` branch. The logs are uploaded as a action artifact and can be viewed
+the ``main`` branch. The logs are uploaded as an action artifact and can be viewed
 in the Actions tab. This workflow uses the benchmarks
 from `astropy-benchmarks <https://github.com/astropy/astropy-benchmarks/>`_.
 
@@ -222,7 +222,7 @@ General guidelines for milestones:
   * The next X.Y release +1; for example if 0.3 is the next release, there should also be a milestone for 0.4 for
     issues that are important, but that we know won't be resolved in the next release.
 
-* We have `Rolling reminder: update wcslib and cfitsio and leap second/IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
+* We have `Rolling reminder: update wcslib and cfitsio and IERS B table to the latest version <https://github.com/astropy/astropy/issues/9018>`_.
   The milestone for this issue should be updated as part of the release
   procedures.
 
@@ -283,12 +283,9 @@ A maintainer applies the "Closed?" label to mark an issue as stale, otherwise it
 stays open until someone manually closes it. Once marked as stale, a warning will
 be issued.
 
-A maintainer can apply "keep-open" label or remove "Closed?" label to remove the
+On the other hand, a maintainer can also remove "Closed?" label to remove the
 stale status. Otherwise, stale-bot will close the issue after about a week and
 apply a "closed-by-bot" label.
-
-When both "keep-open" and "Close?" labels exist, the former will take precedence
-and the latter will be removed from the issue.
 
 Pull Requests
 =============
@@ -298,22 +295,13 @@ counts in seconds and naively assumes 30 days per month). When this happens, sta
 applies the "Close?" label to it. A maintainer can also fast-track its staleness by
 manually applying the "Close?" label. Once marked as stale, a warning will be issued.
 
-A maintainer can apply "keep-open" label or remove "Closed?" label to remove the
+A maintainer can remove "Closed?" label to remove the
 stale status. The pull request author (or maintainer) can reset the stale timer by
 pushing out a commit (e.g., by rebasing). Otherwise, stale-bot will close the
 pull request after about a month and apply a "closed-by-bot" label.
 
-.. note::
-
-    The "keep-open" label should be used very sparingly, only for pull requests that
-    *must* be kept open. For example, a pull request that has been completed but cannot be
-    merged until a blocker is removed can use this label. An abandoned or incomplete
-    pull request should not use this label as it can be re-opened later when the author
-    has a renewed interest to wrap it up.
-
-When both "keep-open" and "Close?" labels exist, the former will take precedence
-and the latter will be removed from the pull request. If maintainer removes "Close?"
-without applying "keep-open" or pushing a new commit, stale-bot will mark it as
+If maintainer removes "Close?"
+without pushing a new commit, stale-bot will mark it as
 stale again in the next run.
 
 If a new commit is pushed but the "Close?" label remains, stale-bot will close

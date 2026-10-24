@@ -75,7 +75,7 @@ def _next_fast_lengths(shape):
     return newshape
 
 
-def _copy_input_if_needed(
+def _copy_input_if_needed(  # ruff: ignore[PLR0917]
     input, dtype=float, order="C", nan_treatment=None, mask=None, fill_value=None
 ):
     # Alias input
@@ -121,7 +121,7 @@ def _copy_input_if_needed(
 
 
 @support_nddata(data="array")
-def convolve(
+def convolve(  # ruff: ignore[PLR0917]
     array,
     kernel,
     boundary="fill",
@@ -471,7 +471,7 @@ def convolve(
 
 
 @support_nddata(data="array")
-def convolve_fft(
+def convolve_fft(  # ruff: ignore[PLR0917]
     array,
     kernel,
     boundary="fill",
@@ -670,7 +670,7 @@ def convolve_fft(
     FFTW++: https://github.com/dealias/fftwpp. It includes python
     wrappers for a pseudospectral convolution which will implicitly
     dealias your convolution without the need for additional padding.
-    Note that one cannot use FFTW++'s convlution directly in this
+    Note that one cannot use FFTW++'s convolution directly in this
     method as in handles the entire convolution process internally.
     Additionally, FFTW++ includes other useful pseudospectral methods to
     consider.

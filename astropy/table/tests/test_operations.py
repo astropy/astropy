@@ -2431,7 +2431,8 @@ def test_vstack_bytes(operation_table_type):
     assert t2["a"].itemsize == 1
 
 
-def test_vstack_unicode():
+@pytest.mark.parametrize("other", ["a", b"a"])
+def test_vstack_unicode(other):
     """
     Test for problem related to issue #5617 when vstack'ing *unicode*
     columns.  In this case the character size gets multiplied by 4.
@@ -2439,9 +2440,17 @@ def test_vstack_unicode():
     t = table.Table([["a"]], names=["a"])
     assert t["a"].itemsize == 4  # 4-byte / char for U dtype
 
-    t2 = table.vstack([t, t])
+    t2 = table.vstack([t, table.Table([[other]], names=["a"])])
     assert len(t2) == 2
     assert t2["a"].itemsize == 4
+
+
+def test_join_bytes_unicode(join_engine):
+    left = table.Table({"name": [b"a"]})
+    right = table.Table({"name": ["b"]})
+    joined = table.join(left, right, join_type="outer", engine=join_engine)
+    assert joined["name"].dtype == np.dtype("U1")
+    assert joined["name"].tolist() == ["a", "b"]
 
 
 def test_join_mixins_time_quantity(join_engine):
@@ -2474,6 +2483,42 @@ def test_join_mixins_time_quantity(join_engine):
     assert np.all(t12["q"] == [1, 1, 2, 3] * u.m)
     assert np.all(t12["idx_1"] == np.ma.array([2, 3, 1, 0], mask=[0, 0, 0, 1]))
     assert np.all(t12["idx_2"] == np.ma.array([0, 0, 10, 20], mask=[1, 1, 0, 0]))
+
+
+def test_join_quantity_keys_different_units(join_engine):
+    """
+    Quantity key columns with different but compatible units are matched by
+    value, not by raw number.
+    """
+    t1 = QTable({"q": [1.0, 2.0, 5.0] * u.m, "idx": [1, 2, 3]})
+    t2 = QTable({"q": [0.001, 0.002, 0.004] * u.km, "idx": [10, 20, 30]})
+
+    t12 = table.join(t1, t2, keys="q", engine=join_engine)
+    assert np.all(t12["q"] == [1, 2] * u.m)
+    assert np.all(t12["idx_1"] == [1, 2])
+    assert np.all(t12["idx_2"] == [10, 20])
+
+    t12 = table.join(t1, t2, join_type="outer", keys="q", engine=join_engine)
+    assert np.all(t12["q"] == [1, 2, 4, 5] * u.m)
+    assert np.all(t12["idx_1"] == np.ma.array([1, 2, 0, 3], mask=[0, 0, 1, 0]))
+    assert np.all(t12["idx_2"] == np.ma.array([10, 20, 30, 0], mask=[0, 0, 0, 1]))
+
+    # Same numbers in different units do not match
+    t3 = QTable({"q": [1.0, 2.0] * u.km, "idx": [10, 20]})
+    assert len(table.join(t1, t3, keys="q", engine=join_engine)) == 0
+
+    t12 = table.join(t1, t2, keys_left="q", keys_right="q", engine=join_engine)
+    assert np.all(t12["idx_1"] == [1, 2])
+    assert np.all(t12["idx_2"] == [10, 20])
+
+
+def test_join_quantity_keys_incompatible_units(join_engine):
+    t1 = QTable({"q": [1.0, 2.0] * u.m, "idx": [1, 2]})
+    t2 = QTable({"q": [1.0, 2.0] * u.s, "idx": [10, 20]})
+    with pytest.raises(
+        TableMergeError, match=r"key column 'q' has incompatible units .* \(m and s\)"
+    ):
+        table.join(t1, t2, keys="q", engine=join_engine)
 
 
 def test_join_mixins_not_sortable(join_engine):

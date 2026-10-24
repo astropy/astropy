@@ -749,7 +749,7 @@ class Table:
 
         return data
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         data: TableLike | None = None,
         masked: bool | None = False,
@@ -1617,6 +1617,13 @@ class Table:
                 else:
                     index_dict[names] = index
 
+        # Columns that were copied from an indexed table carry their indices
+        # along (e.g. ``t[["a", "b"]]`` or ``Table([t["a"]])``), but nothing has
+        # set the primary key yet.  Follow ``add_index()`` and make the first
+        # index the primary one so that ``loc``, ``iloc`` etc. work.
+        if self.primary_key is None and index_dict:
+            self.primary_key = next(iter(index_dict))
+
     def _new_from_slice(self, slice_: slice | npt.NDArray | list | tuple) -> Self:
         """Create a new table as a referenced slice from self."""
         table = self.__class__(masked=self.masked)
@@ -1730,7 +1737,7 @@ class Table:
         for colname in self.columns:
             yield self[colname]
 
-    def _base_repr_(
+    def _base_repr_(  # ruff: ignore[PLR0917]
         self,
         html: bool = False,
         descr_vals: list[str] | None = None,
@@ -1834,7 +1841,7 @@ class Table:
         return has_info_class(col, MixinInfo) and not has_info_class(col, QuantityInfo)
 
     @format_doc(_pprint_docs)
-    def pprint(
+    def pprint(  # ruff: ignore[PLR0917]
         self,
         max_lines: int | None = None,
         max_width: int | None = None,
@@ -1877,7 +1884,7 @@ class Table:
                 print(line)
 
     @format_doc(_pprint_docs)
-    def pprint_all(
+    def pprint_all(  # ruff: ignore[PLR0917]
         self,
         max_lines: int | None = -1,
         max_width: int | None = -1,
@@ -1972,7 +1979,7 @@ class Table:
                 If you are actively using this method, please let us know
                 at https://github.com/astropy/astropy/issues/16067""",
     )
-    def show_in_browser(
+    def show_in_browser(  # ruff: ignore[PLR0917]
         self,
         max_lines: int = 5000,
         jsviewer: bool = False,
@@ -2068,7 +2075,7 @@ class Table:
             br.open(urljoin("file:", pathname2url(str(path))))
 
     @format_doc(_pformat_docs, id="{id}")
-    def pformat(
+    def pformat(  # ruff: ignore[PLR0917]
         self,
         max_lines: int | None = -1,
         max_width: int | None = -1,
@@ -2114,7 +2121,7 @@ class Table:
 
     @deprecated(since="7.0", alternative="Table.pformat")
     @format_doc(_pformat_docs, id="{id}")
-    def pformat_all(
+    def pformat_all(  # ruff: ignore[PLR0917]
         self,
         max_lines: int | None = -1,
         max_width: int | None = -1,
@@ -2228,6 +2235,10 @@ class Table:
                 out, indices=self.groups._indices, keys=self.groups._keys
             )
             out.meta = self.meta.copy()  # Shallow copy for meta
+            # Keep the primary key if its index survived the slice, otherwise
+            # the first remaining index (if any) has been made primary.
+            if self.primary_key in [index.id for index in out.indices]:
+                out.primary_key = self.primary_key
             return out
         elif (isinstance(item, np.ndarray) and item.size == 0) or (
             isinstance(item, (tuple, list)) and not item
@@ -2456,7 +2467,7 @@ class Table:
         except ValueError:
             raise ValueError(f"Column {name} does not exist")
 
-    def add_column(
+    def add_column(  # ruff: ignore[PLR0917]
         self,
         col: DataLike,
         index: int | None = None,

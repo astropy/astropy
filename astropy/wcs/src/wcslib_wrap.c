@@ -1953,47 +1953,21 @@ Wcsprm_s2p(
   }
 }
 
-int
-Wcsprm_cset(
-    Wcsprm* self) {
+#ifndef Py_BEGIN_CRITICAL_SECTION // PYTHON_LT_3_13
+  #define Py_BEGIN_CRITICAL_SECTION(op) {
+  #define Py_END_CRITICAL_SECTION() }
+#endif
 
-  int status = 0;
-
+int Wcsprm_cset_locked(Wcsprm* self) {
   // We want to avoid calling wcsset whenever possible as it is not thread-safe. We use wcsenq
   // to see if the checksum of the wcsprm elements has changed since wcsset was last called.
   if (wcsenq(&self->x, WCSENQ_CHK)) {
     return 0;
   }
 
-#ifdef Py_GIL_DISABLED
-  // On a free-threaded build the GIL no longer serialises concurrent callers
-  // of Wcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
-  // running wcsset simultaneously on the same struct (which is not thread
-  // safe).  A single process-wide PyMutex around the wcsset path is enough:
-  // the fast path (wcsenq-succeeds) above is lock-free, so contention only
-  // happens the first time a WCS is set or after a user mutation, which is
-  // rare.  On a GIL build this macro is undefined and the lock is compiled
-  // out -- the GIL itself serialises us since Wcsprm_cset never releases it.
-  static PyMutex wcsset_mutex;
-  PyMutex_Lock(&wcsset_mutex);
-  // Double-checked locking: re-check under the lock so that if two threads
-  // both missed the fast path above, only the first one actually runs
-  // wcsset and the second returns immediately.
-  if (wcsenq(&self->x, WCSENQ_CHK)) {
-    PyMutex_Unlock(&wcsset_mutex);
-    return 0;
-  }
-#endif
-
   initialize_preserve_units(self);
-
-  status = wcsset(&self->x);
-
+  int status = wcsset(&self->x);
   check_unit_changes(self);
-
-#ifdef Py_GIL_DISABLED
-  PyMutex_Unlock(&wcsset_mutex);
-#endif
 
   if (status == 0) {
     return 0;
@@ -2001,6 +1975,22 @@ Wcsprm_cset(
     wcs_to_python_exc(&(self->x));
     return 1;
   }
+}
+
+int Wcsprm_cset(Wcsprm* self) {
+  int status = 0;
+  Py_BEGIN_CRITICAL_SECTION(self);
+  // On a free-threaded build the GIL no longer serialises concurrent callers
+  // of Wcsprm_cset, so the wcsenq guard alone cannot prevent two threads from
+  // running wcsset simultaneously on the same struct (which is not thread
+  // safe).  A critical section here is sufficient: most of the time, Wcsprm_cset_locked
+  // will return early. Significant contention can only occur the first time a WCS
+  // is set or after a user, mutation, which is rare.
+  // On a GIL build this macro is undefined and the lock is compiled
+  // out -- the GIL itself serialises us since Wcsprm_cset never releases it.
+  status = Wcsprm_cset_locked(self);
+  Py_END_CRITICAL_SECTION();
+  return status;
 }
 
 /*@null@*/ static PyObject*

@@ -55,7 +55,7 @@ def _prepare(values, clip=True, out=None):
 class BaseStretch(BaseTransform):
     """
     Base class for the stretch classes, which when called with an array
-    of values in the range [0:1], returns an transformed array of values
+    of values in the range [0:1], returns a transformed array of values
     also in the range [0:1].
     """
 
