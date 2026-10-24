@@ -17,6 +17,11 @@ from . import formats
 
 __all__ = ["Angle", "Latitude", "Longitude"]
 
+# Minimum number of values for which the vectorized sexagesimal formatter in
+# ``Angle.to_string`` beats the per-element loop; below this its setup cost
+# dominates (see the crossover measured around a handful of elements).
+_VECTORIZE_MIN_SIZE = 8
+
 
 # these are used by the `hms` and `dms` attributes
 class hms_tuple(NamedTuple):
@@ -336,14 +341,43 @@ class Angle(SpecificTypeQuantity):
         if format == "latex_inline":
             format = "latex"
 
-        # Create an iterator so we can format each element of what
-        # might be an array.
+        # Convert Quantity to value in the requested unit so we can format it.
+        values = self.to_value(unit)
+
+        # For sexagmesimal formatting, try using a vectorized path for non-small arrays,
+        # otherwise fall back to a per-element loop by defining a formatting function.
         if not decimal and (unit == u.degree or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:
                     raise ValueError(f"Unknown format '{format}'")
                 sep = separators[format][unit]
+
+            # Fast path: build the whole sexagesimal array with NumPy string operations
+            # instead of looping ``do_format`` over the elements. The helper returns
+            # ``None`` for cases it cannot handle (very old NumPy or out-of-range
+            # degrees), in which case we fall through to the per-element path below. The
+            # vectorized path carries a fixed setup cost, so for a scalar or just a
+            # handful of values the plain loop is quicker.
+            if values.size > _VECTORIZE_MIN_SIZE:
+                result = formats._decimal_to_sexagesimal_string_array(
+                    values,
+                    precision=precision,
+                    sep=sep,
+                    pad=pad,
+                    fields=fields,
+                    alwayssign=alwayssign,
+                )
+                if result is not None:
+                    if format == "latex":
+                        result = "$" + result + "$"
+                    # A non-finite value was formatted as "inf", which is right
+                    # for the infinities but not for NaN.  There is room for
+                    # the shorter string, so this can be done in place.
+                    result[np.isnan(values)] = "nan"
+                    return result
+
+            # Cannot do vectorized formatting, continue on with per-element formatting
             func = functools.partial(
                 formats._decimal_to_sexagesimal_string,
                 precision=precision,
@@ -383,7 +417,7 @@ class Angle(SpecificTypeQuantity):
             return f"${s}$" if format == "latex" else s
 
         format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(self.to_value(unit))
+        result = format_ufunc(values)
         return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):
