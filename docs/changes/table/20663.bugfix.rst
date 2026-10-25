@@ -1,0 +1,1 @@
+Fixed a ``TypeError`` in ``Table.from_df`` and ``Table.from_pandas`` when converting pandas DataFrame string columns containing ``pd.NA``.

@@ -142,3 +142,26 @@ def test_minimal_masked_column_getitem(case: MaskedMixinTestCase):
     assert type(result) is MinimalMaskedColumn
     np.testing.assert_array_equal(result.data, case.expected_data)
     np.testing.assert_array_equal(result.mask, case.expected_mask)
+
+
+def test_get_string_fill_value_pandas_na():
+    from astropy.table._column_mixins import _get_string_fill_value
+    from astropy.utils.compat.optional_deps import HAS_PANDAS
+
+    if not HAS_PANDAS:
+        pytest.skip("pandas is required")
+    import pandas as pd
+
+    data = np.array(["hello", pd.NA], dtype=object)
+    assert _get_string_fill_value(data) == ""
+    assert _get_string_fill_value(data, legacy_pandas=True) == ""
+
+    data_bytes = np.array([b"hello", pd.NA], dtype=object)
+    assert _get_string_fill_value(data_bytes) == b""
+    assert _get_string_fill_value(data_bytes, legacy_pandas=True) == b""
+
+    # Mixed column with non-string numbers and pd.NA should safely return None without TypeError
+    data_mixed = np.array([42, pd.NA], dtype=object)
+    assert _get_string_fill_value(data_mixed) is None
+    assert _get_string_fill_value(data_mixed, legacy_pandas=True) is None
+

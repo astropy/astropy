@@ -770,3 +770,24 @@ def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
     assert df["g"][1] == [3, None]
     assert df["h"][0] == [None, 2.0]
     assert df["h"][1] == [3.0, None]
+
+
+def test_from_df_pandas_string_pd_na():
+    """Test that pd.NA in string columns is handled as missing without raising (issue #20663)."""
+    if not HAS_PANDAS:
+        pytest.skip("pandas is required")
+    import pandas as pd
+
+    df = pd.DataFrame({"s": ["a", None]}, dtype="string")
+    t_df = Table.from_df(df)
+    assert t_df["s"].dtype.kind == "U"
+    assert t_df["s"].mask.tolist() == [False, True]
+
+    t_pandas = Table.from_pandas(df)
+    assert t_pandas["s"].dtype.kind == "U"
+    assert t_pandas["s"].mask.tolist() == [False, True]
+
+    df_obj = pd.DataFrame({"s": ["a", pd.NA]}, dtype=object)
+    assert Table.from_df(df_obj)["s"].dtype.kind == "U"
+    assert Table.from_pandas(df_obj)["s"].dtype.kind == "U"
+
