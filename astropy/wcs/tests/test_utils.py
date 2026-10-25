@@ -1,10 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from contextlib import nullcontext
+from unittest import mock
 
 import numpy as np
 import pytest
-from unittest import mock
-
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
@@ -1851,7 +1850,9 @@ def test_fit_wcs_from_points_proj_point_frame(origin):
     proj_point_icrs = SkyCoord(crval[0] * u.deg, crval[1] * u.deg, frame="icrs")
     proj_point = proj_point_icrs.galactic
 
-    fit_wcs = fit_wcs_from_points((x + origin, y + origin), world_coords, proj_point=proj_point, origin=origin)
+    fit_wcs = fit_wcs_from_points(
+        (x + origin, y + origin), world_coords, proj_point=proj_point, origin=origin
+    )
 
     np.testing.assert_allclose(
         fit_wcs.wcs.crval, [proj_point_icrs.ra.deg, proj_point_icrs.dec.deg]
@@ -1865,6 +1866,7 @@ def test_fit_wcs_from_points_initial_crpix_guess(origin):
     # The initial CRPIX guess must be the pixel of proj_point, i.e. both
     # axes must use the matching coordinate (lon for x, lat for y).
     import scipy.optimize
+
     true_wcs = WCS(naxis=2)
     true_wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     true_wcs.wcs.crval = [12.0, 34.0]
