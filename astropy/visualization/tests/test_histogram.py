@@ -84,3 +84,22 @@ def test_histogram_pathological_input():
 
     with pytest.raises(ValueError):
         hist(data, bins="freedman", max_bins=10000)
+
+
+@pytest.mark.skipif(
+    not HAS_SCIPY or not HAS_PLT, reason="requires scipy and matplotlib"
+)
+def test_hist_knuth_resource_limit(monkeypatch):
+    # #11357: max_bins is checked after selecting edges, so the optimizer
+    # itself must reject excessive bin counts before allocating them.
+    data = [0.05555556, 0, 0, 0, 0, 1, 0, 0, 0, 0.5]
+    linspace = np.linspace
+
+    def bounded_linspace(start, stop, num, *args, **kwargs):
+        if num > 1_000_001:
+            pytest.fail("Knuth optimization attempted an oversized allocation")
+        return linspace(start, stop, num, *args, **kwargs)
+
+    monkeypatch.setattr(np, "linspace", bounded_linspace)
+    with pytest.raises(ValueError, match="Knuth bin optimization exceeded"):
+        hist(data, bins="knuth", ax=Figure().subplots())

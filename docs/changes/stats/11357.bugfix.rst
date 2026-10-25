@@ -1,0 +1,4 @@
+``knuth_bin_width`` now raises ``ValueError`` before allocating more than
+1,000,000 bins during initialization or optimization, avoiding excessive memory
+use for some repeated data. A zero or nonfinite interquartile range also raises
+a clear error. These errors propagate to histograms using ``bins="knuth"``.

@@ -78,6 +78,108 @@ def test_knuth_bin_width():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("return_bins", [False, True])
+def test_knuth_bin_width_resource_limit(monkeypatch, return_bins):
+    # Regression for #11357. Fail before allocating an oversized array even
+    # if the resource guard is removed, so this test is safe on the old code.
+    data = [0.05555556, 0, 0, 0, 0, 1, 0, 0, 0, 0.5]
+    linspace = np.linspace
+
+    def bounded_linspace(start, stop, num, *args, **kwargs):
+        if num > 1_000_001:
+            pytest.fail("Knuth optimization attempted an oversized allocation")
+        return linspace(start, stop, num, *args, **kwargs)
+
+    monkeypatch.setattr(np, "linspace", bounded_linspace)
+    with pytest.raises(ValueError, match="Knuth bin optimization exceeded"):
+        knuth_bin_width(data, return_bins=return_bins)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_knuth_bin_width_large_initial_guess(monkeypatch):
+    # The Freedman-Diaconis initial guess must not allocate edges either.
+    data = [0, 1e-12, 2e-12, 3e-12, 1]
+    arange = np.arange
+
+    def bounded_arange(stop, *args, **kwargs):
+        if stop > 1_000_001:
+            pytest.fail("Attempted to allocate edges for an oversized initial guess")
+        return arange(stop, *args, **kwargs)
+
+    monkeypatch.setattr(np, "arange", bounded_arange)
+    with pytest.raises(ValueError, match="Knuth bin optimization exceeded"):
+        knuth_bin_width(data)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("nbins", [1_000_000, 1_000_001])
+def test_knuth_bin_limit_before_allocation(monkeypatch, nbins):
+    from astropy.stats.histogram import _KnuthF
+
+    calls = []
+
+    def record_linspace(start, stop, num):
+        calls.append(num)
+        return np.array([start, stop])
+
+    monkeypatch.setattr(np, "linspace", record_linspace)
+    objective = _KnuthF([0, 0.1, 0.5, 1])
+    if nbins > 1_000_000:
+        with pytest.raises(ValueError, match="Knuth bin optimization exceeded"):
+            objective.bins(nbins)
+        assert calls == []
+    else:
+        objective.bins(nbins)
+        assert calls == [nbins + 1]
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("nbins", [np.nan, np.inf])
+def test_knuth_nonfinite_bin_count(nbins):
+    from astropy.stats.histogram import _KnuthF
+
+    objective = _KnuthF([0, 0.1, 0.5, 1])
+    for method in [objective.bins, objective.eval]:
+        with pytest.raises(ValueError, match="Knuth bin optimization exceeded"):
+            method(nbins)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("data", [[1] * 10, [0] * 9 + [1], [0, 1, 2, np.nan]])
+def test_knuth_bin_width_invalid_iqr(data):
+    with pytest.raises(ValueError, match="positive, finite interquartile range"):
+        knuth_bin_width(data)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("data", [[], [1], [1, 2], [1, 2, 3]])
+def test_knuth_bin_width_small_sample(data):
+    with pytest.raises(ValueError, match="more than three entries"):
+        knuth_bin_width(data)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("distribution", ["normal", "uniform", "repeated"])
+def test_knuth_bin_width_invariance(distribution):
+    rng = np.random.default_rng(42)
+    if distribution == "normal":
+        data = rng.standard_normal(100)
+    elif distribution == "uniform":
+        data = rng.random(100)
+    else:
+        data = np.repeat(rng.standard_normal(100), 2)
+    width, bins = knuth_bin_width(data, return_bins=True)
+    for transformed, scale, shift in [
+        (data[::-1], 1, 0),
+        (data + 8, 1, 8),
+        (data * 4, 4, 0),
+    ]:
+        new_width, new_bins = knuth_bin_width(transformed, return_bins=True)
+        assert_allclose(new_width, width * scale, rtol=1e-12)
+        assert_allclose(new_bins, bins * scale + shift, rtol=1e-12, atol=1e-14)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
 def test_knuth_histogram():
     rng = np.random.default_rng(0)
     x = rng.standard_normal(1000)

@@ -340,6 +340,12 @@ def knuth_bin_width(
     bins : ndarray
         bin edges: returned if ``return_bins`` is True
 
+    Raises
+    ------
+    ValueError
+        If the interquartile range is zero or nonfinite, or if initialization
+        or optimization requires more than 1,000,000 bins.
+
     Notes
     -----
     The optimal number of bins is the value M which maximizes the function
@@ -353,6 +359,12 @@ def knuth_bin_width(
     where :math:`\Gamma` is the Gamma function, :math:`n` is the number of
     data points, :math:`n_k` is the number of measurements in bin :math:`k`
     [1]_.
+
+    For some repeated or digitized data, this function has no finite maximum
+    [1]_. The limit of 1,000,000 bins bounds memory use during the search;
+    it is not a statistical constraint or an optimal bin count. Exceeding it
+    raises an error without determining whether a finite optimum exists.
+    In that case, specify bin edges explicitly or use another binning method.
 
     References
     ----------
@@ -370,8 +382,18 @@ def knuth_bin_width(
     from scipy import optimize
 
     knuthF = _KnuthF(data)
-    dx0, bins0 = freedman_bin_width(data, True)
-    M = optimize.fmin(knuthF, len(bins0), disp=not quiet)[0]
+    dx0 = freedman_bin_width(knuthF.data)
+    if not np.isfinite(dx0) or dx0 <= 0:
+        raise ValueError(
+            "Knuth bin width requires a positive, finite interquartile range. "
+            "Please use another binning method."
+        )
+    # Preserve the previous initial guess, len(Freedman-Diaconis edges),
+    # without allocating an array that may already be excessively large.
+    with np.errstate(over="ignore"):
+        M0 = max(1, np.ceil((knuthF.data[-1] - knuthF.data[0]) / dx0)) + 1
+    knuthF._check_max_bins(M0)
+    M = optimize.fmin(knuthF, M0, disp=not quiet)[0]
     bins = knuthF.bins(M)
     dx = bins[1] - bins[0]
 
@@ -422,8 +444,17 @@ class _KnuthF:
         # create a reference to gammaln to use in self.eval()
         self.gammaln = special.gammaln
 
+    def _check_max_bins(self, M: int) -> None:
+        if not np.isfinite(M) or int(M) > 1_000_000:
+            raise ValueError(
+                "Knuth bin optimization exceeded the maximum of 1,000,000 bins. "
+                "A finite optimum may not exist for these data. "
+                "Please specify bin edges explicitly or use another binning method."
+            )
+
     def bins(self, M: int) -> NDArray:
         """Return the bin edges given M number of bins."""
+        self._check_max_bins(M)
         return np.linspace(self.data[0], self.data[-1], int(M) + 1)
 
     def __call__(self, M: int) -> float:
@@ -445,6 +476,7 @@ class _KnuthF:
         """
         if not np.isscalar(M):
             M = M[0]
+        self._check_max_bins(M)
         M = int(M)
 
         if M <= 0:

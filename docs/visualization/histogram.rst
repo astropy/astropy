@@ -116,6 +116,14 @@ Astropy implements two of these examples: Knuth's rule (implemented in
 :func:`~astropy.stats.knuth_bin_width`) and Bayesian Blocks (implemented in
 :func:`~astropy.stats.bayesian_blocks`).
 
+For some repeated or digitized data, the objective used by Knuth's rule has no
+finite maximum. To limit memory use during bin selection, Knuth's rule raises
+`ValueError` if its initial estimate or optimization would require more than
+1,000,000 bins. This is a computational limit, not a choice of optimal bin
+count; reaching it does not establish whether a finite optimum exists.
+The initial estimate also requires a positive, finite interquartile range.
+If bin selection fails, specify the bin edges or use another binning method.
+
 Knuth's rule chooses a constant bin size which minimizes the error of the
 histogram's approximation to the data, while the Bayesian Blocks uses a more
 flexible method which allows varying bin widths. Because both of these require
