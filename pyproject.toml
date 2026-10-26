@@ -877,7 +877,10 @@ no-build-package = [
     "numpy",
     "pandas",
     "polars",
-    "pyyaml",
+    # temporarily allowing source installs for pyyaml
+    # see https://github.com/OpenAstronomy/github-actions-workflows/issues/436
+    # see https://github.com/astropy/astropy/issues/20715
+    # "pyyaml",
     "requests",
     "scipy",
     "sgp4",
@@ -1027,9 +1030,9 @@ exclude-newer = "P7D"
 # always allow arbitrarily new versions of astropy-iers-data
 exclude-newer-package.astropy-iers-data = false
 # eMudhra "we have a problem" was here
-exclude-newer-package.certify = false
-exclude-newer-package.pip = false # bundles certify
-exclude-newer-package.virtualenv = false # bundles pip (hence, bundles certify)
+exclude-newer-package.certifi = false
+exclude-newer-package.pip = false # bundles certifi
+exclude-newer-package.virtualenv = false # bundles pip (hence, bundles certifi)
 
 [[tool.uv.index]]
 name = "sp-nightlies"
