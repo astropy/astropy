@@ -277,7 +277,7 @@ WCSHDO_SIP = 0x80000
 # Keyword optionally ends with a capital letter.
 SIP_KW = re.compile("""^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$""")
 
-# Regular expression matching distortion paper (WCS Paper IV draft)
+# Regular expression matching distortion paper (WCS Distortion Paper Draft)
 # prior-distortion keywords: ``CPDISja``, ``CPERRja`` and record-valued
 # ``DPja.<field>``. Groups are the keyword family, the axis number, the
 # alternate WCS key ('' for the primary WCS) and the record field.
@@ -562,19 +562,25 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     shared_cpdis : bool or None, optional
         Whether an alternate WCS (*key* other than ``' '``) that has no
-        `distortion paper`_ prior-distortion keywords of its own
-        (``CPDISja``, ``CPERRja``, ``DPja``) uses the unsuffixed
-        ``CPDISj``, ``CPERRj`` and ``DPj`` keywords of the primary WCS.
-        This is how HST ACS and WFC3 files calibrated by STScI store their
-        non-polynomial distortion tables: once, shared by all WCSs in the
-        header.
+        prior-distortion keywords of its own (``CPDISja``, ``CPERRja``,
+        ``DPja``) uses the unsuffixed ``CPDISj``, ``CPERRj`` and ``DPj``
+        keywords of the primary WCS. HST ACS and WFC3 files calibrated
+        by STScI store their non-polynomial distortion tables once,
+        shared by all WCSs in the header.
 
-        - `None` (default): only when the file follows the HST/STScI
-          convention for shared distortion tables (see Notes).
+        - `None` (default): share prior distortions only when the file
+          follows the HST/STScI convention for shared distortion tables
+          (see Notes). This preserves compatibility with existing
+          HST/STScI files. Otherwise, each WCS uses only its own
+          prior-distortion keywords (as if `shared_cpdis` were `False`).
 
-        - `True`: always.
+        - `True`: share the primary WCS's prior distortions whenever the
+          alternate WCS has no prior-distortion keywords of its own.
 
-        - `False`: never.
+        - `False`: do not share prior distortions. Each WCS uses only its
+          own prior-distortion keywords, following the draft
+          `distortion paper`_, which has not been adopted as a FITS WCS
+          standard.
 
         Keywords belonging to *key* itself always take precedence. This
         parameter does not affect detector-to-image (``D2IMDISj``) or
