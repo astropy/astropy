@@ -425,7 +425,7 @@ def skycoord_to_celestial_wcs(
     reference_position,
     *,
     fov=None,
-    shape=None,
+    pixel_shape=None,
     pixel_angular_size,
     reference_pixel=None,
     frame=None,
@@ -439,19 +439,18 @@ def skycoord_to_celestial_wcs(
     reference_position : `~astropy.coordinates.SkyCoord`
         The coordinates of the center of the WCS. It should be scalar.
     fov : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
-        The field of view in physical units, in x/y order. ``fov`` and ``shape`` are
+        The field of view in physical units, in x/y order. ``fov`` and ``pixel_shape``
+        are mutually exclusive and one of them must be provided.
+    pixel_shape : Sequence[int, int]
+        The image size in pixels (NAXIS), in x/y order. ``fov`` and ``pixel_shape`` are
         mutually exclusive and one of them must be provided.
-    shape : Sequence[int, int]
-        The image size in pixels (NAXIS), in x/y order.
-        ``fov`` and ``shape`` are mutually exclusive and one of them must be provided.
     pixel_angular_size : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
         The pixel angular size along the x and y axis, in x/y order. It is either of
         length 2 for each axis or of length 1. Then ``cdelt`` will be set to
         ``[-pixel_angular_size, pixel_angular_size]``.
     reference_pixel : Sequence[float, float], optional
-        Reference pixel for the projection. In zero-indexed (Python convention) numpy
-        order (swapped with respect to the WCS convention). If ``None``, it will be set
-        to the center of the view.
+        Reference pixel for the projection. In zero-indexed (Python convention)
+        x/y order. If ``None``, it will be set to the center of the view.
     frame : `~astropy.coordinates.BaseCoordinateFrame`, optional
         An instance of `~astropy.coordinates.BaseCoordinateFrame` or subclass.
         Defaults to the frame of ``reference_position``.
@@ -495,7 +494,7 @@ def skycoord_to_celestial_wcs(
 
     >>> shape = (40, 80)
     >>> wcs = skycoord_to_celestial_wcs(
-    ...           center, shape=shape,
+    ...           center, pixel_shape=shape,
     ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
     ...           )
     >>> print(wcs)
@@ -522,14 +521,15 @@ def skycoord_to_celestial_wcs(
             f"but is of length {len(reference_position)}"
         )
 
-    if fov is None and shape is None:
+    if fov is None and pixel_shape is None:
         raise ValueError(
-            "Missing 'fov' or 'shape'. The extent of the wcs must be provided either as"
-            " 'fov (an 'astropy.coordinates.Angle') or as 'shape' (two integers)."
+            "Missing 'fov' or 'pixel_shape'. The extent of the wcs must be provided "
+            "either as 'fov (an 'astropy.coordinates.Angle') or as "
+            "'pixel_shape' (two integers)."
         )
-    if fov is not None and shape is not None:
+    if fov is not None and pixel_shape is not None:
         raise ValueError(
-            "Conflicting parameters: 'fov' and 'shape' are mutually exclusive. "
+            "Conflicting parameters: 'fov' and 'pixel_shape' are mutually exclusive. "
             "Provide one or the other."
         )
 
@@ -567,16 +567,18 @@ def skycoord_to_celestial_wcs(
         # we replace zero values by one pixel in case the field of view was too small
         wcs.array_shape = [1 if s == 0 else s for s in shape[::-1]]
     else:  # image size
-        if len(shape) != 2:
-            raise ValueError(f"'shape' should be of length 2, but is {len(shape)}.")
-        wcs.array_shape = shape[::-1]  # array_shape is in numpy ordering
+        if len(pixel_shape) != 2:
+            raise ValueError(
+                f"'pixel_shape' should be of length 2, but is {len(pixel_shape)}."
+            )
+        wcs.array_shape = pixel_shape[::-1]  # array_shape is in numpy ordering
 
     if reference_pixel is not None:
         if len(reference_pixel) != 2:
             raise ValueError(
                 f"'reference_pixel' should be of length 2 but is {len(reference_pixel)}."
             )
-        wcs.wcs.crpix = [reference_pixel[1] + 1, reference_pixel[0] + 1]
+        wcs.wcs.crpix = [reference_pixel[0] + 1, reference_pixel[1] + 1]
     else:
         wcs.wcs.crpix = [wcs.pixel_shape[0] / 2.0 + 0.5, wcs.pixel_shape[1] / 2.0 + 0.5]
 

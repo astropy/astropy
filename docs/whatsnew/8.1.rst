@@ -169,7 +169,7 @@ rather than with the desired field of view:
 
 >>> center = SkyCoord(266.4, -29, unit="deg")
 >>> image_shape = [80, 40]
->>> wcs = skycoord_to_celestial_wcs(center, shape=image_shape,
+>>> wcs = skycoord_to_celestial_wcs(center, pixel_shape=image_shape,
 ...                                 pixel_angular_size=[-0.005, 0.005] * u.deg)
 
 
