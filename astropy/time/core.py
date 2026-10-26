@@ -3382,25 +3382,31 @@ class OperandTypeError(TypeError):
         )
 
 
+@deprecated(
+    since="8.1",
+    message=(
+        "The update_leap_seconds function is deprecated and may be removed in a "
+        "future version. Leap seconds have been discontinued (CGPM 2026, "
+        "Resolution 5) and the leap-second table built into ERFA is final, "
+        "so no update is ever needed."
+    ),
+)
 def update_leap_seconds(files=None):
     """If the current ERFA leap second table is out of date, try to update it.
 
-    Leap seconds have been discontinued and the table built into ERFA already
-    includes the last one (2017 January 1), so this is not normally needed,
-    and `~astropy.time.Time` no longer calls it automatically.
-
-    Uses `astropy.utils.iers.LeapSeconds.auto_open` to try to find an
-    up-to-date table.  See that routine for the definition of "out of date".
+    The table built into ERFA already includes the last leap second
+    (2017 January 1), so it cannot be out of date, and `~astropy.time.Time`
+    no longer calls this function.
 
     In order to make it safe to call this any time, all exceptions are turned
-    into warnings,
+    into warnings.
 
     Parameters
     ----------
     files : list of path-like, optional
-        List of files/URLs to attempt to open.  By default, uses defined by
-        `astropy.utils.iers.LeapSeconds.auto_open`, which includes the table
-        used by ERFA itself, so if that is up to date, nothing will happen.
+        List of files/URLs to attempt to open; the one with the latest
+        expiration date is used.  By default, uses the leap-second file
+        bundled with ``astropy-iers-data``.
 
     Returns
     -------
@@ -3411,7 +3417,7 @@ def update_leap_seconds(files=None):
     try:
         from astropy.utils import iers
 
-        table = iers.LeapSeconds.auto_open(files)
+        table = iers.LeapSeconds._auto_open(files)
         return erfa.leap_seconds.update(table)
 
     except Exception as exc:

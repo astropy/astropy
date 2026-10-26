@@ -102,8 +102,9 @@ def assert_almost_equal(a, b, *, rtol=None, atol=None, label=""):
 # Some time scales use a so-called "leap smear" to cope with these, others
 # have times they can't represent or can represent two different ways.
 # In any case these days are liable to cause trouble in time conversions.
-# Note that from_erfa includes some weird non-integer steps before 1970.
-leap_second_table = iers.LeapSeconds.from_iers_leap_seconds()
+# Note that from_erfa includes some weird non-integer steps before 1972.
+leap_second_table = iers.LeapSeconds.from_erfa()
+leap_second_table = leap_second_table[leap_second_table["year"] >= 1972]
 # Days that contain leap_seconds
 leap_second_days = leap_second_table["mjd"] - 1
 leap_second_deltas = list(

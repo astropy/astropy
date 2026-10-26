@@ -19,8 +19,8 @@ orientation for celestial-to-terrestrial coordinate transformations.
 .. note:: Leap seconds have been discontinued (see
           :ref:`leap seconds in astropy.time <time-leap-seconds>`), so the
           leap-second table built into |PyERFA| is final and astropy no longer
-          updates it.  The `~astropy.utils.iers.LeapSeconds` class remains
-          available for reading leap-second files.
+          updates it.  `astropy.utils.iers.LeapSeconds.from_erfa` gives that
+          table as an astropy table; reading leap-second files is deprecated.
 
 There are two IERS data products that we discuss here:
 
@@ -97,9 +97,7 @@ important to consider are the following:
   auto_download:
     Enable auto-downloading of the latest IERS-A data.  If set to ``False`` then
     the bundled IERS-A file will be used by default (even if a newer
-    versions of the IERS-A file was already downloaded and cached).  This
-    parameter also controls whether internet resources will be queried to update
-    the leap second table if the installed version is out of date.
+    versions of the IERS-A file was already downloaded and cached).
 
   auto_max_age:
     Maximum age of predictive data before auto-downloading (days).  See
