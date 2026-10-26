@@ -554,6 +554,22 @@ class TestKernels:
         assert np.all([_ % 2 != 0 for _ in kernel_2D.shape])
         assert kernel_2D.array.sum() == 1.0
 
+    @pytest.mark.parametrize(
+        "kernel_type, shape",
+        [(Box1DKernel, (5,)), (Box2DKernel, (5, 5))],
+    )
+    def test_box_kernel_explicit_mode(self, kernel_type, shape):
+        kernel = kernel_type(4, mode="center")
+        assert kernel.shape == shape
+        assert_allclose(kernel.array, np.full(shape, 1.0 / kernel.array.size))
+
+        # The default must remain 'linear_interp', while an explicit
+        # 'center' request must actually be used.
+        default = kernel_type(4)
+        linear = kernel_type(4, mode="linear_interp")
+        assert_allclose(default.array, linear.array)
+        assert not np.allclose(kernel.array, default.array)
+
     def test_kernel_normalization(self):
         """
         Test that repeated normalizations do not change the kernel [#3747].
