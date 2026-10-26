@@ -55,8 +55,7 @@ static int
 is_valid_alt_key(
     const char* key) {
 
-  if (key[1] != '\0' ||
-      !(key[0] == ' ' ||
+  if (key[0] == '\0' || key[1] != '\0' || !(key[0] == ' ' ||
         (key[0] >= 'A' && key[0] <= 'Z'))) {
     PyErr_SetString(PyExc_ValueError, "key must be ' ' or 'A'-'Z'");
     return 0;
