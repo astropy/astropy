@@ -1,0 +1,6 @@
+Writing a table to MRT now raises a ``ValueError`` if any float column
+contains NaN or infinite values, since these are not allowed by the
+MRT format. Previously such tables were written whenever the first
+value of the column was finite, producing non-compliant ``nan``
+entries. To write missing values, use a masked column; masked entries
+are written as MRT null (blank) values.

@@ -153,7 +153,6 @@ def test_write_null_data_values():
     assert lines == exp_output
 
 
-@pytest.mark.xfail(strict=True)
 @pytest.mark.parametrize(
     "val",
     [float("nan"), np.nan, float("+inf"), np.inf, float("-inf"), -np.inf],

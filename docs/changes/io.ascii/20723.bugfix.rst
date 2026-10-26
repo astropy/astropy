@@ -1,0 +1,3 @@
+Fixed an unhelpful ``ValueError`` or ``OverflowError`` raised when
+writing a table to MRT where the first value of a float column was NaN
+or infinite.
