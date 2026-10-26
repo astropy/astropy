@@ -1,0 +1,5 @@
+``Table.group_by()`` and ``Column.group_by()`` are faster for large tables with
+numeric key columns (integer, boolean, float, ``Quantity`` or ``Time``). Grouping
+1 million rows on integer keys is about 3.5x faster, and grouping on a ``Time``
+column, which previously compared keys one row at a time, is several hundred times
+faster.

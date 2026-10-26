@@ -9,8 +9,20 @@ from hypothesis.strategies import integers
 
 from astropy import coordinates, time
 from astropy import units as u
-from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.table import (
+    Column,
+    MaskedColumn,
+    NdarrayMixin,
+    QTable,
+    Table,
+    groups,
+    table_helpers,
+    unique,
+)
+from astropy.table.soco import SCEngine
+from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
+from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 from astropy.utils.exceptions import AstropyUserWarning
 
 
@@ -890,3 +902,163 @@ def test_get_group_column_grouped_by_table(T1):
 
     with pytest.raises(KeyError):
         cg.groups.get_group((3, "b"))
+
+
+def get_edge_values(dtype):
+    """Values at the extremes of ``dtype`` and other special values."""
+    if dtype.kind == "b":
+        return [False, True]
+    if dtype.kind == "f":
+        return [-np.inf, -1.5, -0.0, 0.0, np.finfo(dtype).tiny, 2.5, np.inf, np.nan]
+    info = np.iinfo(dtype)
+    return [info.min, info.min + 1, 0, 1, info.max - 1, info.max]
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        "?",
+        "i1",
+        "u1",
+        "i2",
+        "u2",
+        "i4",
+        "u4",
+        "i8",
+        "u8",
+        "f2",
+        "f4",
+        "f8",
+        ">i8",
+        ">f8",
+    ],
+)
+def test_radix_argsort_matches_numpy(dtype):
+    """The radix sort must give exactly the same indices as a stable numpy argsort."""
+    dtype = np.dtype(dtype)
+    rng = np.random.default_rng(0)
+    if dtype.kind in "iu":
+        info = np.iinfo(dtype)
+        ints = rng.integers(
+            info.min, info.max, size=2000, dtype=dtype.newbyteorder("="), endpoint=True
+        )
+    else:
+        # Fractional values in the float16 range (which needs several radix passes)
+        ints = rng.integers(-(2**40), 2**40, size=2000) / 2**26
+    for vals in (
+        rng.integers(0, 2, size=2000),  # one radix pass
+        rng.integers(0, 200, size=2000),  # one radix pass
+        ints,  # several radix passes
+        rng.choice(np.array(get_edge_values(dtype), dtype=dtype), size=2000),
+    ):
+        a = vals.astype(dtype)
+        if dtype.kind == "f":
+            a[::7] *= -1  # include negative zero and NaN
+        idx = groups._radix_argsort([a])
+        assert np.array_equal(idx, np.argsort(a, kind="stable"))
+
+
+def test_radix_argsort_multiple_keys():
+    rng = np.random.default_rng(0)
+    a = rng.integers(0, 5, size=3000)
+    b = rng.integers(-(2**20), 2**20, size=3000) / 3
+    c = rng.choice([True, False], size=3000)
+    idx = groups._radix_argsort([a, b, c])
+    assert np.array_equal(idx, np.lexsort([c, b, a]))
+
+
+@given(arrays("float64", shape=integers(0, 50)))
+def test_radix_argsort_float_hypothesis(a):
+    assert np.array_equal(groups._radix_argsort([a]), np.argsort(a, kind="stable"))
+
+
+@pytest.mark.parametrize(
+    "col",
+    [
+        np.array(["a", "b"] * 600),
+        np.ones(1200, dtype=np.complex128),
+        np.ones(1200, dtype=np.longdouble),
+        np.ones((1200, 2)),
+        np.arange(1200).astype("datetime64[s]"),
+        np.ma.MaskedArray(np.arange(1200), mask=[True] + [False] * 1199),
+        coordinates.SkyCoord(np.arange(1200), np.zeros(1200), unit="deg"),
+    ],
+)
+def test_radix_sortable_arrays_unsupported(col):
+    """Keys that the radix sort cannot handle fall back to the generic sort."""
+    if np.dtype(np.longdouble).itemsize <= 8 and getattr(col, "dtype", None) == (
+        np.longdouble
+    ):
+        pytest.skip("longdouble is the same as float64 on this platform")
+    keys = Table([col], names=["a"])
+    assert groups._get_radix_sortable_arrays(keys) is None
+
+
+def test_group_by_radix_matches_generic_sort(monkeypatch):
+    """Grouping with the radix sort and the generic stable sort gives the same table."""
+    rng = np.random.default_rng(0)
+    n = 3000
+    t = QTable()
+    t["int"] = rng.integers(0, 10, size=n)
+    t["float"] = rng.integers(-5, 5, size=n) / 4
+    t["float"][::97] = np.nan
+    t["bool"] = rng.choice([True, False], size=n)
+    t["quantity"] = rng.integers(0, 3, size=n) * u.m
+    t["time"] = Time("2026-01-01") + rng.integers(0, 4, size=n) * u.day
+    t["masked"] = MaskedColumn(rng.integers(0, 3, size=n))  # no masked values
+    t["str"] = rng.choice(["x", "y"], size=n)
+    t["order"] = np.arange(n)
+
+    key_sets = [
+        ["int"],
+        ["float"],
+        ["bool", "int"],
+        ["quantity", "time"],
+        ["masked", "int"],
+        ["str", "int"],
+    ]
+    keys_array = t["int", "bool"].as_array()
+
+    for keys in [*key_sets, keys_array, t["time", "int"]]:
+        tg_radix = t.group_by(keys)
+        with monkeypatch.context() as m:
+            m.setattr(groups, "_RADIX_SORT_MIN_LENGTH", n + 1)
+            tg_generic = t.group_by(keys)
+        assert np.all(tg_radix.groups.indices == tg_generic.groups.indices)
+        assert np.all(tg_radix["order"] == tg_generic["order"])
+
+    cg_radix = t["order"].group_by(keys_array)
+    with monkeypatch.context() as m:
+        m.setattr(groups, "_RADIX_SORT_MIN_LENGTH", n + 1)
+        cg_generic = t["order"].group_by(keys_array)
+    assert np.all(cg_radix.groups.indices == cg_generic.groups.indices)
+    assert np.all(cg_radix == cg_generic)
+
+
+@pytest.mark.parametrize(
+    "engine",
+    [
+        SortedArray,
+        pytest.param(
+            SCEngine,
+            marks=pytest.mark.skipif(
+                not HAS_SORTEDCONTAINERS, reason="requires sortedcontainers"
+            ),
+        ),
+    ],
+)
+def test_group_by_with_index(engine):
+    """Grouping using the sort order from a table index gives the same result."""
+    rng = np.random.default_rng(0)
+    n = 2000
+    t = Table()
+    t["time"] = Time("2026-01-01") + rng.integers(0, 4, size=n) * u.day
+    t["int"] = rng.integers(0, 3, size=n)
+    t["order"] = np.arange(n)
+    tg = t.group_by(["time", "int"])
+    t.add_index(["time", "int"], engine=engine)
+    tg_index = t.group_by(["time", "int"])
+    assert np.all(tg_index.groups.indices == tg.groups.indices)
+    assert np.all(tg_index.groups.keys == tg.groups.keys)
+    for grp_index, grp in zip(tg_index.groups, tg.groups):
+        assert np.all(np.sort(grp_index["order"]) == grp["order"])
