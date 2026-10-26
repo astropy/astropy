@@ -877,7 +877,10 @@ no-build-package = [
     "numpy",
     "pandas",
     "polars",
-    "pyyaml",
+    # temporarily allowing source installs for pyyaml
+    # see https://github.com/OpenAstronomy/github-actions-workflows/issues/436
+    # see https://github.com/astropy/astropy/issues/20715
+    # "pyyaml",
     "requests",
     "scipy",
     "sgp4",
