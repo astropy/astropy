@@ -1,0 +1,3 @@
+Fix a previously useless error message when attempting to export a
+table containing NaNs or infs to MRT. The new error message clearly
+states that this operation is not supported and why.

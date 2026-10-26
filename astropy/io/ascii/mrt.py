@@ -278,11 +278,29 @@ class MrtHeader(cds.CdsHeader):
             names=["Bytes", "Format", "Units", "Label", "Explanations"], dtype=[str] * 5
         )
 
+        # Invalidate non MRT-compliant values early
+        have_nonfinite: list[str] = []
+        for col in self.cols:
+            # Check if column is MaskedColumn
+            if isinstance(col, MaskedColumn):
+                col.has_null = True
+                col_data = col.data.data[~col.mask]
+            else:
+                col.has_null = False
+                col_data = col.data
+
+            if col.dtype.kind in "fc" and not np.all(np.isfinite(col_data)):
+                have_nonfinite.append(col.name)
+
+        if have_nonfinite:
+            raise ValueError(
+                "The following columns contain NaNs or infs, "
+                f"which are not allowed in MRT: {', '.join(have_nonfinite)}\n"
+                "Mask these values to write them as null (blank) entries."
+            )
+
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
-            # Check if column is MaskedColumn
-            col.has_null = isinstance(col, MaskedColumn)
-
             if col.format is not None:
                 col.formatted_width = max(len(sval) for sval in col.str_vals)
 
