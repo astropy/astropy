@@ -340,7 +340,6 @@ def read_ecsv(
         >>> temp_dir.cleanup()
     """
     kwargs["format"] = "ascii.ecsv"
-    kwargs.pop("units", None)
     with u.add_enabled_units(cu):
         table = QTable.read(filename, **kwargs)
 

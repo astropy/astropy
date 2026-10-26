@@ -194,9 +194,6 @@ def read_latex[C: Cosmology](
     if fmt != "ascii.latex":
         raise ValueError(f"format must be 'ascii.latex', not {fmt}")
 
-    # for key in units.keys():
-    #     units[_FORMAT_TABLE[key]] = units.pop(key)
-
     # Reading is handled by `QTable`.
     with u.add_enabled_units(cu):
         table = QTable.read(filename, format="ascii.latex", **kwargs)

@@ -37,7 +37,7 @@ readwrite_formats = [
     ("ascii.latex", False, True, False),
     ("ascii.mrt", False, True, False),
     ("json", True, True, False),
-    ("latex", False, True, False),
+    ("latex", False, True, True),
 ]
 
 
@@ -93,7 +93,7 @@ class ReadWriteTestMixin(
         cosmo.write(fname, format=format)
 
         rkw = {"format": format}
-        if not supports_units:
+        if supports_units:
             rkw |= {"units": {}}
 
         # Also test kwarg "overwrite"
@@ -129,7 +129,7 @@ class ReadWriteTestMixin(
         cosmo.write(fname, format=format)
 
         rkw = {"format": format}
-        if not supports_units:
+        if supports_units:
             rkw |= {"units": {}}
 
         # read with the same class that wrote.

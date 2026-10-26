@@ -43,7 +43,6 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
     def test_read_latex_invalid_path(self, read):
         """Test passing an invalid or non-existent path"""
 
-        # using "blabla" makes it platform independent
         invalid_fp = "blabla.tex"
 
         with pytest.raises(FileNotFoundError, match="No such file or directory"):
@@ -117,7 +116,7 @@ class ReadWriteLATEXTestMixin(ReadWriteTestMixinBase):
     )
     def test_latex_wrong_units(self, read, write, tmp_path, units):
         """f"""
-        fp = tmp_path / "test_to_latex_bad_index.tex"
+        fp = tmp_path / "test_wrong_units.tex"
 
         write(fp, format="ascii.latex")
 
