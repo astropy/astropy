@@ -7,6 +7,8 @@ import io
 import os
 import pathlib
 import struct
+import subprocess
+import sys
 import warnings
 
 import numpy as np
@@ -28,6 +30,55 @@ from astropy.utils.data import (
     get_pkg_data_path,
 )
 from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
+
+
+def test_c_tabledata_writer_null_terminator_lands_on_power_of_two_boundary():
+    """Deterministic regression test for astropy/astropy#20419 (PR #20428)."""
+    # Byte accounting for a single row / single column, indent=0, with the
+    # default 256-byte initial buffer (`1 << 8`, hardcoded in tree.py's
+    # call into the C writer):
+    #
+    #   " <TR>\n"   ->  6
+    #   "  <TD>"    ->  6
+    #   <cell>      ->  CELL_LEN
+    #   "</TD>\n"   ->  6
+    #   " </TR>\n"  ->  7
+    #   --------------------
+    #   total       ->  25 + CELL_LEN
+    #
+    # CELL_LEN = 231 makes the total exactly 256: the offset right before
+    # the row's NUL terminator write equals the buffer's current capacity,
+    # with no row ever having needed to grow past it beforehand.
+    cell_len = 231
+    assert 25 + cell_len == 256
+
+    repro = f"""
+from astropy.io.votable import tablewriter
+
+chunks = []
+tablewriter.write_tabledata(
+    chunks.append,
+    [["x" * {cell_len}]],
+    [[False]],
+    [lambda value, masked: value],
+    [False],
+    0,       # indent
+    1 << 8,  # buf_size, matches tree.py's call site
+)
+assert len("".join(chunks)) == 256
+"""
+    result = subprocess.run(
+        [sys.executable, "-X", "dev", "-c", repro],
+        env={**os.environ, "PYTHONMALLOC": "debug"},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.returncode == 0, (
+        "write_tabledata corrupted the heap when the row length landed "
+        f"exactly on the buffer's power-of-two boundary:\n{result.stderr}"
+    )
+    assert "Fatal Python error" not in result.stderr
 
 
 @pytest.fixture
