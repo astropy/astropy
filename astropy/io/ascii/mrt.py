@@ -19,6 +19,7 @@ import numpy as np
 
 from astropy import units as u
 from astropy.table import Column, MaskedColumn, Table
+from astropy.utils.masked import Masked
 
 from . import cds, core, fixedwidth
 
@@ -589,11 +590,13 @@ class MrtHeader(cds.CdsHeader):
 
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
-            elif not isinstance(col, Column):
-                col = Column(col, name=self.colnames[i])
+            elif not isinstance(c := col, Column):
+                col = Column(c, name=self.colnames[i])
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
                     col = Column([str(val) for val in col], name=col.name)
+                if isinstance(c, Masked):
+                    col = Masked(col, mask=c.mask)
                 self.cols[i] = col
 
         # Delete original ``SkyCoord`` columns, if there were any.

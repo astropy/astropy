@@ -560,7 +560,6 @@ def test_write_qtable():
     assert "Description of b" in result
 
 
-@pytest.mark.xfail(strict=True)
 @pytest.mark.parametrize(
     "val",
     [
