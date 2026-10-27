@@ -33,16 +33,34 @@ def test_alt():
     assert w.alt == " "
 
 
-def test_alt_invalid1():
+@pytest.mark.parametrize(
+    "invalid_value",
+    [
+        ("$", r"key must be ' ' or 'A'-'Z'"),
+        ("  ", r"'alt' length must be less than 2 characters."),
+        ("", r"'alt' key length must be exactly 1 character."),
+    ],
+)
+def test_alt_invalid(invalid_value):
+    key, msg = invalid_value
     w = _wcs.Wcsprm()
-    with pytest.raises(ValueError):
-        w.alt = "$"
+    with pytest.raises(ValueError, match=msg):
+        w.alt = key
 
 
-def test_alt_invalid2():
-    w = _wcs.Wcsprm()
-    with pytest.raises(ValueError):
-        w.alt = "  "
+@pytest.mark.parametrize(
+    "invalid_value",
+    [
+        ("$", r"key must be ' ' or 'A'-'Z'"),
+        ("  ", r"'alt' key length must be exactly 1 character."),
+        ("", r"'alt' key length must be exactly 1 character."),
+    ],
+)
+def test_header_alt_invalid(invalid_value):
+    key, msg = invalid_value
+    header = fits.Header(("CTYPE1", "RA---TAN"), ("CTYPE2", "DEC--TAN"))
+    with pytest.raises(ValueError, match=msg):
+        wcs.WCS(header=header, key=key)
 
 
 def test_axis_types():
