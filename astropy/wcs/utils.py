@@ -40,6 +40,7 @@ __all__ = [
     "pixel_to_skycoord",
     "proj_plane_pixel_area",
     "proj_plane_pixel_scales",
+    "skycoord_to_celestial_wcs",
     "skycoord_to_pixel",
     "wcs_to_celestial_frame",
 ]
@@ -418,6 +419,178 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
     raise ValueError(
         "Could not determine WCS corresponding to the specified coordinate frame."
     )
+
+
+def skycoord_to_celestial_wcs(
+    reference_position,
+    *,
+    fov=None,
+    pixel_shape=None,
+    pixel_angular_size,
+    reference_pixel=None,
+    frame=None,
+    projection="TAN",
+    rotation=None,
+):
+    """Create a sky WCS from a reference position and a field of view.
+
+    Parameters
+    ----------
+    reference_position : `~astropy.coordinates.SkyCoord`
+        The coordinates of the center of the WCS. It should be scalar.
+    fov : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
+        The field of view in physical units, in x/y order. ``fov`` and ``pixel_shape``
+        are mutually exclusive and one of them must be provided.
+    pixel_shape : Sequence[int, int]
+        The image size in pixels (NAXIS), in x/y order. ``fov`` and ``pixel_shape`` are
+        mutually exclusive and one of them must be provided.
+    pixel_angular_size : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
+        The pixel angular size along the x and y axis, in x/y order. It is either of
+        length 2 for each axis or of length 1. Then ``cdelt`` will be set to
+        ``[-pixel_angular_size, pixel_angular_size]``.
+    reference_pixel : Sequence[float, float], optional
+        Reference pixel for the projection. In zero-indexed (Python convention)
+        x/y order. If ``None``, it will be set to the center of the view.
+    frame : `~astropy.coordinates.BaseCoordinateFrame`, optional
+        An instance of `~astropy.coordinates.BaseCoordinateFrame` or subclass.
+        Defaults to the frame of ``reference_position``.
+    projection : str, optional
+        Any valid WCS projection code (see the list with ``from astropy.wcs
+        import PRJ_CODES``), by default "TAN"
+    rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`, optional
+        Angle from the +y pixel axis to the latitude axis at the reference pixel,
+        measured towards increasing longitude (as for ``CROTA2``). By default no
+        rotation.
+
+    Returns
+    -------
+    `~astropy.wcs.WCS`
+        A celestial WCS object.
+
+    Examples
+    --------
+    >>> from astropy.wcs.utils import skycoord_to_celestial_wcs
+    >>> from astropy.coordinates import Angle, SkyCoord
+    >>> center = SkyCoord(266.4, -29, unit="deg")
+    >>> fov = Angle([8, 4], unit="deg")
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, fov=fov,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
+    >>> print(wcs)
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN' 'DEC--TAN'
+    CUNIT : '' ''
+    CRVAL : 266.4 -29.0
+    CRPIX : 40.5 20.5
+    PC1_1 PC1_2  : 1.0 0.0
+    PC2_1 PC2_2  : 0.0 1.0
+    CDELT : -0.1 0.1
+    NAXIS : 80  40
+
+    You can also use ``shape`` instead of ``fov``:
+
+    >>> shape = (40, 80)
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, pixel_shape=shape,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
+    >>> print(wcs)
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN' 'DEC--TAN'
+    CUNIT : '' ''
+    CRVAL : 266.4 -29.0
+    CRPIX : 20.5 40.5
+    PC1_1 PC1_2  : 1.0 0.0
+    PC2_1 PC2_2  : 0.0 1.0
+    CDELT : -0.1 0.1
+    NAXIS : 40  80
+    """
+    if projection not in PRJ_CODES:
+        raise ValueError(
+            "Must specify valid projection code from list of supported types: "
+            f"{', '.join(PRJ_CODES)}"
+        )
+    if not reference_position.isscalar:
+        raise ValueError(
+            "'reference_position' should be scalar, "
+            f"but is of length {len(reference_position)}"
+        )
+
+    if fov is None and pixel_shape is None:
+        raise ValueError(
+            "Missing 'fov' or 'pixel_shape'. The extent of the wcs must be provided "
+            "either as 'fov (an 'astropy.coordinates.Angle') or as "
+            "'pixel_shape' (two integers)."
+        )
+    if fov is not None and pixel_shape is not None:
+        raise ValueError(
+            "Conflicting parameters: 'fov' and 'pixel_shape' are mutually exclusive. "
+            "Provide one or the other."
+        )
+
+    if frame is None:
+        frame = reference_position.frame.replicate_without_data()
+    wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
+
+    pixel_angular_size = u.Quantity(pixel_angular_size)
+    if pixel_angular_size.isscalar:
+        pixel_angular_size_in_deg = abs(float(pixel_angular_size.to_value("deg")))
+        wcs.wcs.cdelt = [-pixel_angular_size_in_deg, pixel_angular_size_in_deg]
+    elif len(pixel_angular_size) == 2:
+        wcs.wcs.cdelt = pixel_angular_size.to_value("deg")
+    else:
+        raise ValueError(
+            "'pixel_angular_size' should be of length 1 or 2 but "
+            f"is {len(pixel_angular_size)}."
+        )
+
+    coo_for_frame = reference_position.transform_to(frame)
+    wcs.wcs.crval = [coo_for_frame.spherical.lon.deg, coo_for_frame.spherical.lat.deg]
+
+    if fov is not None:  # field of view as an Angle or quantity
+        fov = u.Quantity(fov)
+        if fov.isscalar:
+            shape = [abs(round(fov.to_value("deg") / cdelt)) for cdelt in wcs.wcs.cdelt]
+        elif len(fov) != 2:
+            raise ValueError(f"'fov' should be of length 1 or 2, but is {len(fov)}.")
+        else:
+            shape = [
+                abs(round(angle.to_value("deg") / cdelt))
+                for angle, cdelt in zip(fov, wcs.wcs.cdelt)
+            ]
+        # reverse order for shape because `array_shape` is in numpy ordering (y/x)
+        # we replace zero values by one pixel in case the field of view was too small
+        wcs.array_shape = [1 if s == 0 else s for s in shape[::-1]]
+    else:  # image size
+        if len(pixel_shape) != 2:
+            raise ValueError(
+                f"'pixel_shape' should be of length 2, but is {len(pixel_shape)}."
+            )
+        wcs.array_shape = pixel_shape[::-1]  # array_shape is in numpy ordering
+
+    if reference_pixel is not None:
+        if len(reference_pixel) != 2:
+            raise ValueError(
+                f"'reference_pixel' should be of length 2 but is {len(reference_pixel)}."
+            )
+        wcs.wcs.crpix = [reference_pixel[0] + 1, reference_pixel[1] + 1]
+    else:
+        wcs.wcs.crpix = [wcs.pixel_shape[0] / 2.0 + 0.5, wcs.pixel_shape[1] / 2.0 + 0.5]
+
+    if rotation is not None:
+        theta = u.Quantity(rotation).to_value(u.rad)
+        ratio = wcs.wcs.cdelt[1] / wcs.wcs.cdelt[0]  # case of rectangular pixels
+        wcs.wcs.pc = [
+            [np.cos(theta), -ratio * np.sin(theta)],
+            [np.sin(theta) / ratio, np.cos(theta)],
+        ]
+
+    return wcs
 
 
 def proj_plane_pixel_scales(wcs):

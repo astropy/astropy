@@ -1,0 +1,2 @@
+Added ``astropy.wcs.utils.skycoord_to_celestial_wcs`` function to create a celestial
+WCS from a reference position and a field of view or image shape.
