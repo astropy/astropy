@@ -572,7 +572,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
           follows the HST/STScI convention for shared distortion tables
           (see Notes). This preserves compatibility with existing
           HST/STScI files. Otherwise, each WCS uses only its own
-          prior-distortion keywords (as if `shared_cpdis` were `False`).
+          prior-distortion keywords (as if ``shared_cpdis`` were `False`).
 
         - `True`: share the primary WCS's prior distortions whenever the
           alternate WCS has no prior-distortion keywords of its own.
