@@ -644,6 +644,18 @@ class TestHeaderFunctions(FitsTestCase):
         h["SVALUE"] = "A" * 69
         assert repr(h).splitlines()[-1] == _pad("CONTINUE  'AA'")
 
+    @pytest.mark.parametrize(
+        "value", ["A" * 69 + "&", "A" * 100 + "&", "&" * 70, "A" * 66 + " &&"]
+    )
+    def test_long_string_value_ending_with_ampersand(self, value):
+        # A literal "&" at the end of a long string value must not be
+        # mistaken for a continuation marker when the card is read back.
+        c = fits.Card("TEST", value)
+        assert fits.Card.fromstring(c.image).value == value
+
+        h = fits.Header([c])
+        assert fits.Header.fromstring(h.tostring())["TEST"] == value
+
     def test_final_continue_card_ampersand_removal_on_long_comments(self):
         """
         Regression test for https://github.com/astropy/astropy/issues/3282

@@ -1060,6 +1060,10 @@ class Card(_Verify):
         # do the value string
         value = self._value.replace("'", "''")
         words = _words_group(value, value_length, first_value_length)
+        # A literal "&" at the end of the final substring would be taken as a
+        # continuation marker when reading, so end with an empty CONTINUE card.
+        if not self.comment and words[-1].endswith("&"):
+            words.append("")
         output = []
         for idx, word in enumerate(words):
             if idx > 0:

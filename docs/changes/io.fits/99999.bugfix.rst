@@ -1,0 +1,2 @@
+Fix long string header values that end with a literal ``&`` losing that
+character when written with ``CONTINUE`` cards and read back.
