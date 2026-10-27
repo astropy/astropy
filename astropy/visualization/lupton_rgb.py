@@ -469,7 +469,7 @@ class LuptonAsinhZscaleStretch(LuptonAsinhStretch):
 
     Parameters
     ----------
-    image1 : ndarray or array-like
+    image : ndarray or array-like
         The image to analyse, or a list of 3 images to be converted to
         an intensity image.
 
@@ -477,7 +477,7 @@ class LuptonAsinhZscaleStretch(LuptonAsinhStretch):
         The asinh softening parameter. ``Q`` must be greater than 0.
         Default is 8.
 
-    pedestal : or array-like, optional
+    pedestal : float or array-like, optional
         The value, or array of 3 values, to subtract from the images(s)
         before determining the zscaling. Default is None (nothing subtracted).
 
