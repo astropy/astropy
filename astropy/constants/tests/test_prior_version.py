@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import importlib
 
 import numpy as np
 import pytest
@@ -40,7 +41,7 @@ def test_defined_constants_do_not_change(version):
 
     (the exception is mu0, which went from derived to measured in CODATA2018).
     """
-    version_mod = getattr(const, version)
+    version_mod = importlib.import_module(f"astropy.constants.{version}")
     defined_constants = [
         (name, constant)
         for (name, constant) in version_mod.__dict__.items()
