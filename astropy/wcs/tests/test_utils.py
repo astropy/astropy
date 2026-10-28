@@ -7,7 +7,15 @@ from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
-from astropy.coordinates import ITRS, BaseCoordinateFrame, EarthLocation, SkyCoord
+from astropy.coordinates import (
+    ICRS,
+    ITRS,
+    Angle,
+    BaseCoordinateFrame,
+    EarthLocation,
+    Galactic,
+    SkyCoord,
+)
 from astropy.coordinates.representation import SphericalRepresentation
 from astropy.coordinates.representation.geodetic import (
     BaseBodycentricRepresentation,
@@ -46,6 +54,7 @@ from astropy.wcs.utils import (
     pixel_to_pixel,
     pixel_to_skycoord,
     proj_plane_pixel_scales,
+    skycoord_to_celestial_wcs,
     skycoord_to_pixel,
     wcs_to_celestial_frame,
 )
@@ -756,6 +765,150 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
     assert mywcs.wcs.radesys == "ITRS"
     assert mywcs.wcs.dateobs == Time("J2000").utc.fits
+
+
+def test_skycoord_to_celestial_wcs():
+    # default values, square fov
+    center = SkyCoord(266.4, -29, unit="deg")
+    fov = Angle(4, unit="arcmin")
+    pixel_size = Angle(1, unit="arcmin")
+    wcs_default = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=pixel_size
+    )
+    assert wcs_default.naxis == 2
+    assert wcs_default.wcs.ctype[0] == "RA---TAN"
+    assert wcs_default.wcs.ctype[1] == "DEC--TAN"
+    expected_cdelt = 1 / 60.0
+    assert_allclose(wcs_default.wcs.cdelt, [-expected_cdelt, expected_cdelt])
+    assert_allclose(wcs_default.wcs.crval, [266.4, -29.0])
+    expected_naxis = 4
+    assert_allclose(wcs_default.array_shape, [expected_naxis, expected_naxis])
+    expected_crpix = expected_naxis / 2.0 + 0.5
+    assert_allclose(wcs_default.wcs.crpix, [expected_crpix, expected_crpix])
+
+    # all optional
+    center = SkyCoord(0, 0, unit="deg", frame="galactic")
+    data_shape = [150, 90]
+    wcs_optional = skycoord_to_celestial_wcs(
+        center,
+        pixel_shape=data_shape,
+        pixel_angular_size=Angle([-0.01, 0.02], unit="deg"),
+        reference_pixel=[15, 10],
+        frame=Galactic(),
+        projection="TAN",
+        rotation=Angle(90, unit="deg"),
+    )
+    assert_allclose(wcs_optional.wcs.cdelt, [-0.01, 0.02])
+    assert wcs_optional.wcs.ctype[0] == "GLON-TAN"
+    assert wcs_optional.wcs.ctype[1] == "GLAT-TAN"
+    assert_allclose(wcs_optional.wcs.crval, [0.0, 0.0])
+    assert_allclose(wcs_optional.array_shape, [90, 150])  # y/x
+    assert_allclose(wcs_optional.wcs.crpix, [16, 11])  # we ask for zero-indexed
+    assert_allclose(wcs_optional.wcs.pc, [[0, 2], [-0.5, 0]], atol=1e-10)
+
+    # rectangular fov
+    center = SkyCoord(10, 20, unit="deg")
+    wcs_rectangular_fov = skycoord_to_celestial_wcs(
+        center, fov=Angle([10, 5], "deg"), pixel_angular_size=Angle(1, "deg")
+    )
+    assert wcs_rectangular_fov.array_shape == (5, 10)  # y/x ordering
+    assert wcs_rectangular_fov.pixel_to_world(
+        (wcs_rectangular_fov.array_shape[1] - 1) / 2,
+        (wcs_rectangular_fov.array_shape[0] - 1) / 2,
+    ).separation(center) < Angle(0.01, "arcsec")
+
+    # field of view smaller than cdelt: image shape should be one pixel
+    wcs = skycoord_to_celestial_wcs(
+        center, fov=Angle(0.1, "arcmin"), pixel_angular_size=pixel_size
+    )
+    assert wcs.array_shape == (1, 1)
+
+    # test all fields that should also accept quantities
+    center = SkyCoord(0, 0, unit="deg")
+    fov = [5 * u.arcmin, 10 * u.arcmin]
+    pixel_size = [1 * u.arcsec, 2 * u.arcsec]
+    rotation = 45 * u.deg
+    wcs_quantities = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=pixel_size, rotation=rotation
+    )
+    assert wcs_quantities.array_shape == (300, 300)
+
+
+def test_skycoord_to_celestial_wcs_errors():
+    center = SkyCoord(0, 0, unit="deg", frame="galactic")
+    fov = Angle([8, 4], unit="deg")
+    pixel_size = Angle(1, unit="deg")
+    shape = (100, 200)
+
+    with pytest.raises(ValueError, match="Must specify valid projection code"):
+        skycoord_to_celestial_wcs(
+            center, pixel_shape=shape, pixel_angular_size=pixel_size, projection="ABC"
+        )
+
+    with pytest.raises(ValueError, match="'reference_position' should be scalar*"):
+        center_non_scalar = SkyCoord([0, 0], [0, 0], unit="deg", frame="galactic")
+        skycoord_to_celestial_wcs(
+            center_non_scalar, pixel_shape=shape, pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="Missing 'fov' or 'pixel_shape'"):
+        skycoord_to_celestial_wcs(center, pixel_angular_size=pixel_size)
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        skycoord_to_celestial_wcs(
+            center, fov=fov, pixel_shape=shape, pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="'reference_pixel' should be of length 2"):
+        scalar_ref_pixel = [10]  # Only 1 element
+        skycoord_to_celestial_wcs(
+            center,
+            fov=fov,
+            pixel_angular_size=pixel_size,
+            reference_pixel=scalar_ref_pixel,
+        )
+
+    with pytest.raises(ValueError, match="'fov' should be of length 1 or 2"):
+        skycoord_to_celestial_wcs(
+            center, fov=Angle([1, 2, 3], "arcmin"), pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="'pixel_shape' should be of length 2"):
+        skycoord_to_celestial_wcs(
+            center, pixel_shape=[1, 2, 3], pixel_angular_size=pixel_size
+        )
+
+
+test_pixel_sizes = [
+    (Angle([3, 0.3], unit="arcmin"), [0.05, 0.005]),
+    (Angle(3, unit="arcmin"), [-0.05, 0.05]),
+]
+
+
+@pytest.mark.parametrize("pixel_size,cdelt", test_pixel_sizes)
+def test_crota_vs_pc_in_skycoord_to_celestial_wcs(pixel_size, cdelt):
+    # see https://github.com/astropy/astropy/pull/19985#discussion_r3596900938
+    center = SkyCoord(0, 0, unit="deg")
+    shape = (100, 200)
+    rotation = Angle(30, unit="deg")
+
+    wcs_pc = skycoord_to_celestial_wcs(
+        center, pixel_shape=shape, pixel_angular_size=pixel_size, rotation=rotation
+    )
+
+    wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
+    wcs_crota.wcs.cdelt = cdelt
+    wcs_crota.wcs.crval = [0, 0]
+    wcs_crota.array_shape = shape[::-1]
+    wcs_crota.wcs.crpix = [50.5, 100.5]
+    wcs_crota.wcs.crota = 0, 30
+
+    y, x = np.mgrid[0:200:20, 0:100:10]
+    pixel_pc = pixel_to_skycoord(x, y, wcs=wcs_pc)
+    pixel_crota = pixel_to_skycoord(x, y, wcs=wcs_crota)
+
+    assert_allclose(pixel_pc.data.lon.value, pixel_crota.data.lon.value)
+    assert_allclose(pixel_pc.data.lat.value, pixel_crota.data.lat.value)
 
 
 def test_body_to_wcs_frame():
