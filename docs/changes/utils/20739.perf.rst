@@ -1,0 +1,3 @@
+Reading a VOTable in the ``TABLEDATA`` format is slightly faster when
+``astropy`` is built against a system copy of ``expat``, which had been
+missing an optimization for the most common element name.
