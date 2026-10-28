@@ -352,7 +352,9 @@ check that the provided |Quantity| belongs to one of the expected
 The decorator does not convert the input |Quantity| to the desired unit, say
 arcseconds to degrees in the example below, it merely checks that such a
 conversion is possible, thus verifying that the `~astropy.units.Quantity`
-argument can be used in calculations.
+argument can be used in calculations. For a `~astropy.table.Column` argument,
+the decorator converts the input to a |Quantity| in
+the same unit so that unit-aware operations are applied correctly.
 
 Keyword arguments to :func:`~astropy.units.quantity_input` specify which
 arguments should be validated and what unit they are expected to be compatible

@@ -489,15 +489,58 @@ def test_annotated_not_unit():
     assert myfunc(1 * u.s) == 1 * u.s
 
 
-def test_quantity_input_column_conversion():
-    from astropy.table import Column
+@pytest.mark.parametrize("pass_positionally", [True, False])
+@pytest.mark.parametrize("column_type", ["Column", "MaskedColumn"])
+def test_quantity_input_column_conversion(pass_positionally, column_type):
+    from astropy import table
 
     @u.quantity_input(angle=u.rad)
-    def foo(angle):
-        return angle
+    def foo(angle, scale=1):
+        return np.sin(angle) * scale
 
-    col = Column([1, 2, 3], name="a", unit=u.deg)
-    result = foo(col)
+    col = getattr(table, column_type)([1, 2, 3], name="a", unit=u.deg)
+    if pass_positionally:
+        result = foo(col, scale=2)
+    else:
+        result = foo(angle=col, scale=2)
 
-    assert result.unit == u.rad
-    np.testing.assert_allclose(result.value, np.radians([1, 2, 3]))
+    assert isinstance(result, u.Quantity)
+    assert result.unit == u.dimensionless_unscaled
+    np.testing.assert_allclose(result.value, 2 * np.sin(np.deg2rad([1, 2, 3])))
+
+
+def test_quantity_input_column_equivalencies():
+    from astropy.table import Column
+
+    @u.quantity_input(wavelength=u.Hz, equivalencies=u.spectral())
+    def frequency(wavelength):
+        return wavelength.to_value(u.Hz)
+
+    col = Column([500], name="wavelength", unit=u.nm)
+    result = frequency(col)
+
+    expected = (500 * u.nm).to_value(u.Hz, equivalencies=u.spectral())
+    np.testing.assert_allclose(result, expected)
+
+
+def test_quantity_input_without_unit_targets():
+    @u.quantity_input
+    def add_one(value):
+        return value + 1
+
+    assert add_one(1) == 2
+
+
+def test_quantity_input_non_column_not_converted():
+    class UnitAware:
+        unit = u.m
+
+        def to(self, unit):
+            raise AssertionError("Only Columns should be converted")
+
+    @u.quantity_input(value=u.m)
+    def identity(value):
+        return value
+
+    value = UnitAware()
+    assert identity(value) is value

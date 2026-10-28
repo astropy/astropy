@@ -221,6 +221,8 @@ class QuantityInput:
         # Define a new function to return in place of the wrapped one
         @wraps(wrapped_function)
         def wrapper(*func_args, **func_kwargs):
+            from astropy.table import Column
+
             # Bind the arguments to our new function to the signature of the original.
             bound_args = wrapped_signature.bind(*func_args, **func_kwargs)
 
@@ -303,11 +305,10 @@ class QuantityInput:
                     self.equivalencies,
                     self.strict_dimensionless,
                 )
-            # Convert non-Quantity objects with units (such as Column) to the target unit
-            if valid_targets and not isinstance(arg, Quantity) and hasattr(arg, "to"):
-                target_unit = valid_targets[0]
-                if isinstance(target_unit, UnitBase):
-                    bound_args.arguments[param.name] = arg.to(target_unit)
+
+                # Convert Columns to Quantity without changing their units.
+                if valid_targets and isinstance(arg, Column):
+                    bound_args.arguments[param.name] = arg.to(arg.unit)
 
             if self.equivalencies:
                 equiv_context = add_enabled_equivalencies(self.equivalencies)
