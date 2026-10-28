@@ -88,17 +88,14 @@ static Py_ssize_t next_power_of_2(Py_ssize_t n)
     return n;
 }
 
-/******************************************************************************
- * Python version compatibility macros
- ******************************************************************************/
-
-#if BYTEORDER == 1234
-#define TD_AS_INT 0x00004454
-#define TD_AS_INT_MASK 0x00ffffff
-#else
-#define TD_AS_INT 0x54440000
-#define TD_AS_INT_MASK 0xffffff00
-#endif
+/* TD is by far the most frequent element name in a large VOTABLE file, so
+   both element handlers below return a cached string for it rather than
+   building a new one for every table cell.  That saves a few percent of the
+   time spent reading a TABLEDATA file. */
+static inline int name_is_td(const XML_Char *name)
+{
+    return name[0] == 'T' && name[1] == 'D' && name[2] == '\0';
+}
 
 
 /******************************************************************************
@@ -399,13 +396,7 @@ static void startElement(IterParser *self, const XML_Char *name, const XML_Char 
         Py_INCREF(Py_True);
         PyTuple_SetItem(tuple, 0, Py_True);
 
-        /* This is an egregious but effective optimization.  Since by
-           far the most frequently occurring element name in a large
-           VOTABLE file is TD, we explicitly check for it here with
-           integer comparison to avoid the lookup in the interned
-           string table in PyString_InternFromString, and return a
-           singleton string for "TD" */
-        if ((*(int *)name & TD_AS_INT_MASK) == TD_AS_INT) {
+        if (name_is_td(name)) {
             Py_INCREF(self->td_singleton);
             PyTuple_SetItem(tuple, 1, self->td_singleton);
         }
@@ -516,13 +507,7 @@ static void endElement(IterParser *self, const XML_Char *name)
         Py_INCREF(Py_False);
         PyTuple_SetItem(tuple, 0, Py_False);
 
-        /* This is an egregious but effective optimization.  Since by
-           far the most frequently occurring element name in a large
-           VOTABLE file is TD, we explicitly check for it here with
-           integer comparison to avoid the lookup in the interned
-           string table in PyString_InternFromString, and return a
-           singleton string for "TD" */
-        if ((*(int *)name & TD_AS_INT_MASK) == TD_AS_INT) {
+        if (name_is_td(name)) {
             Py_INCREF(self->td_singleton);
             PyTuple_SetItem(tuple, 1, self->td_singleton);
         }
