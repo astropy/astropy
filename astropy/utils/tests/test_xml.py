@@ -5,7 +5,7 @@ import io
 import pytest
 
 from astropy.utils.compat.optional_deps import HAS_BLEACH
-from astropy.utils.xml import check, unescaper, writer
+from astropy.utils.xml import check, iterparser, unescaper, writer
 
 
 def test_writer():
@@ -18,6 +18,41 @@ def test_writer():
 
     value = "".join(fh.getvalue().split())
     assert value == "<html><body>Thisisthecontent<!--comment--></body></html>"
+
+
+# The C tokenizer returns a cached string for the element name "TD", which is
+# by far the most common name in a VOTable, instead of building a new one per
+# cell.  Names that share a prefix with it, or are shorter than it, are what
+# such a shortcut can get wrong -- and it can only be caught by checking the
+# whole sequence, since a stale cache returns the name of a *previous* element.
+TD_NEIGHBOUR_DOC = (
+    b"<VOTABLE>"
+    b"<TR><TD>1</TD><TD>2</TD></TR>"
+    b"<T>short</T>"
+    b"<TDX>longer</TDX>"
+    b"<D>other</D>"
+    b"<TD>3</TD>"
+    b"</VOTABLE>"
+)
+
+
+def test_iterparser_reports_names_around_the_td_shortcut():
+    """Iterate TD_NEIGHBOUR_DOC; every start event reports the element name
+    as it was written, including the names either side of each TD.
+    """
+    with iterparser.get_xml_iterator(io.BytesIO(TD_NEIGHBOUR_DOC)) as it:
+        names = [tag for start, tag, data, pos in it if start]
+
+    assert names == [
+        "VOTABLE",
+        "TR",
+        "TD",
+        "TD",
+        "T",
+        "TDX",
+        "D",
+        "TD",
+    ]
 
 
 def test_check_id():
