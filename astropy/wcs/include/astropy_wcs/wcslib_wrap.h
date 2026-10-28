@@ -27,6 +27,7 @@ typedef struct {
   // the multiplicative scaling required to convert the units from the original
   // units (e.g. arcsec) to the internal WCSLIB units (e.g. deg)
   int    preserve_units;
+  int    original_cunit_valid;
   char   (*original_cunit)[72];
   double *unit_scaling;
 
