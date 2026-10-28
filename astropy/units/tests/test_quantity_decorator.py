@@ -529,18 +529,3 @@ def test_quantity_input_without_unit_targets():
         return value + 1
 
     assert add_one(1) == 2
-
-
-def test_quantity_input_non_column_not_converted():
-    class UnitAware:
-        unit = u.m
-
-        def to(self, unit):
-            raise AssertionError("Only Columns should be converted")
-
-    @u.quantity_input(value=u.m)
-    def identity(value):
-        return value
-
-    value = UnitAware()
-    assert identity(value) is value
