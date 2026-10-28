@@ -1,1 +1,4 @@
-Fixed :func:`~astropy.units.quantity_input` to correctly convert non-Quantity inputs that support ``.to()`` (such as :class:`~astropy.table.Column`) to the target unit.
+Fixed ``quantity_input`` to pass unit-aware non-Quantity
+inputs, such as ``Column``, to the wrapped function as a
+``Quantity`` in the input unit. This ensures that unit-aware operations treat the
+input correctly.
