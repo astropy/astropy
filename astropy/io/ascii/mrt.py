@@ -14,11 +14,13 @@ from io import StringIO
 from math import ceil, floor
 from string import Template
 from textwrap import wrap
+from typing import overload
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import Column, MaskedColumn, Table
+from astropy.utils.masked import Masked
 
 from . import cds, core, fixedwidth
 
@@ -47,6 +49,18 @@ MRT_TEMPLATE = [
     "Notes:",
     "--------------------------------------------------------------------------------",
 ]
+
+
+@overload
+def _convert_to_column(data: Masked, /, *, name: str) -> MaskedColumn: ...
+@overload
+def _convert_to_column(data: "~Masked", /, *, name: str) -> Column: ...
+def _convert_to_column(data, /, *, name):
+    col = Column(data, name=name)
+    if isinstance(data, Masked):
+        return Masked(col, mask=data.mask)
+    else:
+        return col
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -264,11 +278,29 @@ class MrtHeader(cds.CdsHeader):
             names=["Bytes", "Format", "Units", "Label", "Explanations"], dtype=[str] * 5
         )
 
+        # Invalidate non MRT-compliant values early
+        have_nonfinite: list[str] = []
+        for col in self.cols:
+            # Check if column is MaskedColumn
+            if isinstance(col, MaskedColumn):
+                col.has_null = True
+                col_data = col.data.data[~col.mask]
+            else:
+                col.has_null = False
+                col_data = col.data
+
+            if col.dtype.kind in "fc" and not np.all(np.isfinite(col_data)):
+                have_nonfinite.append(col.name)
+
+        if have_nonfinite:
+            raise ValueError(
+                "The following columns contain NaNs or infs, "
+                f"which are not allowed in MRT: {', '.join(have_nonfinite)}\n"
+                "Mask these values to write them as null (blank) entries."
+            )
+
         # Iterate over the columns to write Byte-By-Byte rows.
         for i, col in enumerate(self.cols):
-            # Check if column is MaskedColumn
-            col.has_null = isinstance(col, MaskedColumn)
-
             if col.format is not None:
                 col.formatted_width = max(len(sval) for sval in col.str_vals)
 
@@ -590,7 +622,7 @@ class MrtHeader(cds.CdsHeader):
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
             elif not isinstance(col, Column):
-                col = Column(col, name=self.colnames[i])
+                col = _convert_to_column(col, name=self.colnames[i])
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
                     col = Column([str(val) for val in col], name=col.name)

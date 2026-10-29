@@ -17,8 +17,10 @@ from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
+from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import Masked
 
 test_dat = [
     "names e d s i",
@@ -149,6 +151,54 @@ def test_write_null_data_values():
     i_secs = [i for i, s in enumerate(lines) if s.startswith(("------", "======="))]
     lines = lines[i_secs[-1] + 1 :]  # Last section is the data.
     assert lines == exp_output
+
+
+@pytest.mark.parametrize(
+    "val",
+    [float("nan"), np.nan, float("+inf"), np.inf, float("-inf"), -np.inf],
+)
+def test_write_non_finite_values_to_mrt(val):
+    # see https://github.com/astropy/astropy/issues/17840
+    out = StringIO()
+    data = {"A": [0, val], "B": [val, 1]}
+    t = Table(data)
+    expected = (
+        r"^The following columns contain NaNs or infs, "
+        r"which are not allowed in MRT\: {columns}\n"
+        r"Mask these values to write them as null \(blank\) entries\.$"
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="A, B")):
+        t.write(out, format="ascii.mrt")
+
+    t_ma_a = Table(
+        data={
+            "A": MaskedColumn(data["A"], mask=[False, True]),
+            "B": data["B"],
+        }
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="B")):
+        t_ma_a.write(out, format="ascii.mrt")
+
+    t_ma_b = Table(
+        data={
+            "A": data["A"],
+            "B": MaskedColumn(data["B"], mask=[True, False]),
+        }
+    )
+    with pytest.raises(ValueError, match=expected.format(columns="A")):
+        t_ma_b.write(out, format="ascii.mrt")
+
+    t_ma = Table(
+        data={
+            "A": MaskedColumn(data["A"], mask=[False, True]),
+            "B": MaskedColumn(data["B"], mask=[True, False]),
+        }
+    )
+    t_ma.write(out, format="ascii.mrt")
+    assert out.getvalue().splitlines()[-2:] == [
+        "0.0    ",
+        "    1.0",
+    ]
 
 
 def test_write_byte_by_byte_for_masked_column():
@@ -556,3 +606,39 @@ def test_write_qtable():
     result = out.getvalue()
     assert "Description of a" in result
     assert "Description of b" in result
+
+
+@pytest.mark.parametrize(
+    "val",
+    [
+        # xfail for nans: https://github.com/astropy/astropy/issues/17840
+        pytest.param(float("nan"), marks=pytest.mark.xfail(strict=True)),
+        pytest.param(np.nan, marks=pytest.mark.xfail(strict=True)),
+        float("inf"),
+        np.inf,
+        float("-inf"),
+        -np.inf,
+    ],
+)
+def test_qtable_masked_invalid_quantity(val):
+    # regression test for a bug where masks would be dropped
+    # from QTable columns on export to MRT
+    out = StringIO()
+    data = [val, 0.0]
+    mask = [True, False]
+
+    t = QTable(data={"A": Masked(Quantity(data, "m"), mask=mask)})
+    expected_out = [
+        "   ",
+        "0.0",
+    ]
+    t.write(out, format="ascii.mrt")
+    assert out.getvalue().splitlines()[-2:] == expected_out
+
+    # also try with the invalid value on the second index
+    # because there's precedent for this case not behaving consistently
+    # see https://github.com/astropy/astropy/issues/17840
+    out_r = StringIO()
+    t_r = QTable(data={"B": Masked(Quantity(data[::-1], "m"), mask=mask[::-1])})
+    t_r.write(out_r, format="ascii.mrt")
+    assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
