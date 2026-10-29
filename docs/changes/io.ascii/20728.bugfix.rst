@@ -1,0 +1,2 @@
+Fixed a bug where masks attached to a ``QTable`` 's columns would be lost
+on exports to MRT.

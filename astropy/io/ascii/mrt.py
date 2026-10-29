@@ -14,11 +14,13 @@ from io import StringIO
 from math import ceil, floor
 from string import Template
 from textwrap import wrap
+from typing import overload
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import Column, MaskedColumn, Table
+from astropy.utils.masked import Masked
 
 from . import cds, core, fixedwidth
 
@@ -47,6 +49,18 @@ MRT_TEMPLATE = [
     "Notes:",
     "--------------------------------------------------------------------------------",
 ]
+
+
+@overload
+def _convert_to_column(data: Masked, /, *, name: str) -> MaskedColumn: ...
+@overload
+def _convert_to_column(data: "~Masked", /, *, name: str) -> Column: ...
+def _convert_to_column(data, /, *, name):
+    col = Column(data, name=name)
+    if isinstance(data, Masked):
+        return Masked(col, mask=data.mask)
+    else:
+        return col
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -590,7 +604,7 @@ class MrtHeader(cds.CdsHeader):
             # Convert all other ``mixin`` columns to ``Column`` objects.
             # Parsing these may still lead to errors!
             elif not isinstance(col, Column):
-                col = Column(col, name=self.colnames[i])
+                col = _convert_to_column(col, name=self.colnames[i])
                 # If column values are ``object`` types, convert them to string.
                 if np.issubdtype(col.dtype, np.dtype(object).type):
                     col = Column([str(val) for val in col], name=col.name)

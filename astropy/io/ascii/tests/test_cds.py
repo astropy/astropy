@@ -17,8 +17,10 @@ from astropy.coordinates import SkyCoord
 from astropy.io import ascii
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
+from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.masked import Masked
 
 test_dat = [
     "names e d s i",
@@ -556,3 +558,39 @@ def test_write_qtable():
     result = out.getvalue()
     assert "Description of a" in result
     assert "Description of b" in result
+
+
+@pytest.mark.parametrize(
+    "val",
+    [
+        # xfail for nans: https://github.com/astropy/astropy/issues/17840
+        pytest.param(float("nan"), marks=pytest.mark.xfail(strict=True)),
+        pytest.param(np.nan, marks=pytest.mark.xfail(strict=True)),
+        float("inf"),
+        np.inf,
+        float("-inf"),
+        -np.inf,
+    ],
+)
+def test_qtable_masked_invalid_quantity(val):
+    # regression test for a bug where masks would be dropped
+    # from QTable columns on export to MRT
+    out = StringIO()
+    data = [val, 0.0]
+    mask = [True, False]
+
+    t = QTable(data={"A": Masked(Quantity(data, "m"), mask=mask)})
+    expected_out = [
+        "   ",
+        "0.0",
+    ]
+    t.write(out, format="ascii.mrt")
+    assert out.getvalue().splitlines()[-2:] == expected_out
+
+    # also try with the invalid value on the second index
+    # because there's precedent for this case not behaving consistently
+    # see https://github.com/astropy/astropy/issues/17840
+    out_r = StringIO()
+    t_r = QTable(data={"B": Masked(Quantity(data[::-1], "m"), mask=mask[::-1])})
+    t_r.write(out_r, format="ascii.mrt")
+    assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
