@@ -33,7 +33,7 @@ class TestNonLinearConstraints:
         self.x = np.arange(10, 20, 0.1)
         self.y1 = self.g1(self.x)
         self.y2 = self.g2(self.x)
-        rsn = default_rng(1234567890)
+        rsn = default_rng(1_234_567_890)
         self.n = rsn.standard_normal(100)
         self.ny1 = self.y1 + 2 * self.n
         self.ny2 = self.y2 + 2 * self.n
@@ -270,7 +270,7 @@ class TestLinearConstraints:
         self.p1.window = [0.0, 9.0]
         self.x = np.arange(10)
         self.y = self.p1(self.x)
-        rsn = default_rng(1234567890)
+        rsn = default_rng(1_234_567_890)
         self.n = rsn.standard_normal(10)
         self.ny = self.y + self.n
 
@@ -588,7 +588,7 @@ def test_2d_model(fitter):
     z = gauss2d(x, y)
     w = np.ones(x.shape)
 
-    with NumpyRNGContext(1234567890):
+    with NumpyRNGContext(1_234_567_890):
         n = np.random.randn(*x.shape)
         m = fitter(gauss2d, x, y, z + 2 * n, weights=w)
         assert_allclose(m.parameters, gauss2d.parameters, rtol=0.05)

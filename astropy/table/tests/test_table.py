@@ -2158,7 +2158,7 @@ class TestQTableIntColumnWithUnit:
     """An integer column with a unit keeps its dtype in a QTable (#17963)."""
 
     # Integers that are not exactly representable as float64.
-    VALS = [2741100559643251862, 2733456478647137226]
+    VALS = [2_741_100_559_643_251_862, 2_733_456_478_647_137_226]
 
     def get_table(self):
         return Table(
