@@ -398,8 +398,6 @@ def test_ephemeris_wrong_input(ephemeris, expected_error):
         get_body("earth", Time("1960-01-12 00:00"), ephemeris=ephemeris)
 
 
-# jplephem failure to open file emits a ResourceWarning
-@pytest.mark.filterwarnings("ignore", category=ResourceWarning)
 @pytest.mark.skipif(not HAS_JPLEPHEM, reason="requires jplephem")
 def test_ephemeris_local_file_not_ephemeris():
     with pytest.raises(ValueError, match="^file starts"):
