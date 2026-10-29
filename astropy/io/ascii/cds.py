@@ -13,6 +13,7 @@ import itertools
 import os
 import re
 from contextlib import suppress
+from functools import partial
 from pathlib import Path
 
 from astropy.table.operations import vstack
@@ -89,32 +90,34 @@ class CdsHeader(core.BaseHeader):
             # Header info is not in data lines but in a separate file.
             lines = []
             comment_lines = 0
-            for line in f:
-                line = line.strip()
+            match_filename = partial(
+                fnmatch.fnmatch,
+                self.data.table_name.removesuffix(".gz"),
+            )
+            for line in (L.strip() for L in f):
                 if in_header:
                     lines.append(line)
                     if _is_section_delimiter(line):
                         comment_lines += 1
                         if comment_lines == 3:
                             break
-                else:
-                    match = re.match(
-                        r"Byte-by-byte Description of file: (?P<name>.+)$",
-                        line,
-                        re.IGNORECASE,
-                    )
-                    if match:
-                        # Split 'name' in case in contains multiple files
-                        names = [s for s in re.split("[, ]+", match.group("name")) if s]
-                        # Iterate on names to find if one matches the tablename
-                        # including wildcards.
-                        for pattern in names:
-                            if fnmatch.fnmatch(
-                                self.data.table_name.removesuffix(".gz"), pattern
-                            ):
-                                in_header = True
-                                lines.append(line)
-                                break
+                    continue
+
+                match = re.match(
+                    r"Byte-by-byte Description of file: (?P<name>.+)$",
+                    line,
+                    re.IGNORECASE,
+                )
+                if match is None:
+                    continue
+                # Split 'name' in case in contains multiple files
+                names = [s for s in re.split("[, ]+", match.group("name")) if s]
+                # Iterate on names to find if one matches the tablename
+                # including wildcards.
+                for pattern in filter(match_filename, names):
+                    in_header = True
+                    lines.append(line)
+                    break
 
             else:
                 raise core.InconsistentTableError(
@@ -148,82 +151,79 @@ class CdsHeader(core.BaseHeader):
             if _is_section_delimiter(line):
                 break
             match = re_col_def.match(line)
-            if match:
-                col = core.Column(name=match.group("name"))
-                col.start = int(
-                    re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1  # fmt: skip
-                col.end = int(match.group("end"))
-                unit = match.group("units")
-                if unit == "---":
-                    col.unit = None  # "---" is the marker for no unit in CDS/MRT table
-                else:
-                    try:
-                        col.unit = Unit(unit, format="cds", parse_strict="warn")
-                    except UnitsWarning:
-                        # catch when warnings are turned into errors so we can check
-                        # whether this line is likely a multi-line description (see below)
-                        col.unit = UnrecognizedUnit(unit)
-                col.description = (match.group("descr") or "").strip()
-                col.raw_type = match.group("format")
-                try:
-                    col.type = self.get_col_type(col)
-                except ValueError:
-                    # If parsing the format fails and the unit is unrecognized,
-                    # then this line is likely a continuation of the previous col's
-                    # description that happens to start with a number
-                    if isinstance(col.unit, UnrecognizedUnit):
-                        if len(cols[-1].description) > 0:
-                            cols[-1].description += " "
-                        cols[-1].description += line.strip()
-                        continue
-                else:
-                    if col.unit is not None:
-                        # Because we may have ignored a UnitsWarning turned into an error
-                        # we do this again so it can be raised again if it is a real error
-                        col.unit = Unit(unit, format="cds", parse_strict="warn")
-                match = re.match(
-                    # Matches limits specifier (eg []) that may or may not be
-                    # present
-                    r"(?P<limits>[\[\]] \S* [\[\]])?"
-                    # Matches '?' directly
-                    r"\?"
-                    # Matches to nullval if and only if '=' is present
-                    r"((?P<equal>=)(?P<nullval> \S*))?"
-                    # Matches to order specifier: ('+', '-', '+=', '-=')
-                    r"(?P<order>[-+]?[=]?)"
-                    # Matches description text even even if no whitespace is
-                    # present after '?'
-                    r"(\s* (?P<descriptiontext> \S.*))?",
-                    col.description,
-                    re.VERBOSE,
-                )
-                if match:
-                    col.description = (match.group("descriptiontext") or "").strip()
-                    if issubclass(col.type, core.FloatType):
-                        fillval = "nan"
-                    else:
-                        fillval = "0"
-
-                    if match.group("nullval") == "-":
-                        col.null = "---"
-                        # CDS/MRT tables can use -, --, ---, or ---- to mark missing values
-                        # see https://github.com/astropy/astropy/issues/1335
-                        for i in [1, 2, 3, 4]:
-                            self.data.fill_values.append(("-" * i, fillval, col.name))
-                    else:
-                        col.null = match.group("nullval")
-                        if col.null is None:
-                            col.null = ""
-                        self.data.fill_values.append((col.null, fillval, col.name))
-
-                cols.append(col)
-            else:  # could be a continuation of the previous col's description
-                if cols:
-                    if len(cols[-1].description) > 0:
-                        cols[-1].description += " "
-                    cols[-1].description += line.strip()
-                else:
+            if match is None:
+                # could be a continuation of the previous col's description
+                if not cols:
                     raise ValueError(f'Line "{line}" not parsable as CDS header')
+                description = f"{cols[-1].description} {line.strip()}".lstrip()
+                cols[-1].description = description
+                continue
+
+            col = core.Column(name=match.group("name"))
+            col.start = int(
+                re.sub(r'[-\s]', '', match.group('start') or match.group('end'))) - 1  # fmt: skip
+            col.end = int(match.group("end"))
+            unit = match.group("units")
+            if unit == "---":
+                col.unit = None  # "---" is the marker for no unit in CDS/MRT table
+            else:
+                try:
+                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+                except UnitsWarning:
+                    # catch when warnings are turned into errors so we can check
+                    # whether this line is likely a multi-line description (see below)
+                    col.unit = UnrecognizedUnit(unit)
+            col.description = (match.group("descr") or "").lstrip()
+            col.raw_type = match.group("format")
+            try:
+                col.type = self.get_col_type(col)
+            except ValueError:
+                # If parsing the format fails and the unit is unrecognized,
+                # then this line is likely a continuation of the previous col's
+                # description that happens to start with a number
+                if isinstance(col.unit, UnrecognizedUnit):
+                    description = f"{cols[-1].description} {line.strip()}".lstrip()
+                    cols[-1].description = description
+                    continue
+            else:
+                if col.unit is not None:
+                    # Because we may have ignored a UnitsWarning turned into an error
+                    # we do this again so it can be raised again if it is a real error
+                    col.unit = Unit(unit, format="cds", parse_strict="warn")
+            match = re.match(
+                # Matches limits specifier (eg []) that may or may not be
+                # present
+                r"(?P<limits>[\[\]] \S* [\[\]])?"
+                # Matches '?' directly
+                r"\?"
+                # Matches to nullval if and only if '=' is present
+                r"((?P<equal>=)(?P<nullval> \S*))?"
+                # Matches to order specifier: ('+', '-', '+=', '-=')
+                r"(?P<order>[-+]?[=]?)"
+                # Matches description text even even if no whitespace is
+                # present after '?'
+                r"(\s* (?P<descriptiontext> \S.*))?",
+                col.description,
+                re.VERBOSE,
+            )
+            if match is None:
+                cols.append(col)
+                continue
+
+            col.description = (match.group("descriptiontext") or "").lstrip()
+            fillval = "nan" if issubclass(col.type, core.FloatType) else "0"
+
+            if match.group("nullval") == "-":
+                col.null = "---"
+                # CDS/MRT tables can use -, --, ---, or ---- to mark missing values
+                # see https://github.com/astropy/astropy/issues/1335
+                for i in [1, 2, 3, 4]:
+                    self.data.fill_values.append(("-" * i, fillval, col.name))
+            else:
+                col.null = match.group("nullval") or ""
+                self.data.fill_values.append((col.null, fillval, col.name))
+
+            cols.append(col)
 
         self.names = [x.name for x in cols]
 
