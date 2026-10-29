@@ -1,4 +1,5 @@
 import hashlib
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -6,7 +7,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed._codecs import PLIO1
+from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -285,3 +286,24 @@ def test_invalid_tile(tmp_path):
             match="decompression error: hit end of compressed byte stream",
         ):
             hdulist[1].data.sum()
+
+
+def test_hcompress_concurrent():
+    # Regression test for HCOMPRESS_1 giving wrong bytes or raising when used
+    # from several threads at once: the cfitsio code keeps its state in static
+    # variables and runs with the GIL released, so it must hold a lock.
+    rng = np.random.default_rng(0)
+    shape = (64, 64)
+    arrays = [rng.integers(0, 5000, shape, dtype="i4") for _ in range(32)]
+    codec = HCompress1(scale=0, smooth=False, bytepix=4, nx=shape[0], ny=shape[1])
+
+    expected = [codec.encode(a) for a in arrays]
+
+    with ThreadPoolExecutor(8) as executor:
+        for _ in range(5):
+            assert list(executor.map(codec.encode, arrays)) == expected
+            decoded = executor.map(
+                codec.decode, [np.frombuffer(b, dtype=np.uint8) for b in expected]
+            )
+            for out, arr in zip(decoded, arrays):
+                assert_equal(out.reshape(shape), arr)

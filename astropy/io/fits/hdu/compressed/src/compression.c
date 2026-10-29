@@ -68,9 +68,33 @@ static PyModuleDef compression = {
     module_methods,
 };
 
+// The lock behind cfitsio's FFLOCK/FFUNLOCK macros (see fitsio2.h). The
+// HCOMPRESS code keeps its encoder/decoder state in static variables, and we
+// call it with the GIL released, so concurrent calls would otherwise corrupt
+// each other's output.
+static PyThread_type_lock cfitsio_lock = NULL;
+
+void astropy_cfitsio_lock(void)
+{
+    PyThread_acquire_lock(cfitsio_lock, WAIT_LOCK);
+}
+
+void astropy_cfitsio_unlock(void)
+{
+    PyThread_release_lock(cfitsio_lock);
+}
+
 PyMODINIT_FUNC PyInit__compression(void)
 {
     PyObject *m;
+
+    if (cfitsio_lock == NULL) {
+        cfitsio_lock = PyThread_allocate_lock();
+        if (cfitsio_lock == NULL) {
+            return PyErr_NoMemory();
+        }
+    }
+
     m = PyModule_Create(&compression);
 
     /* Initialize new exception object */
