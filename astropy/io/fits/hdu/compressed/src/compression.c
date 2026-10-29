@@ -95,6 +95,15 @@ PyMODINIT_FUNC PyInit__compression(void)
         }
     }
 
+    // The dithering code fills the shared random number table on first use,
+    // without a lock and with the GIL released, so build it here before any
+    // thread can use the module.
+    if (fits_init_randoms()) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "could not initialize the dithering random numbers");
+        return NULL;
+    }
+
     m = PyModule_Create(&compression);
 
     /* Initialize new exception object */
