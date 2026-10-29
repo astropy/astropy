@@ -2235,7 +2235,7 @@ def fitter_to_model_params_array(
                 # To handle multiple tied constraints, model parameters
                 # need to be updated after each iteration.
                 parameters[slice_] = value
-                model._array_to_parameters()
+                model.parameters = parameters
 
     return parameters
 

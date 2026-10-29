@@ -1697,3 +1697,26 @@ def test_estimate_jacobian_large_parameter_value(fitter):
 
     # The result should not depend on the coordinate value
     assert_allclose(results[0], results[1], atol=1e-5)
+
+
+def test_tied_parameters_stale_values():
+    """
+    Verify that tied expressions depending on other tied parameters
+    evaluate using freshly updated values during fitting.
+
+    This prevents a lag where parameters see stale values from the
+    previous evaluation iteration (Regression test for #20710).
+    """
+    from astropy.modeling import fitting, models
+
+    model = models.Gaussian1D(3, 1.0, 0.5) + models.Gaussian1D(1, 2.0, 0.5)
+
+    model.amplitude_1.tied = lambda m: 2 * m.amplitude_0
+
+    model.mean_1.tied = lambda m: m.mean_0 + 0.1 * m.amplitude_1
+
+    free, _, _ = fitting.model_to_fit_params(model)
+    fitting.fitter_to_model_params(model, free)
+
+    assert model.amplitude_1.value == 6.0
+    assert model.mean_1.value == 1.6
