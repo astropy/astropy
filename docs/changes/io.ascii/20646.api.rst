@@ -1,0 +1,1 @@
+A table exported to MRT does not include limits inferred from data any more.
