@@ -809,6 +809,13 @@ exclude = [  # Don't report on objects that match any of these regex
     # references that do not resolve in the astropy documentation; the
     # parameters are documented in the class docstring
     '\.WCSAxes\.__init__$',
+    # Distribution documents its parameters in the class docstring, but takes
+    # them in __new__ rather than __init__, and the numpydoc pre-commit hook
+    # only reads signatures from __init__, so it reports "samples" as unknown.
+    '^core\.Distribution$',
+    # The statistics methods take the same arguments as the numpy functions
+    # they wrap, and refer to those for documentation
+    '^core\.Distribution\.pdf_(mean|std|var)$',
 ]
 exclude_files = [ # don't process filepaths that match these regex
     '^astropy/.*/setup_package.py',
@@ -834,7 +841,7 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/table/.*',
     '^astropy/tests/.*',
     '^astropy/time/.*',
-    '^astropy/uncertainty/.*',
+    '^astropy/uncertainty/function_helpers\.py$',  # private helpers
     '^astropy/units/.*',
     '^astropy/utils/.*',
     '^astropy/visualization/(?!wcsaxes/).*',  # i.e., validate wcsaxes
