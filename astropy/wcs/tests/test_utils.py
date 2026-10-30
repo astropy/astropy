@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 from contextlib import nullcontext
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -1979,31 +1980,70 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-def test_fit_wcs_from_points_proj_point_frame():
+@pytest.mark.parametrize("origin", [0, 1])
+def test_fit_wcs_from_points_proj_point_frame(origin):
     # proj_point in a different frame from world_coords must be converted to
     # the world_coords frame before being used as CRVAL
 
     crval = [12.0, 34.0]
+    xmax = 100
+    ymax = 200
 
     true_wcs = WCS(naxis=2)
     true_wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     true_wcs.wcs.crval = crval
-    true_wcs.wcs.crpix = [50.5, 50.5]
+    true_wcs.wcs.crpix = [(xmax + 1) / 2, (ymax + 1) / 2]
     true_wcs.wcs.cdelt = [-0.01, 0.01]
 
-    x, y = np.meshgrid(np.arange(0, 100, 10), np.arange(0, 100, 10))
+    x, y = np.meshgrid(np.arange(0, xmax, 10), np.arange(0, ymax, 10))
     x, y = x.flatten(), y.flatten()
     world_coords = true_wcs.pixel_to_world(x, y)  # ICRS
 
+    # Projection point is CRVAL:
     proj_point_icrs = SkyCoord(crval[0] * u.deg, crval[1] * u.deg, frame="icrs")
     proj_point = proj_point_icrs.galactic
 
-    fit_wcs = fit_wcs_from_points((x, y), world_coords, origin=0, proj_point=proj_point)
+    fit_wcs = fit_wcs_from_points(
+        (x + origin, y + origin), world_coords, proj_point=proj_point, origin=origin
+    )
 
     np.testing.assert_allclose(
         fit_wcs.wcs.crval, [proj_point_icrs.ra.deg, proj_point_icrs.dec.deg]
     )
     assert world_coords.separation(fit_wcs.pixel_to_world(x, y)).max() < 1 * u.mas
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("origin", [0, 1])
+def test_fit_wcs_from_points_initial_crpix_guess(origin):
+    # The initial CRPIX guess must be the pixel of proj_point, i.e. both
+    # axes must use the matching coordinate (lon for x, lat for y).
+    import scipy.optimize
+
+    true_wcs = WCS(naxis=2)
+    true_wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    true_wcs.wcs.crval = [12.0, 34.0]
+    true_wcs.wcs.crpix = [50.5, 100.5]
+    true_wcs.wcs.cdelt = [-0.01, 0.01]
+
+    x, y = np.meshgrid(np.arange(0, 100, 10), np.arange(0, 200, 10))
+    x, y = x.flatten(), y.flatten()
+    world_coords = true_wcs.pixel_to_world(x, y)
+
+    x0, y0 = 20, 140
+    idx = np.flatnonzero((x == x0) & (y == y0))[0]
+    proj_point = world_coords[idx]
+
+    with mock.patch(
+        "scipy.optimize.least_squares", wraps=scipy.optimize.least_squares
+    ) as spy:
+        fit_wcs_from_points(
+            (x + origin, y + origin), world_coords, origin=origin, proj_point=proj_point
+        )
+
+    initial_params = spy.call_args.args[1]
+    initial_crpix = initial_params[4:6]  # first 4 entries are the CD matrix
+    np.testing.assert_allclose(initial_crpix, (x0 + 1, y0 + 1), atol=1e-6)
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
