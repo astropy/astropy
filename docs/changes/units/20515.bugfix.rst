@@ -1,0 +1,4 @@
+Fixed ``quantity_input`` to pass unit-aware non-Quantity
+inputs, such as ``Column``, to the wrapped function as a
+``Quantity`` in the input unit. This ensures that unit-aware operations treat the
+input correctly.
