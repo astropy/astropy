@@ -71,6 +71,7 @@ Core Package Contributors
 * Asra Nizami
 * athul
 * Austen Groener
+* awss
 * Axel Donath
 * Azalee Bostroem
 * Bastian Beischer
@@ -438,6 +439,7 @@ Core Package Contributors
 * Nadia Dencheva
 * Naksh Yadav
 * Nallela Siddartha
+* Nathan Goldbaum
 * Nathanial Hendler
 * Nathaniel Starkman
 * Naveen Selvadurai
@@ -459,6 +461,7 @@ Core Package Contributors
 * Ole Streicher
 * Om S Habib
 * omahs
+* Onkar_Raskar
 * Orion Poplawski
 * orionlee
 * P\. L\. Lim
@@ -563,6 +566,7 @@ Core Package Contributors
 * Shreya Vernekar
 * Shreyas Bapat
 * Shridhar Panigrahi
+* Shubham Shinde
 * Sigurd Næss
 * Simon Aguilera
 * Simon Alinder
