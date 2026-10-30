@@ -784,6 +784,10 @@ def test_char_errors():
         lines[7] = "field[c] = char(foo)"
         t = Table.read(lines, format="ascii.tdat")
 
+    with pytest.raises(TdatFormatError, match="maximum length of 24 characters"):
+        lines[7] = "field[c] = char(99):" + "a" * 25
+        t = Table.read(lines, format="ascii.tdat")
+
 
 def test_char_meta():
     """Test dtype 'char' meta information"""
@@ -791,27 +795,37 @@ def test_char_meta():
 
     lines[7] = "field[c] = char200:html"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.columns["c"].format == None
+    assert t.columns["c"].format is None
     assert t.columns["c"].meta.get("char_len", None) == 200
     assert t.columns["c"].meta.get("char_fmt", None) == "html"
 
     lines[7] = "field[c] = char(300)"
     t = Table.read(lines, format="ascii.tdat")
-    assert t.columns["c"].format == None
+    assert t.columns["c"].format is None
     assert t.columns["c"].meta.get("char_len", None) == 300
-    assert t.columns["c"].meta.get("char_fmt", None) == None
+    assert t.columns["c"].meta.get("char_fmt", None) is None
 
 
 def test_ucd_errors():
     """Test UCD errors"""
     lines = SIMPLE_LINES.copy()
 
-    with pytest.raises(TdatFormatWarning, match="is not valid as a primary word"):
-        lines[5] += "[meta.main]"
+    with pytest.warns(TdatFormatWarning, match="is not valid as a primary word"):
+        lines[5] += " [meta.main]"
+        t = Table.read(lines, format="ascii.tdat")
+        assert t.columns["a"].meta.get("ucd", None) == "meta.main"
+
+    with pytest.warns(TdatFormatWarning, match="Unknown word"):
+        lines[5] = "field[a] = int4 [garbage.ucd]"
+        t = Table.read(lines, format="ascii.tdat")
+        assert t.columns["a"].meta.get("ucd", None) == "garbage.ucd"
+
+    with pytest.raises(TdatFormatError, match="Unrecognized or unsupported"):
+        lines[5] = "field[a] = int4[meta.main]"
         t = Table.read(lines, format="ascii.tdat")
 
-    with pytest.raises(TdatFormatWarning, match="Unknown word"):
-        lines[5] = "field[a] = int4 [garbage.ucd]"
+    with pytest.raises(TdatFormatError, match="exceeds 120 characters"):
+        lines[5] = "field[a] = int4 [meta.main." + "a" * 111 + "]"
         t = Table.read(lines, format="ascii.tdat")
 
 
@@ -826,6 +840,13 @@ def test_flag_errors():
     with pytest.raises(TdatFormatError, match="has multiple flags"):
         lines[5] = "field[a] = int4 (index) (key)"
         t = Table.read(lines, format="ascii.tdat")
+
+    # Zero whitespace between flag and UCD gives warning but both still captured
+    with pytest.warns(TdatFormatWarning, match="zero whitespace"):
+        lines[5] = "field[a] = int4 [pos.eq.ra](index)"
+        t = Table.read(lines, format="ascii.tdat")
+        assert t.columns["a"].meta.get("index", None) == "index"
+        assert t.columns["a"].meta.get("ucd", None) == "pos.eq.ra"
 
 
 def test_write_qtable():
@@ -888,3 +909,56 @@ def test_int_too_large():
     t["a"][0] = -(2**31) - 1
     with pytest.raises(TdatFormatError, match="cannot be converted"):
         t.write(out, format="ascii.tdat")
+
+
+def test_no_type_field():
+    """Test if field has no data type given"""
+    lines = SIMPLE_LINES.copy()
+
+    with pytest.raises(TdatFormatError, match="data type must be specified"):
+        lines[5] = "field[a] = (index) //description"
+        t = Table.read(lines, format="ascii.tdat")
+
+    with pytest.raises(TdatFormatError, match="Unrecognized or unsupported data"):
+        lines[5] = "field[a] = :.2f (index) //description"
+        t = Table.read(lines, format="ascii.tdat")
+
+
+def test_leftover_field_text():
+    """Test for extra text found in field line"""
+    lines = SIMPLE_LINES.copy()
+
+    with pytest.raises(TdatFormatError, match="Unexpected text"):
+        lines[5] = "field[a] = int4 extra text (key) //description"
+        t = Table.read(lines, format="ascii.tdat")
+
+
+def test_charlen_warnings():
+    """Test char_len warnings when reading and writing"""
+    lines = SIMPLE_LINES.copy()
+
+    # char_len specified in header doesn't match data when reading
+    with pytest.warns(TdatFormatWarning, match="exceeds specified character length."):
+        lines[14] = "1|1.0|ccccc|"
+        t = Table.read(lines, format="ascii.tdat")
+        assert t.columns["c"].meta.get("char_len", None) == 5
+
+    # Modify column width after reading, warn when writing
+    with pytest.warns(TdatFormatWarning, match="Please update meta"):
+        t["c"] = t["c"].astype("U8")
+        t["c"][0] = "c" * 8
+        out = StringIO()
+        t.write(out, format="ascii.tdat")
+        assert "char8" in out.getvalue().splitlines()[7]
+
+
+def test_url_in_description_comment():
+    """Test for urls in description or comment"""
+    lines = SIMPLE_LINES.copy()
+
+    lines[5] = (
+        "field[a] = int4 (key) //see https://example.com/docs //see https://example2.com/docs"
+    )
+    t = Table.read(lines, format="ascii.tdat")
+    assert t.columns["a"].description == "see https://example.com/docs"
+    assert t.columns["a"].meta.get("comment", None) == "see https://example2.com/docs"
