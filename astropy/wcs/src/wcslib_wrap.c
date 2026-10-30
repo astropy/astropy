@@ -366,7 +366,10 @@ static void
 Wcsprm_dealloc(
     Wcsprm* self) {
 
+  /* Single owner of all per-object memory: everything is released here. */
   wcsfree(&self->x);
+  free(self->original_cunit);
+  free(self->unit_scaling);
   PyTypeObject *tp = Py_TYPE((PyObject*)self);
   freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
   free_func((PyObject*)self);
@@ -379,6 +382,7 @@ Wcsprm_cnew(void) {
   PyTypeObject* type = (PyTypeObject*)WcsprmType;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
   self = (Wcsprm*)alloc_func(type, 0);
+  /* original_cunit and unit_scaling are set to NULL by tp_alloc */
   return self;
 }
 
@@ -391,6 +395,7 @@ Wcsprm_new(
   Wcsprm* self;
   allocfunc alloc_func = PyType_GetSlot(type, Py_tp_alloc);
   self = (Wcsprm*)alloc_func(type, 0);
+  /* original_cunit and unit_scaling are set to NULL by tp_alloc */
   return (PyObject*)self;
 }
 
@@ -649,6 +654,7 @@ Wcsprm_init(
       wcstab(&self->x);
       for (j = 0; j < self->x.nwtb; j++) {
         if (!_update_wtbarr_from_hdulist(hdulist, &(self->x.wtb[j]))) {
+          wcsvfree(&nwcs, &wcs);
           wcsfree(&self->x);
           return -1;
         }
@@ -701,6 +707,7 @@ Wcsprm_copy(
 
   copy = Wcsprm_cnew();
   if (copy == NULL) {
+    PyErr_NoMemory();
     return NULL;
   }
 
@@ -711,21 +718,25 @@ Wcsprm_copy(
   // Also copy over any information related to preserving units
 
   copy->preserve_units = self->preserve_units;
+  copy->original_cunit_valid = self->original_cunit_valid;
 
+  /* Test self (source) here, not copy: copy's buffer is always NULL so far. */
   if (self->original_cunit != NULL) {
     copy->original_cunit = malloc(copy->x.naxis * sizeof(*copy->original_cunit));
-    if (self->original_cunit == NULL) {
-        PyErr_NoMemory();
-        return NULL;
+    if (copy->original_cunit == NULL) {
+      Py_DECREF(copy);  /* dealloc also frees whatever copy owns so far */
+      PyErr_NoMemory();
+      return NULL;
     }
     for (int i = 0; i < copy->x.naxis; ++i) {
-        strncpy(copy->original_cunit[i], self->original_cunit[i], 72);
+      strncpy(copy->original_cunit[i], self->original_cunit[i], 72);
     }
   }
 
   if (self->unit_scaling != NULL) {
       copy->unit_scaling = malloc(copy->x.naxis * sizeof(double));
       if (copy->unit_scaling == NULL) {
+          Py_DECREF(copy);
           PyErr_NoMemory();
           return NULL;
       }
@@ -733,7 +744,6 @@ Wcsprm_copy(
         copy->unit_scaling[i] = self->unit_scaling[i];
     }
   }
-
 
   if (status == 0) {
     if (Wcsprm_cset(copy)) {
@@ -755,10 +765,13 @@ static Wcsprm* Wcsprm_copy_with_patched_units(Wcsprm* source) {
     // to match the original units (before WCSLIB changed them). The
     // returned object should not be used to do any kind of transformations
     // and is only for use in e.g. converting to a header, or printing
-    // contents.
+    // contents. Returns a new reference: the caller must Py_DECREF it.
 
     int original_flag;
     Wcsprm* copy = (Wcsprm*)Wcsprm_copy(source);
+    if (copy == NULL) {
+      return NULL;
+    }
 
     // We make sure wcsset is happy
     wcsset(&copy->x);
@@ -914,7 +927,7 @@ Wcsprm_find_all_wcs(
 
   for (i = 0; i < nwcs; ++i) {
     subresult = Wcsprm_cnew();
-    if (wcscopy(1, wcs + i, &subresult->x) != 0) {
+    if (subresult == NULL || wcscopy(1, wcs + i, &subresult->x) != 0) {
       Py_DECREF(result);
       wcsvfree(&nwcs, &wcs);
       PyErr_SetString(
@@ -1072,7 +1085,8 @@ int initialize_preserve_units(Wcsprm* self) {
   // If the user has requested to preserve units, we keep track of what CUNIT
   // was before and after fixing so that we can store the scaling factor if
   // needed. However, we don't do this yet if the units have not been set.
-  if (self->preserve_units == 1 && !cunit_empty(self->x.cunit, self->x.naxis)) {
+  if (self->preserve_units == 1 && !self->original_cunit_valid &&
+      !cunit_empty(self->x.cunit, self->x.naxis)) {
 
     if (self->original_cunit == NULL) {
       self->original_cunit = malloc(self->x.naxis * sizeof(*self->original_cunit));
@@ -1080,11 +1094,14 @@ int initialize_preserve_units(Wcsprm* self) {
           PyErr_NoMemory();
           return -1;
       }
-      for (int i = 0; i < self->x.naxis; ++i) {
-          strncpy(self->original_cunit[i], self->x.cunit[i], 72);
-      }
     }
-
+    // Refresh the saved original units even if the buffer already exists:
+    // after a cunit assignment the buffer is kept (proxies may point into it)
+    // but is out of date.
+    for (int i = 0; i < self->x.naxis; ++i) {
+      strncpy(self->original_cunit[i], self->x.cunit[i], 72);
+    }
+    self->original_cunit_valid = 1;
   }
 
   return 0;
@@ -1097,7 +1114,7 @@ int check_unit_changes(Wcsprm* self) {
   int            status;
 
   // Check which units have changed, and store scaling if changed.
-  if (self->original_cunit != NULL) {
+  if (self->original_cunit != NULL && self->original_cunit_valid) {
 
     if (self->unit_scaling == NULL) {
       self->unit_scaling = malloc(self->x.naxis * sizeof(double));
@@ -2059,8 +2076,11 @@ Wcsprm_print_contents(
 
 if (self->unit_scaling != NULL) {
     Wcsprm* copy = Wcsprm_copy_with_patched_units(self);
+    if (copy == NULL) {
+      return NULL;
+    }
     wcsprt(&copy->x);
-    Wcsprm_dealloc(copy);
+    Py_DECREF(copy);  /* release via refcounting - not Wcsprm_dealloc() */
   } else {
     wcsprt(&self->x);
   }
@@ -2137,8 +2157,11 @@ Wcsprm___str__(
 
   if (self->unit_scaling != NULL) {
     Wcsprm* copy = Wcsprm_copy_with_patched_units(self);
+    if (copy == NULL) {
+      return NULL;
+    }
     wcsprt(&copy->x);
-    Wcsprm_dealloc(copy);
+    Py_DECREF(copy);  /* release via refcounting - not Wcsprm_dealloc() */
   } else {
     wcsprt(&self->x);
   }
@@ -2318,6 +2341,13 @@ Wcsprm_sub(
   }
 
   py_dest_wcs = (Wcsprm*)Wcsprm_cnew();
+  if (py_dest_wcs == NULL) {
+    PyErr_SetString(
+      PyExc_MemoryError,
+      "Could not initialize wcsprm object");
+    goto exit;
+  }
+
   py_dest_wcs->x.flag = -1;
   status = wcsini(0, nsub, &py_dest_wcs->x);
   if (status != 0) {
@@ -2332,11 +2362,12 @@ Wcsprm_sub(
 
   py_dest_wcs->preserve_units = self->preserve_units;
 
-  // We check whether original_cunit is allocated to know whether we need to copy
-  // anything over - if it is not allocated then nothing needs to be done even
-  // if preserve_units is set.
+  // We check whether original_cunit holds valid original units to know
+  // whether we need to copy anything over - if not, then nothing needs to be
+  // done even if preserve_units is set (a stale buffer is refreshed at
+  // the next cset).
 
-  if (self->original_cunit != NULL) {
+  if (self->original_cunit != NULL && self->original_cunit_valid) {
 
   initialize_preserve_units(py_dest_wcs);
 
@@ -2434,16 +2465,20 @@ Wcsprm_to_header(
   if (self->unit_scaling != NULL) {
 
     Wcsprm* copy = Wcsprm_copy_with_patched_units(self);
-
-    status = wcshdo(relax, &copy->x, &nkeyrec, &header);
-
-    if (status != 0) {
-      wcs_to_python_exc(&(copy->x));
-      wcsfree(&copy->x);
-      goto exit;
+    if (copy == NULL) {
+      return NULL;
     }
 
-    wcsfree(&copy->x);
+    status = wcshdo(relax, &copy->x, &nkeyrec, &header);
+    if (status != 0) {
+      wcs_to_python_exc(&(copy->x));  /* must come before Py_DECREF(copy) */
+    }
+    // Releasing the copy object (not just wcsfree(&copy->x)) also frees its
+    // original_cunit and unit_scaling buffers; dealloc calls wcsfree.
+    Py_DECREF(copy);
+    if (status != 0) {
+      goto exit;
+    }
 
   } else {
 
@@ -3077,13 +3112,14 @@ Wcsprm_get_cunit(
     return NULL;
   }
 
-  if (self->original_cunit != NULL) {
+  // original_cunit valid: show the original units, read-only. Otherwise show
+  // x.cunit, editable in place until the next set() saves them.
+  if (self->original_cunit != NULL && self->original_cunit_valid) {
     return get_unit_list(
       "cunit", self->original_cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self, 1);
-  } else {
-    return get_unit_list(
-      "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self, 0);
   }
+  return get_unit_list(
+    "cunit", self->x.cunit, (Py_ssize_t)self->x.naxis, (PyObject*)self, 0);
 }
 
 static int
@@ -3093,6 +3129,7 @@ Wcsprm_set_cunit(
     /*@unused@*/ void* closure) {
 
   double scale;
+  int status;
 
   if (is_null(self->x.cunit)) {
     return -1;
@@ -3135,14 +3172,14 @@ Wcsprm_set_cunit(
 
   }
 
-  if (self->original_cunit != NULL) {
-    free(self->original_cunit);
-    self->original_cunit = NULL;
-  }
-
-  return set_unit_list(
+  // Do not free original_cunit: cunit proxies returned earlier point into it,
+  // and value itself may be one (e.g. wcs.cunit = wcs.cunit). Mark it out of
+  // date instead; the next cset (initialize_preserve_units) refreshes it.
+  status = set_unit_list(
       (PyObject *)self, "cunit", value, (Py_ssize_t)self->x.naxis, self->x.cunit);
 
+  self->original_cunit_valid = 0;
+  return status;
 }
 
 /*@null@*/ static PyObject*
