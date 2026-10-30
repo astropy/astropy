@@ -126,17 +126,23 @@ RESIZE_AMOUNT = 1.5
 # FACTORY FUNCTIONS
 
 
-def _resize(masked, new_size):
+def _growable_arrays(masked):
     """
-    Masked arrays can not be resized inplace, and `np.resize` and
-    `ma.resize` are both incompatible with structured arrays.
-    Therefore, we do all this.
-    """
-    new_array = ma.zeros((new_size,), dtype=masked.dtype)
-    length = min(len(masked), new_size)
-    new_array[:length] = masked[:length]
+    Return zeroed data and mask arrays with the dtype and length of *masked*.
 
-    return new_array
+    Masked arrays can not be resized in place, but these plain arrays own
+    their memory, so ``ndarray.resize`` can grow and trim them without
+    holding a second copy of the table.  Wrap them with `_to_masked` once
+    they are filled.
+    """
+    data = np.zeros(len(masked), dtype=masked.dtype)
+    mask = np.zeros(len(masked), dtype=ma.make_mask_descr(masked.dtype))
+    return data, mask
+
+
+def _to_masked(data, mask):
+    """Make a masked array from the arrays of `_growable_arrays` without copying them."""
+    return ma.MaskedArray(data, mask=mask, copy=False, keep_mask=False)
 
 
 def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
@@ -2988,9 +2994,9 @@ class TableElement(
         # allocation is by factors of 1.5.
         invalid = config.get("invalid", "exception")
 
-        # Need to have only one reference so that we can resize the
-        # array
-        array = self.array
+        # These must be the only references to the arrays, so that they
+        # can be resized in place
+        array, mask = _growable_arrays(self.array)
         del self.array
 
         fields = self.all_fields
@@ -3077,9 +3083,10 @@ class TableElement(
                     while numrows + chunk_size > alloc_rows:
                         alloc_rows = self._resize_strategy(alloc_rows)
                     if alloc_rows != len(array):
-                        array = _resize(array, alloc_rows)
+                        array.resize(alloc_rows, refcheck=False)
+                        mask.resize(alloc_rows, refcheck=False)
                     array[numrows : numrows + chunk_size] = array_chunk
-                    array.mask[numrows : numrows + chunk_size] = mask_chunk
+                    mask[numrows : numrows + chunk_size] = mask_chunk
                     numrows += chunk_size
                     array_chunk = []
                     mask_chunk = []
@@ -3091,17 +3098,17 @@ class TableElement(
         # put the last chunk values in there.
         alloc_rows = numrows + len(array_chunk)
 
-        array = _resize(array, alloc_rows)
+        array.resize(alloc_rows, refcheck=False)
+        mask.resize(alloc_rows, refcheck=False)
         array[numrows:] = array_chunk
-        if alloc_rows != 0:
-            array.mask[numrows:] = mask_chunk
+        mask[numrows:] = mask_chunk
         numrows += len(array_chunk)
 
         if self.nrows is not None and self.nrows >= 0 and self.nrows != numrows:
             warn_or_raise(W18, W18, (self.nrows, numrows), config, pos)
         self._nrows = numrows
 
-        return array
+        return _to_masked(array, mask)
 
     def _get_binary_data_stream(self, iterator, config):
         have_local_stream = False
@@ -3171,9 +3178,9 @@ class TableElement(
     def _parse_binary(self, mode, iterator, colnumbers, config, pos):
         careful_read = self._get_binary_data_stream(iterator, config)
 
-        # Need to have only one reference so that we can resize the
-        # array
-        array = self.array
+        # These must be the only references to the arrays, so that they
+        # can be resized in place
+        array, mask = _growable_arrays(self.array)
         del self.array
 
         fields = self.all_fields
@@ -3185,7 +3192,8 @@ class TableElement(
             # Resize result arrays if necessary
             if numrows >= alloc_rows:
                 alloc_rows = self._resize_strategy(alloc_rows)
-                array = _resize(array, alloc_rows)
+                array.resize(alloc_rows, refcheck=False)
+                mask.resize(alloc_rows, refcheck=False)
 
             row_data = []
             row_mask_data = []
@@ -3231,10 +3239,12 @@ class TableElement(
                 row_mask[j] = row_mask_data[i]
 
             array[numrows] = tuple(row)
-            array.mask[numrows] = tuple(row_mask)
+            mask[numrows] = tuple(row_mask)
             numrows += 1
 
-        return _resize(array, numrows)
+        array.resize(numrows, refcheck=False)
+        mask.resize(numrows, refcheck=False)
+        return _to_masked(array, mask)
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:
