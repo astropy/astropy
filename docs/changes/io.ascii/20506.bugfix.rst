@@ -1,0 +1,7 @@
+The TDAT reader now properly handles the header field ``table_document_url``.
+Parsing of field definition lines has been changed for better error catching.
+UCD (Unified Content Descriptor) values in field definitions are now checked and
+generate warnings if found to be invalid. Handling of field data type ``char``
+has been fixed to check and preserve specified length and store format in
+``col.meta['char_fmt']`` instead of ``col.format``. Previously storing the
+format for ``char`` data types in ``col.format`` raised ``ValueError``.
