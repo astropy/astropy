@@ -1,5 +1,6 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import threading
 from functools import cache
 
 from astropy import units as u
@@ -11,8 +12,13 @@ from astropy.coordinates.transformations import (
     FunctionTransform,
 )
 
+# functools.cache does not prevent concurrent calls with the same argument
+# from all running the function body, which here would create duplicate
+# classes and register their transforms in the transform graph from several
+# threads at once.
+_skyoffset_cls_lock = threading.Lock()
 
-@cache
+
 def make_skyoffset_cls(framecls):
     """
     Create a new class that is the sky offset frame for a specific class of
@@ -40,6 +46,12 @@ def make_skyoffset_cls(framecls):
     just that class, as well as ensuring that only one example of such a class
     actually gets created in any given python session.
     """
+    with _skyoffset_cls_lock:
+        return _make_skyoffset_cls(framecls)
+
+
+@cache
+def _make_skyoffset_cls(framecls):
     # Create a new SkyOffsetFrame subclass for this frame class.
     name = "SkyOffset" + framecls.__name__
     _SkyOffsetFramecls = type(
