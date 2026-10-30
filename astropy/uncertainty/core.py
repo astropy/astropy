@@ -379,14 +379,7 @@ class Distribution:
         """
         The mean of this distribution.
 
-        Parameters
-        ----------
-        dtype : dtype, optional
-            Type to use in computing the mean. See `numpy.mean`.
-        out : array, optional
-            Alternative output array in which to place the result. It must
-            have the same shape and buffer length as the expected output,
-            but the type (of the output) will be cast if necessary.
+        Arguments are as for `numpy.mean`.
         """
         return self.distribution.mean(axis=-1, dtype=dtype, out=out)
 
@@ -394,18 +387,7 @@ class Distribution:
         """
         The standard deviation of this distribution.
 
-        Parameters
-        ----------
-        dtype : dtype, optional
-            Type to use in computing the standard deviation. See `numpy.std`.
-        out : array, optional
-            Alternative output array in which to place the result. It must
-            have the same shape and buffer length as the expected output,
-            but the type (of the output) will be cast if necessary.
-        ddof : int, optional
-            Means Delta Degrees of Freedom. The divisor used in calculations
-            is ``N - ddof``, where ``N`` is the number of samples. See
-            `numpy.std`.
+        Arguments are as for `numpy.std`.
         """
         return self.distribution.std(axis=-1, dtype=dtype, out=out, ddof=ddof)
 
@@ -413,18 +395,7 @@ class Distribution:
         """
         The variance of this distribution.
 
-        Parameters
-        ----------
-        dtype : dtype, optional
-            Type to use in computing the variance. See `numpy.var`.
-        out : array, optional
-            Alternative output array in which to place the result. It must
-            have the same shape and buffer length as the expected output,
-            but the type (of the output) will be cast if necessary.
-        ddof : int, optional
-            Means Delta Degrees of Freedom. The divisor used in calculations
-            is ``N - ddof``, where ``N`` is the number of samples. See
-            `numpy.var`.
+        Arguments are as for `numpy.var`.
         """
         return self.distribution.var(axis=-1, dtype=dtype, out=out, ddof=ddof)
 
@@ -491,8 +462,7 @@ class Distribution:
         Returns
         -------
         percentiles : ndarray or `~astropy.units.Quantity`
-            The requested percentiles of this distribution, of the same type
-            and unit as the underlying samples.
+            The requested percentiles of this distribution.
         """
         percentile = u.Quantity(percentile, u.percent).value
         percs = np.percentile(self.distribution, percentile, axis=-1, **kwargs)
