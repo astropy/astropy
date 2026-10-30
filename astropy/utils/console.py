@@ -7,8 +7,6 @@ import codecs
 import locale
 import math
 import multiprocessing
-import os
-import struct
 import sys
 import threading
 import time
@@ -18,9 +16,7 @@ from shutil import get_terminal_size
 # import failure when running in pyodide/Emscripten
 
 try:
-    import fcntl
     import signal
-    import termios
 
     _CAN_RESIZE_TERMINAL = True
 except ImportError:
@@ -31,8 +27,6 @@ import numpy as np
 from astropy import conf
 from astropy.utils.compat.optional_deps import HAS_IPYKERNEL, HAS_IPYWIDGETS
 
-from .decorators import deprecated
-
 __all__ = [
     "ProgressBar",
     "ProgressBarOrSpinner",
@@ -42,7 +36,6 @@ __all__ = [
     "human_time",
     "isatty",
     "print_code_line",
-    "terminal_size",
 ]
 
 
@@ -61,46 +54,6 @@ def isatty(file):
         return False
 
     return hasattr(file, "isatty") and file.isatty()
-
-
-@deprecated("6.1", alternative="shutil.get_terminal_size")
-def terminal_size(file=None):
-    """
-    Returns a tuple (height, width) containing the height and width of
-    the terminal.
-
-    This function will look for the width in height in multiple areas
-    before falling back on the width and height in astropy's
-    configuration.
-    """
-    if file is None:
-        file = sys.stdout
-
-    try:
-        s = struct.pack("HHHH", 0, 0, 0, 0)
-        x = fcntl.ioctl(file, termios.TIOCGWINSZ, s)
-        (lines, width, xpixels, ypixels) = struct.unpack("HHHH", x)
-        if lines > 12:
-            lines -= 6
-        if width > 10:
-            width -= 1
-        if lines <= 0 or width <= 0:
-            raise Exception("unable to get terminal size")
-        return (lines, width)
-    except Exception:
-        try:
-            # see if POSIX standard variables will work
-            return (int(os.environ.get("LINES")), int(os.environ.get("COLUMNS")))
-        except TypeError:
-            # fall back on configuration variables, or if not
-            # set, (25, 80)
-            lines = conf.max_lines
-            width = conf.max_width
-            if lines is None:
-                lines = 25
-            if width is None:
-                width = 80
-            return lines, width
 
 
 def _color_text(text, color):
