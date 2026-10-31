@@ -441,10 +441,13 @@ cdef class CParser:
                 try:
                     if t.code == OVERFLOW_ERROR:
                         # Overflow during int conversion (extending range)
-                        warnings.warn("OverflowError converting to {0} in column {1}, reverting to String."
-                                  .format('IntType', name), AstropyWarning)
+                        warnings.warn(
+                            f"OverflowError converting to IntType in column {name}, "
+                            "reverting to String",
+                            category=AstropyWarning,
+                        )
                         if try_string and not try_string[name]:
-                            raise ValueError('Column {0} failed to convert'.format(name))
+                            raise ValueError(f"Column {name} failed to convert")
                         t.code = NO_ERROR
                         cols[name] = self._convert_str(t, i, num_rows)
                     else:
@@ -454,12 +457,15 @@ cdef class CParser:
                         cols[name] = self._convert_float(t, i, num_rows)
                         if t.code == OVERFLOW_ERROR:
                             # Overflow during float conversion (extending range)
-                            warnings.warn("OverflowError converting to {0} in column {1}, possibly resulting in degraded precision."
-                                          .format('FloatType', name), AstropyWarning)
+                            warnings.warn(
+                                f"OverflowError converting to FloatType in column {name}, "
+                                "possibly resulting in degraded precision.",
+                                category=AstropyWarning,
+                            )
                             t.code = NO_ERROR
                 except ValueError:
                     if try_string and not try_string[name]:
-                        raise ValueError('Column {0} failed to convert'.format(name))
+                        raise ValueError(f"Column {name} failed to convert") from None
                     cols[name] = self._convert_str(t, i, num_rows)
 
         return cols, self._get_comments(t)

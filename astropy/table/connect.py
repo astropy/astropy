@@ -79,10 +79,10 @@ class TableRead(registry.UnifiedReadWrite):
         if cls is not out.__class__:
             try:
                 out = cls(out, copy=False)
-            except Exception:
+            except Exception as exc:
                 raise TypeError(
                     f"could not convert reader output to {cls.__name__} class."
-                )
+                ) from exc
 
         out._set_column_attribute("unit", units)
         out._set_column_attribute("description", descriptions)
