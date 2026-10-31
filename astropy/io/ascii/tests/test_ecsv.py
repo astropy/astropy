@@ -48,7 +48,11 @@ if HAS_PYARROW:
     ENGINE_PARAMS.append({"format": "ecsv", "engine": "pyarrow"})
 
 
-@pytest.fixture(scope="module", params=ENGINE_PARAMS)
+@pytest.fixture(
+    scope="module",
+    params=ENGINE_PARAMS,
+    ids=lambda p: f"{p['format']}_{p.get('engine', 'default-engine')}",
+)
 def format_engine(request):
     return request.param
 
