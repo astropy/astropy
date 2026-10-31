@@ -11,6 +11,7 @@ ipac.py:
 import re
 from collections import defaultdict
 from textwrap import wrap
+from typing import assert_never
 from warnings import warn
 
 from astropy.table.pprint import get_auto_format_func
@@ -72,13 +73,13 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
     # distinguish between "d" (double) and "da" (date) as defined by
     # the IPAC standard for abbreviations.  This gets used in get_col_type().
     col_type_list = (
-        ("integer", core.IntType),
-        ("long", core.IntType),
-        ("double", core.FloatType),
-        ("float", core.FloatType),
-        ("real", core.FloatType),
-        ("char", core.StrType),
-        ("date", core.StrType),
+        ("integer", core.ColumnType.INTEGER),
+        ("long", core.ColumnType.INTEGER),
+        ("double", core.ColumnType.FLOAT),
+        ("float", core.ColumnType.FLOAT),
+        ("real", core.ColumnType.FLOAT),
+        ("char", core.ColumnType.STRING),
+        ("date", core.ColumnType.STRING),
     )
     definition = "ignore"
     start_line = None
@@ -211,7 +212,22 @@ class IpacHeader(fixedwidth.FixedWidthHeader):
                 # Strip spaces but not dashes (not allowed in NULL row per
                 # https://github.com/astropy/astropy/issues/361)
                 null = header_vals[3][i].strip()
-                fillval = "" if issubclass(col.type, core.StrType) else "0"
+                match col.type:
+                    case core.ColumnType.STRING:
+                        fillval = ""
+                    case core.ColumnType.INTEGER:
+                        fillval = "0"
+                    case core.ColumnType.FLOAT:
+                        # bug-for-bug backward compat
+                        fillval = "0"
+                    case core.ColumnType.BOOL:
+                        # bug-for-bug backward compat
+                        fillval = "0"
+                    case core.ColumnType.ANY | core.ColumnType.UNDEFINED:
+                        raise ValueError
+                    case _ as unreachable:
+                        assert_never(unreachable)
+
                 self.data.fill_values.append((null, fillval, col.name))
             start = col.end + 1
             cols.append(col)
