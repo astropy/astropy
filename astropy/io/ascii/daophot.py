@@ -184,13 +184,17 @@ class DaophotHeader(core.BaseHeader):
         for i, col in enumerate(self.cols):
             col.start, col.end = starts[i], ends[i]
             col.span = col.end - col.start
-            if hasattr(col, "format"):
-                if any(x in col.format for x in "fg"):
-                    col.type = core.FloatType
-                elif "d" in col.format:
-                    col.type = core.IntType
-                elif "s" in col.format:
-                    col.type = core.StrType
+            if not hasattr(col, "format"):
+                continue
+
+            if "f" in col.format or "g" in col.format:
+                col.type = core.ColumnType.FLOAT
+            elif "d" in col.format:
+                col.type = core.ColumnType.INTEGER
+            elif "s" in col.format:
+                col.type = core.ColumnType.STRING
+            else:
+                raise ValueError(col.format)
 
         # INDEF is the missing value marker
         self.data.fill_values.append(("INDEF", "0"))

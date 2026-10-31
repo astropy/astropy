@@ -12,6 +12,7 @@ import fnmatch
 import itertools
 import os
 import re
+from collections.abc import Mapping
 from contextlib import suppress
 from pathlib import Path
 
@@ -50,11 +51,11 @@ def _is_section_delimiter(line):
 class CdsHeader(core.BaseHeader):
     _subfmt = "CDS"
 
-    col_type_map = {
-        "e": core.FloatType,
-        "f": core.FloatType,
-        "i": core.IntType,
-        "a": core.StrType,
+    col_type_map: Mapping[str, core.ColumnType] = {
+        "e": core.ColumnType.FLOAT,
+        "f": core.ColumnType.FLOAT,
+        "i": core.ColumnType.INTEGER,
+        "a": core.ColumnType.STRING,
     }
 
     "The ReadMe file to construct header from."
@@ -199,7 +200,7 @@ class CdsHeader(core.BaseHeader):
                 )
                 if match:
                     col.description = (match.group("descriptiontext") or "").strip()
-                    if issubclass(col.type, core.FloatType):
+                    if col.type.is_subtype(core.ColumnType.FLOAT):
                         fillval = "nan"
                     else:
                         fillval = "0"

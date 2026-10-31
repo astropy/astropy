@@ -20,12 +20,15 @@ import operator
 import os
 import re
 import warnings
+from collections.abc import Callable, Iterable, Sequence
 from contextlib import suppress
+from enum import Enum, auto
 from io import StringIO
 from pathlib import Path
-from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard
+from typing import ClassVar, Final, Self, SupportsFloat, TypeGuard, assert_never
 
 import numpy as np
+import numpy.typing as npt
 
 from astropy.table import Table
 from astropy.utils.data import get_readable_fileobj
@@ -224,52 +227,53 @@ class FastOptionsError(NotImplementedError):
     """
 
 
-class NoType:
-    """
-    Superclass for ``StrType`` and ``NumType`` classes.
+class ColumnType(Enum):
+    ANY = auto()  # top type
+    BOOL = auto()
+    FLOAT = auto()
+    INTEGER = auto()
+    NUMERIC = auto()
+    STRING = auto()
+    UNDEFINED = auto()  # bottom type
 
-    This class is the default type of ``Column`` and provides a base
-    class for other data types.
-    """
+    def is_subtype(self, other: ColumnType, /) -> bool:
+        # emulate relations previously modeled with class inheritance
+        match self, other:
+            case _, ColumnType.ANY:
+                # top type: every type is a subtype to ANY
+                return True
+            case t1, t2 if t1 is t2:
+                return True
+            case ((ColumnType.FLOAT | ColumnType.INTEGER), ColumnType.NUMERIC):
+                return True
+            case ColumnType.UNDEFINED, _:
+                # bottom type: UNDEFINED is a subtype to every other type
+                return True
+            case _:
+                return False
 
-
-class StrType(NoType):
-    """
-    Indicates that a column consists of text data.
-    """
-
-
-class NumType(NoType):
-    """
-    Indicates that a column consists of numerical data.
-    """
-
-
-class FloatType(NumType):
-    """
-    Describes floating-point data.
-    """
-
-
-class BoolType(NoType):
-    """
-    Describes boolean data.
-    """
-
-
-class IntType(NumType):
-    """
-    Describes integer data.
-    """
-
-
-class AllType(StrType, FloatType, IntType):
-    """
-    Subclass of all other data types.
-
-    This type is returned by ``convert_numpy`` if the given numpy
-    type does not match ``StrType``, ``FloatType``, or ``IntType``.
-    """
+    @property
+    def nickname(self) -> str:
+        # map enum members to names used in error message
+        # for strict backward compatibility with a previous,
+        # class hierarchy-based implementation.
+        match self:
+            case ColumnType.ANY:
+                return "NoType"
+            case ColumnType.BOOL:
+                return "BoolType"
+            case ColumnType.FLOAT:
+                return "FloatType"
+            case ColumnType.INTEGER:
+                return "IntType"
+            case ColumnType.NUMERIC:
+                return "NumType"
+            case ColumnType.STRING:
+                return "StringType"
+            case ColumnType.UNDEFINED:
+                return "AllType"
+            case _ as unreachable:
+                assert_never(unreachable)
 
 
 class Column:
@@ -278,7 +282,7 @@ class Column:
     The key attributes of a Column object are:
 
     * **name** : column name
-    * **type** : column type (NoType, StrType, NumType, FloatType, IntType)
+    * **type** : column type (ColumnType)
     * **dtype** : numpy dtype (optional, overrides **type** if set)
     * **str_vals** : list of column values as strings
     * **fill_values** : dict of fill values
@@ -288,10 +292,10 @@ class Column:
     """
 
     def __init__(self, name):
-        self.name = name
-        self.type = NoType  # Generic type (Int, Float, Str etc)
-        self.dtype = None  # Numpy dtype if available
-        self.str_vals = []
+        self.name: str = name
+        self.type: ColumnType = ColumnType.ANY
+        self.dtype: np.dtype | None = None  # Numpy dtype if available
+        self.str_vals: list[str] = []
         self.fill_values = {}
         self.shape = []
         self.subtype = None
@@ -714,10 +718,10 @@ class BaseHeader:
         else:
             raise TypeError(f"got column type {type(col)} instead of required {Column}")
 
-    def get_type_map_key(self, col):
+    def get_type_map_key(self, col: Column):
         return col.raw_type
 
-    def get_col_type(self, col):
+    def get_col_type(self, col: Column) -> ColumnType:
         try:
             type_map_key = self.get_type_map_key(col)
             return self.col_type_map[type_map_key.lower()]
@@ -977,7 +981,10 @@ class BaseData:
                 col.info.format = self.formats[col.info.name]
 
 
-def convert_numpy(numpy_type):
+type Converter = Callable[[Sequence[str]], npt.NDarray]
+
+
+def convert_numpy(numpy_type: npt.DTypeLike) -> tuple[Converter, ColumnType]:
     """Return a tuple containing a function which converts a list into a numpy
     array and the type produced by the converter function.
 
@@ -994,7 +1001,7 @@ def convert_numpy(numpy_type):
     converter : callable
         ``converter`` is a function which accepts a list and converts it to a
         numpy array of type ``numpy_type``.
-    converter_type : type
+    converter_type : ColumnType
         ``converter_type`` tracks the generic data type produced by the
         converter function.
 
@@ -1005,19 +1012,20 @@ def convert_numpy(numpy_type):
         the required type.
     """
     # Infer converter type from an instance of numpy_type.
-    type_name = np.array([], dtype=numpy_type).dtype.name
-    if "int" in type_name:
-        converter_type = IntType
-    elif "float" in type_name:
-        converter_type = FloatType
-    elif "bool" in type_name:
-        converter_type = BoolType
-    elif "str" in type_name:
-        converter_type = StrType
-    else:
-        converter_type = AllType
+    dtype = np.dtype(numpy_type)
+    match dtype.kind:
+        case "i" | "u":
+            converter_type = ColumnType.INTEGER
+        case "f":
+            converter_type = ColumnType.FLOAT
+        case "b":
+            converter_type = ColumnType.BOOL
+        case "U":
+            converter_type = ColumnType.STRING
+        case _:
+            converter_type = ColumnType.UNDEFINED
 
-    def bool_converter(vals):
+    def bool_converter(vals: Sequence[str]) -> npt.NDArray:
         """
         Convert values "False" and "True" to bools.  Raise an exception
         for any other string values.
@@ -1041,10 +1049,14 @@ def convert_numpy(numpy_type):
 
         return trues
 
-    def generic_converter(vals):
+    def generic_converter(vals: Sequence[str]) -> npt.NDArray:
         return np.array(vals, numpy_type)
 
-    converter = bool_converter if converter_type is BoolType else generic_converter
+    match converter_type:
+        case ColumnType.BOOL:
+            converter = bool_converter
+        case _:
+            converter = generic_converter
 
     return converter, converter_type
 
@@ -1061,7 +1073,10 @@ class BaseOutputter:
     # Derived classes must define default_converters and __call__
 
     @staticmethod
-    def _validate_and_copy(col, converters):
+    def _validate_and_copy(
+        col,
+        converters: npt.DTypeLike | Iterable[ColumnType | tuple[Converter, ColumnType]],
+    ) -> list[Converter, ColumnType]:
         """Validate the format for the type converters and then copy those
         which are valid converters for this column (i.e. converter type is
         a subclass of col.type).
@@ -1085,9 +1100,9 @@ class BaseOutputter:
                         converter_func, converter_type = convert_numpy(converter)
                     else:
                         raise
-                if not issubclass(converter_type, NoType):
-                    raise ValueError("converter_type must be a subclass of NoType")
-                if issubclass(converter_type, col.type):
+                if not isinstance(converter_type, ColumnType):
+                    raise TypeError("converter_type must be a ColumnType enum member")
+                if converter_type.is_subtype(col.type):
                     converters_out.append((converter_func, converter_type))
 
         except (ValueError, TypeError) as err:
@@ -1123,10 +1138,10 @@ class BaseOutputter:
                     raise ValueError(f"Column {col.name} failed to convert: {last_err}")
 
                 converter_func, converter_type = col.converters[0]
-                if not issubclass(converter_type, col.type):
+                if not converter_type.is_subtype(col.type):
                     raise TypeError(
-                        f"converter type {converter_type.__name__} does not match"
-                        f" column type {col.type.__name__} for column {col.name}"
+                        f"converter type {converter_type.nickname} does not match "
+                        f"column type {col.type.nickname} for column {col.name}"
                     )
 
                 try:
@@ -1144,8 +1159,8 @@ class BaseOutputter:
                         and str(err).startswith("Exceeds the limit")
                     ):
                         warnings.warn(
-                            f"OverflowError converting to {converter_type.__name__} in"
-                            f" column {col.name}, reverting to String.",
+                            f"OverflowError converting to {converter_type.nickname} in "
+                            f"column {col.name}, reverting to String.",
                             AstropyWarning,
                         )
                         col.converters.insert(0, convert_numpy(str))

@@ -10,6 +10,7 @@ basic.py:
 """
 
 import re
+from collections.abc import Mapping
 
 from . import core
 
@@ -338,7 +339,10 @@ class RdbHeader(TabHeader):
     Header for RDB tables.
     """
 
-    col_type_map = {"n": core.NumType, "s": core.StrType}
+    col_type_map: Mapping[str, core.ColumnType] = {
+        "n": core.ColumnType.NUMERIC,
+        "s": core.ColumnType.STRING,
+    }
 
     def get_type_map_key(self, col):
         return col.raw_type[-1]

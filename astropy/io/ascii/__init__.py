@@ -16,7 +16,6 @@ from .basic import (
 )
 from .cds import Cds
 from .core import (
-    AllType,
     BaseData,
     BaseHeader,
     BaseInputter,
@@ -24,15 +23,11 @@ from .core import (
     BaseReader,
     BaseSplitter,
     Column,
+    ColumnType,
     ContinuationLinesInputter,
     DefaultSplitter,
-    FloatType,
     InconsistentTableError,
-    IntType,
-    NoType,
-    NumType,
     ParameterError,
-    StrType,
     TableOutputter,
     WhitespaceSplitter,
     convert_numpy,

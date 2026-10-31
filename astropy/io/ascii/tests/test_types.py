@@ -7,6 +7,63 @@ import numpy as np
 import pytest
 
 from astropy.io import ascii
+from astropy.io.ascii import ColumnType
+
+
+class TestColumnType:
+    @pytest.mark.parametrize("t", ColumnType)
+    def test_top_is_subtype_only_to_itself(self, t: ColumnType) -> None:
+        assert ColumnType.ANY.is_subtype(t) == (t is ColumnType.ANY)
+
+    @pytest.mark.parametrize("t", ColumnType)
+    def test_all_is_subtype_to_top(self, t: ColumnType) -> None:
+        assert t.is_subtype(ColumnType.ANY)
+
+    @pytest.mark.parametrize("t", ColumnType)
+    def test_bottom_is_subtype_to_all(self, t: ColumnType) -> None:
+        assert ColumnType.UNDEFINED.is_subtype(t)
+
+    @pytest.mark.parametrize("t", ColumnType)
+    def test_only_bottom_is_subtype_to_itself(self, t: ColumnType) -> None:
+        assert t.is_subtype(ColumnType.UNDEFINED) == (t is ColumnType.UNDEFINED)
+
+    @pytest.mark.parametrize("t", ColumnType)
+    def test_reflexivity(self, t: ColumnType) -> None:
+        assert t.is_subtype(t)
+
+    @pytest.mark.parametrize(
+        "t1, t2, expected",
+        [
+            # a complete, flat table of all remaining, non-trivial cases
+            (ColumnType.BOOL, ColumnType.FLOAT, False),
+            (ColumnType.BOOL, ColumnType.INTEGER, False),
+            (ColumnType.BOOL, ColumnType.NUMERIC, False),
+            (ColumnType.BOOL, ColumnType.STRING, False),
+            (ColumnType.FLOAT, ColumnType.BOOL, False),
+            (ColumnType.FLOAT, ColumnType.INTEGER, False),
+            (ColumnType.FLOAT, ColumnType.NUMERIC, True),
+            (ColumnType.FLOAT, ColumnType.STRING, False),
+            (ColumnType.INTEGER, ColumnType.BOOL, False),
+            (ColumnType.INTEGER, ColumnType.FLOAT, False),
+            (ColumnType.INTEGER, ColumnType.NUMERIC, True),
+            (ColumnType.INTEGER, ColumnType.STRING, False),
+            (ColumnType.NUMERIC, ColumnType.BOOL, False),
+            (ColumnType.NUMERIC, ColumnType.FLOAT, False),
+            (ColumnType.NUMERIC, ColumnType.INTEGER, False),
+            (ColumnType.NUMERIC, ColumnType.STRING, False),
+            (ColumnType.STRING, ColumnType.BOOL, False),
+            (ColumnType.STRING, ColumnType.FLOAT, False),
+            (ColumnType.STRING, ColumnType.INTEGER, False),
+            (ColumnType.STRING, ColumnType.NUMERIC, False),
+        ],
+    )
+    def test_is_subtype(
+        self,
+        t1: ColumnType,
+        t2: ColumnType,
+        expected: bool,
+    ) -> None:
+        assert t1.is_subtype(t2) is expected
 
 
 def test_types_from_dat():
@@ -42,13 +99,13 @@ def test_ipac_read_types():
     reader = ascii.get_reader(reader_cls=ascii.Ipac)
     reader.read(table)
     types = [
-        ascii.FloatType,
-        ascii.FloatType,
-        ascii.IntType,
-        ascii.FloatType,
-        ascii.StrType,
+        ascii.ColumnType.FLOAT,
+        ascii.ColumnType.FLOAT,
+        ascii.ColumnType.INTEGER,
+        ascii.ColumnType.FLOAT,
+        ascii.ColumnType.STRING,
     ]
-    for col, expected_type in zip(reader.cols, types):
+    for col, expected_type in zip(reader.cols, types, strict=True):
         assert col.type == expected_type
 
 
