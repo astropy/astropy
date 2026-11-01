@@ -308,7 +308,7 @@ class QuantityInput:
 
                 # Convert Columns to Quantity without changing their units.
                 if valid_targets and isinstance(arg, Column):
-                    bound_args.arguments[param.name] = arg.to(arg.unit)
+                    bound_args.arguments[param.name] = arg.quantity
 
             if self.equivalencies:
                 equiv_context = add_enabled_equivalencies(self.equivalencies)
