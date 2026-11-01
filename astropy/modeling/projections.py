@@ -22,7 +22,6 @@ from astropy import wcs
 
 from .core import Model
 from .parameters import InputParameterError, Parameter
-from .utils import _to_orig_unit, _to_radian
 
 # List of tuples of the form
 # (long class name without suffix, short WCSLIB projection code):
@@ -81,6 +80,36 @@ __all__ = [
 __all__ += list(map("_".join, product(["Pix2Sky", "Sky2Pix"], chain(*_PROJ_NAME_CODE))))
 
 
+def _to_degree(value):
+    """
+    Convert ``value`` to degrees.
+
+    Parameters
+    ----------
+    value : float or u.Quantity
+        Angular distance used in a projection.
+        If float, it's in degrees.
+    """
+    if isinstance(value, u.Quantity):
+        return value.to(u.deg)
+    return value
+
+
+def _to_orig_value(value, internal_unit=None, orig_unit=None):
+    """
+    Convert ``value`` to original unit.
+
+    Parameters
+    ----------
+    value : float or u.Quantity
+        Angular distance used in a projection.
+        If float, it's in degrees.
+    """
+    if internal_unit is not None:
+        return (value * internal_unit).to(orig_unit)
+    return value
+
+
 class _ParameterDS(Parameter):
     """
     Same as `Parameter` but can indicate its modified status via the ``dirty``
@@ -128,13 +157,6 @@ class Projection(Model):
         self._update_prj()
         return self._prj
 
-    def _inverse_parameters(self):
-        """Parameter values for the inverse projection, keeping their units."""
-        params = (getattr(self, name) for name in self.param_names)
-        return [
-            param.value if param.unit is None else param.quantity for param in params
-        ]
-
     def _update_prj(self):
         """
         A default updater for projection's pv.
@@ -158,12 +180,7 @@ class Projection(Model):
 
         for p in self.param_names:
             param = getattr(self, p)
-            # WCSLIB expects angles in degrees, but ``param.value`` is in the
-            # parameter's own unit.
-            if param.unit is not None and param.unit.physical_type == "angle":
-                pv.append(float(param.quantity.to_value(u.deg)))
-            else:
-                pv.append(float(param.value))
+            pv.append(float(param._raw_value))
             dirty |= param.dirty
             param.dirty = False
 
@@ -225,7 +242,9 @@ class Pix2SkyProjection(Projection):
 
     @property
     def inverse(self):
-        return self._inv_cls(*self._inverse_parameters())
+        params = (getattr(self, name) for name in self.param_names)
+        pv = [param.value if param.unit is None else param.quantity for param in params]
+        return self._inv_cls(*pv)
 
 
 class Sky2PixProjection(Projection):
@@ -269,7 +288,9 @@ class Sky2PixProjection(Projection):
 
     @property
     def inverse(self):
-        return self._inv_cls(*self._inverse_parameters())
+        params = (getattr(self, name) for name in self.param_names)
+        pv = [param.value if param.unit is None else param.quantity for param in params]
+        return self._inv_cls(*pv)
 
 
 class Zenithal(Projection):
@@ -327,8 +348,8 @@ class Pix2Sky_ZenithalPerspective(Pix2SkyProjection, Zenithal):
     )
     gamma = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="Look angle γ in degrees (Default = 0°)",
     )
 
@@ -373,8 +394,8 @@ class Sky2Pix_ZenithalPerspective(Sky2PixProjection, Zenithal):
     )
     gamma = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="Look angle γ in degrees (Default=0°)",
     )
 
@@ -414,14 +435,14 @@ class Pix2Sky_SlantZenithalPerspective(Pix2SkyProjection, Zenithal):
     )
     phi0 = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="The longitude φ₀ of the reference point in degrees (Default=0°)",
     )
     theta0 = _ParameterDS(
         default=90.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="The latitude θ₀ of the reference point, in degrees (Default=0°)",
     )
 
@@ -461,14 +482,14 @@ class Sky2Pix_SlantZenithalPerspective(Sky2PixProjection, Zenithal):
     )
     phi0 = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="The longitude φ₀ of the reference point in degrees",
     )
     theta0 = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="The latitude θ₀ of the reference point, in degrees",
     )
 
@@ -662,7 +683,12 @@ class Pix2Sky_Airy(Pix2SkyProjection, Zenithal):
         in degrees.  Default is 90°.
     """
 
-    theta_b = _ParameterDS(default=90.0)
+    theta_b = _ParameterDS(
+        default=90.0,
+        getter=_to_orig_value,
+        setter=_to_degree,
+        description="The latitude at which to minimize the error.",
+    )
 
 
 class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
@@ -693,7 +719,9 @@ class Sky2Pix_Airy(Sky2PixProjection, Zenithal):
 
     theta_b = _ParameterDS(
         default=90.0,
-        description="The latitude at which to minimize the error,in degrees",
+        getter=_to_orig_value,
+        setter=_to_degree,
+        description="The latitude at which to minimize the error.",
     )
 
 
@@ -1038,8 +1066,12 @@ class Conic(Projection):
         C = \frac{180^\circ \cos \theta}{\pi R_\theta}
     """
 
-    sigma = _ParameterDS(default=90.0, getter=_to_orig_unit, setter=_to_radian)
-    delta = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+    sigma = _ParameterDS(
+        default=90.0,
+        getter=_to_orig_value,
+        setter=_to_degree,
+    )
+    delta = _ParameterDS(default=0.0, getter=_to_orig_value, setter=_to_degree)
 
 
 class Pix2Sky_ConicPerspective(Pix2SkyProjection, Conic):
@@ -1343,7 +1375,7 @@ class Pix2Sky_BonneEqualArea(Pix2SkyProjection, PseudoConic):
 
     _separable = True
 
-    theta1 = _ParameterDS(default=0.0, getter=_to_orig_unit, setter=_to_radian)
+    theta1 = _ParameterDS(default=0.0, getter=_to_orig_value, setter=_to_degree)
 
 
 class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
@@ -1373,8 +1405,8 @@ class Sky2Pix_BonneEqualArea(Sky2PixProjection, PseudoConic):
 
     theta1 = _ParameterDS(
         default=0.0,
-        getter=_to_orig_unit,
-        setter=_to_radian,
+        getter=_to_orig_value,
+        setter=_to_degree,
         description="Bonne conformal latitude, in degrees",
     )
 
