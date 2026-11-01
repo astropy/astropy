@@ -259,11 +259,11 @@ class NDArithmeticMixin:
         # if data and uncertainty are ever used ...)
         kwds2 = {"mask": {}, "meta": {}, "wcs": {}, "data": {}, "uncertainty": {}}
         for i, kwd in kwds.items():
-            splitted = i.split("_", 1)
+            split_kwd = i.split("_", 1)
             try:
-                kwds2[splitted[0]][splitted[1]] = kwd
+                kwds2[split_kwd[0]][split_kwd[1]] = kwd
             except KeyError:
-                raise KeyError(f"Unknown prefix {splitted[0]} for parameter {i}")
+                raise KeyError(f"Unknown prefix {split_kwd[0]} for parameter {i}")
 
         kwargs = {}
 
