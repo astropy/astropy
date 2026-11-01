@@ -1,0 +1,3 @@
+Fixed ``Table.from_df`` raising a ``TypeError`` and ``Table.from_pandas``
+keeping an ``object`` column for pandas string columns containing missing values
+represented as ``pd.NA``.

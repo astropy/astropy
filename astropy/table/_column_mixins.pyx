@@ -133,6 +133,24 @@ def _get_string_dtype(value):
     return "S" if all_bytes else None
 
 
+cdef object nan = np.nan
+
+try:
+    from pandas import NA as pandas_NA
+except ImportError:
+    pandas_NA = None
+
+
+cdef inline bint _is_missing(object value):
+    if value is None or value is nan or value is pandas_NA:
+        return True
+    if type(value).__name__ == "NAType":
+        return True
+    if isinstance(value, (float, np.floating)):
+        return isnan(value)
+    return False
+
+
 def _get_string_fill_value(data, *, bint legacy_pandas=False):
     """
     Choose a placeholder for missing values in a string-like object column.
@@ -145,9 +163,8 @@ def _get_string_fill_value(data, *, bint legacy_pandas=False):
     data : ndarray
         Object array of column values.
     legacy_pandas : bool, optional
-        If True, only the ``np.nan`` object counts as missing (``from_pandas``).
-        If False, None and any NaN count as missing (``from_df``).  Default is
-        False.
+        Deprecated. If False or True, None, NaN, and pd.NA count as missing.
+        Default is False.
 
     Returns
     -------
@@ -156,15 +173,14 @@ def _get_string_fill_value(data, *, bint legacy_pandas=False):
         strings), or None if any value is neither a string nor missing.
     """
     cdef object fill = None
-    cdef object nan = np.nan
 
     for value in data:
         if isinstance(value, (str, bytes)):
             if fill is None:
                 fill = "" if isinstance(value, str) else b""
-        elif legacy_pandas:
-            if value is not nan:
-                return None
-        elif value is not None and not isnan(value):
+        elif _is_missing(value):
+            continue
+        else:
             return None
     return b"" if fill is None else fill
+

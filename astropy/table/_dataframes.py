@@ -388,6 +388,8 @@ def from_df(
                 # Build a new list since ``data`` may be a view of the dataframe.
                 fill = _get_string_fill_value(data)
                 if fill is not None:
+                    if isinstance(dtype, nw.String) and fill == b"":
+                        fill = ""
                     data = np.array(
                         [fill if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
                     )
@@ -522,8 +524,10 @@ def from_pandas(
 
         if data.dtype.kind == "O":
             # Build a new list since ``data`` may be a view of the dataframe.
-            fill = _get_string_fill_value(data, legacy_pandas=True)
+            fill = _get_string_fill_value(data)
             if fill is not None:
+                if type(column.dtype).__name__ == "StringDtype" and fill == b"":
+                    fill = ""
                 data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
         # Numpy datetime64

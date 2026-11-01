@@ -770,3 +770,72 @@ def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
     assert df["g"][1] == [3, None]
     assert df["h"][0] == [None, 2.0]
     assert df["h"][1] == [3.0, None]
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.parametrize("method", ["from_pandas", "from_df"])
+def test_pandas_string_columns_missing_values(method):
+    """Test Table.from_df and from_pandas on string columns with pd.NA (#20663)."""
+    if method == "from_df" and not HAS_NARWHALS:
+        pytest.skip("requires narwhals for from_df")
+
+    import pandas as pd
+
+    from_func = getattr(Table, method)
+
+    # pandas StringDtype (python storage) with None/pd.NA
+    df_str = pd.DataFrame({"s": ["a", None]}, dtype="string")
+    t_str = from_func(df_str)
+    assert t_str["s"].dtype == np.dtype("U1")
+    assert t_str["s"].mask.tolist() == [False, True]
+    assert t_str["s"].tolist() == ["a", None]
+
+    # pandas StringDtype with pyarrow storage if pyarrow is installed
+    try:
+        df_arrow = pd.DataFrame({"s": ["a", None]}, dtype="string[pyarrow]")
+    except (ImportError, ValueError):
+        pass
+    else:
+        t_arrow = from_func(df_arrow)
+        assert t_arrow["s"].dtype == np.dtype("U1")
+        assert t_arrow["s"].mask.tolist() == [False, True]
+        assert t_arrow["s"].tolist() == ["a", None]
+
+    # object column with pd.NA
+    df_obj_na = pd.DataFrame({"s": ["a", pd.NA]}, dtype=object)
+    t_obj_na = from_func(df_obj_na)
+    assert t_obj_na["s"].dtype == np.dtype("U1")
+    assert t_obj_na["s"].mask.tolist() == [False, True]
+    assert t_obj_na["s"].tolist() == ["a", None]
+
+    # object column with None
+    df_obj_none = pd.DataFrame({"s": ["a", None]}, dtype=object)
+    t_obj_none = from_func(df_obj_none)
+    assert t_obj_none["s"].dtype == np.dtype("U1")
+    assert t_obj_none["s"].mask.tolist() == [False, True]
+    assert t_obj_none["s"].tolist() == ["a", None]
+
+    # object column with np.nan
+    df_obj_nan = pd.DataFrame({"s": ["a", np.nan]}, dtype=object)
+    t_obj_nan = from_func(df_obj_nan)
+    assert t_obj_nan["s"].dtype == np.dtype("U1")
+    assert t_obj_nan["s"].mask.tolist() == [False, True]
+    assert t_obj_nan["s"].tolist() == ["a", None]
+
+    # object column with bytes and pd.NA
+    df_obj_bytes = pd.DataFrame({"s": [b"a", pd.NA]}, dtype=object)
+    t_obj_bytes = from_func(df_obj_bytes)
+    assert t_obj_bytes["s"].dtype == np.dtype("S1")
+    assert t_obj_bytes["s"].mask.tolist() == [False, True]
+
+    # all-NA StringDtype column
+    df_all_na = pd.DataFrame({"s": [None, None]}, dtype="string")
+    t_all_na = from_func(df_all_na)
+    assert t_all_na["s"].dtype == np.dtype("U1")
+    assert t_all_na["s"].mask.tolist() == [True, True]
+
+    # Non-string object column with mixed types should not raise and stay object
+    df_mixed = pd.DataFrame({"s": ["a", 123]}, dtype=object)
+    t_mixed = from_func(df_mixed)
+    assert t_mixed["s"].dtype == np.dtype("O")
+    assert t_mixed["s"].tolist() == ["a", 123]
