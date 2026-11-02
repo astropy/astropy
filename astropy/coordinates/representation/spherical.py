@@ -33,7 +33,7 @@ class UnitSphericalRepresentation(BaseRepresentation):
         Any differential classes that should be associated with this
         representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
-        dictionary of of differential instances with keys set to a string
+        dictionary of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
         representation, the key would be ``'s'`` for seconds, indicating that
@@ -289,7 +289,7 @@ class RadialRepresentation(BaseRepresentation):
         Any differential classes that should be associated with this
         representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
-        dictionary of of differential instances with keys set to a string
+        dictionary of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
         representation, the key would be ``'s'`` for seconds, indicating that
@@ -426,7 +426,7 @@ class SphericalRepresentation(BaseRepresentation):
         Any differential classes that should be associated with this
         representation. The input must either be a single `~astropy.coordinates.BaseDifferential`
         instance (see `._compatible_differentials` for valid types), or a
-        dictionary of of differential instances with keys set to a string
+        dictionary of differential instances with keys set to a string
         representation of the SI unit with which the differential (derivative)
         is taken. For example, for a velocity differential on a positional
         representation, the key would be ``'s'`` for seconds, indicating that
@@ -654,7 +654,7 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
     differentials : dict, `~astropy.coordinates.PhysicsSphericalDifferential`, optional
         Any differential classes that should be associated with this
         representation. The input must either be a single
-        `~astropy.coordinates.PhysicsSphericalDifferential` instance, or a dictionary of of
+        `~astropy.coordinates.PhysicsSphericalDifferential` instance, or a dictionary of
         differential instances with keys set to a string representation of the
         SI unit with which the differential (derivative) is taken. For example,
         for a velocity differential on a positional representation, the key

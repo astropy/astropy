@@ -34,6 +34,7 @@ return a Quantity directly using ``quantity_result, None, None``.
 
 """
 
+# ruff: file-ignore[PLR0917]
 import functools
 import operator
 
@@ -1272,6 +1273,42 @@ if NUMPY_LT_2_4:
         # ar1 to that of ar2.
         (ar2, ar1), unit = _quantities2arrays(ar2, ar1)
         return (ar1, ar2) + args, kwargs, None, None
+
+
+if not NUMPY_LT_2_6:
+    # np.minmax was added numpy 2.6
+    @function_helper
+    def minmax(
+        a,
+        axis=None,
+        out=None,
+        keepdims=np._NoValue,
+        initial=np._NoValue,
+        where=np._NoValue,
+    ):
+        a = _as_quantity(a)
+        match initial:
+            case tuple(imin, imax):
+                initial = (a._to_own_unit(imin), a._to_own_unit(imax))
+            case np._NoValue:
+                pass
+            case _:
+                initial = a._to_own_unit(initial)
+
+        match out:
+            case tuple(omin, omax):
+                out = (_quantity_out_as_array(omin), _quantity_out_as_array(omax))
+            case None:
+                pass
+            case _:
+                out = _quantity_out_as_array(out)
+
+        return (
+            (a.view(np.ndarray), axis),
+            {"keepdims": keepdims, "initial": initial, "where": where},
+            (a.unit, a.unit),
+            out,
+        )
 
 
 @dispatched_function

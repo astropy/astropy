@@ -1,5 +1,5 @@
 /*============================================================================
-  WCSLIB 8.9 - an implementation of the FITS WCS standard.
+  WCSLIB 8.10 - an implementation of the FITS WCS standard.
   Copyright (C) 1995-2026, Mark Calabretta
 
   This file is part of WCSLIB.
@@ -19,10 +19,10 @@
 
   Author: Mark Calabretta, Australia Telescope National Facility, CSIRO.
   http://www.atnf.csiro.au/computing/software/wcs
-  $Id: dis.h,v 8.9 2026/06/18 13:00:03 mcalabre Exp $
+  $Id: dis.h,v 8.10 2026/09/27 05:44:33 mcalabre Exp $
 *=============================================================================
 *
-* WCSLIB 8.9 - C routines that implement the FITS World Coordinate System
+* WCSLIB 8.10 - C routines that implement the FITS World Coordinate System
 * (WCS) standard.  Refer to the README file provided with WCSLIB for an
 * overview of the library.
 *
@@ -594,7 +594,7 @@
 *                         0: Success.
 *
 *
-* disenq() - enquire about the state of a disprm struct
+* disenq() - Enquire about the state of a disprm struct
 * -----------------------------------------------------
 * disenq() may be used to obtain information about the state of a disprm
 * struct.  The function returns a true/false answer for the enquiry asked.
@@ -653,7 +653,7 @@
 *                         1: Null disprm pointer passed.
 *
 *
-* dishdo() - write FITS headers using TPD
+* dishdo() - Write FITS headers using TPD
 * ---------------------------------------
 * dishdo() sets a flag that tells wcshdo() to write FITS headers in the form
 * of the TPD translation used internally.  Normally SIP and TPV would be

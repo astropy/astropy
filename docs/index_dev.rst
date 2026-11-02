@@ -22,7 +22,7 @@ cover provide a deeper dive and a reference for both developers and maintainers.
 
 .. Important:: There are useful ways to contribute to Astropy without diving
     into the developer workflow which is described here. For an
-    an overview see the :ref:`astropy-org-contribute` page.
+    overview see the :ref:`astropy-org-contribute` page.
 
 
 Contributing quickstart

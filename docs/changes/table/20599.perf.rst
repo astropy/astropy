@@ -1,0 +1,2 @@
+``Table.from_pandas`` and ``Table.from_df`` are faster when importing string
+columns with missing values.

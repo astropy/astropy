@@ -32,7 +32,7 @@ doc_components_ecl = """
         The distance for this object from the {0}.
         (``representation`` must be None).
 
-    pm_lon_coslat : `~astropy.units.Quantity` ['angualar speed'], optional, keyword-only
+    pm_lon_coslat : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only
         The proper motion in the ecliptic longitude (including the ``cos(lat)``
         factor) for this object (``pm_lat`` must also be given).
     pm_lat : `~astropy.units.Quantity` ['angular speed'], optional, keyword-only

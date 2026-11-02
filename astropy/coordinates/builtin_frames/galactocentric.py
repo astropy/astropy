@@ -59,7 +59,7 @@ class _StateProxy(MappingView):
 class galactocentric_frame_defaults(ScienceState):
     """Global setting of default values for the frame attributes in the `~astropy.coordinates.Galactocentric` frame.
 
-    These constancts may be updated in future versions of ``astropy``. Note
+    These constants may be updated in future versions of ``astropy``. Note
     that when using `~astropy.coordinates.Galactocentric`, changing values
     here will not affect any attributes that are set explicitly by passing
     values in to the `~astropy.coordinates.Galactocentric`

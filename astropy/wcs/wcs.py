@@ -51,6 +51,7 @@ from astropy.utils.exceptions import (
     AstropyUserWarning,
     AstropyWarning,
 )
+from astropy.utils.shapes import simplify_basic_index
 
 from . import docstrings
 from ._wcs import (
@@ -252,7 +253,7 @@ _WCS_TPD_WARN_LT74 = Version(WCSLIB_VERSION) < Version("7.4")
 
 
 # Set coordinate extraction callback for WCS -TAB:
-def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):
+def _load_tab_bintable(hdulist, extnam, extver, extlev, kind, ttype, row, ndim):  # ruff: ignore[PLR0917]
     arr = hdulist[(extnam, extver)].data[ttype][row - 1]
 
     if arr.ndim != ndim:
@@ -506,7 +507,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
 
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         header=None,
         fobj=None,
@@ -1852,7 +1853,7 @@ reduce these to 2 dimensions using the naxis kwarg.
 
         """
 
-    def _all_world2pix(
+    def _all_world2pix(  # ruff: ignore[PLR0917]
         self, world, origin, tolerance, maxiter, adaptive, detect_divergence, quiet
     ):
         # ############################################################
@@ -3016,8 +3017,11 @@ reduce these to 2 dimensions using the naxis kwarg.
              be translated to standard (this is partially dependent on
              whether ``fix`` was applied).
 
-          3. Quantities will be converted to the units used internally,
-             basically SI with the addition of degrees.
+          3. Unless the `WCS` was created with ``preserve_units=True``,
+             quantities will be converted to the units used internally,
+             basically SI with the addition of degrees. If
+             ``preserve_units=True``, quantities are written in the
+             original units given by ``CUNITia``.
 
           4. Floating-point quantities may be given to a different decimal
              precision.
@@ -3482,8 +3486,19 @@ reduce these to 2 dimensions using the naxis kwarg.
         ----------
         view : tuple
             A tuple containing the same number of slices as the WCS system.
-            The ``step`` method, the third argument to a slice, is not
-            presently supported.
+            If the shape of the data is known (for example if ``array_shape``
+            is set), negative values for the ``start`` and ``stop`` attributes
+            of the slices are interpreted relative to the end of the axis, as
+            for Numpy arrays. If the shape is not known, a negative ``start``
+            raises a `ValueError`, since the offset of the sliced WCS relative
+            to the original one cannot be determined. A negative ``stop`` is
+            still allowed in this case, since it only determines the number of
+            pixels along the sliced axis, which is unknown anyway, and does not
+            affect the coordinate transformation.
+            The ``step`` attribute of the slices can be `None` or a positive
+            integer, in which case the pixel grid is downsampled by that
+            factor. Negative steps, which would reverse an axis, are not
+            supported.
         numpy_order : bool, default: True
             Use numpy order, i.e. slice the WCS so that an identical slice
             applied to a numpy array will slice the array and WCS in the same
@@ -3496,16 +3511,19 @@ reduce these to 2 dimensions using the naxis kwarg.
         wcs_new : `~astropy.wcs.WCS`
             A new resampled WCS axis
         """
-        if view is Ellipsis:
-            return self.deepcopy()
-
-        if hasattr(view, "__len__") and len(view) > self.wcs.naxis:
-            raise ValueError("Must have # of slices <= # of WCS axes")
-        elif not hasattr(view, "__len__"):  # view MUST be an iterable
-            view = [view]
-
-        if len(view) < self.wcs.naxis:
-            view = list(view) + [slice(None) for i in range(self.wcs.naxis - len(view))]
+        # If the shape of the data is known, this resolves negative values and
+        # default values in the slices, otherwise it just checks the slices
+        # and fills in any missing dimensions. The shape is stored in FITS
+        # order so needs to be reversed if the view is in Numpy order.
+        shape = [n or None for n in self._naxis]
+        if numpy_order:
+            shape.reverse()
+        try:
+            view = simplify_basic_index(view, shape=shape)
+        except TypeError:
+            # Non-integer slice values are tolerated, in which case the values
+            # cannot be resolved so the shape is treated as unknown.
+            view = simplify_basic_index(view, shape=[None] * self.naxis)
 
         if not numpy_order:
             view = view[::-1]
@@ -3530,6 +3548,11 @@ reduce these to 2 dimensions using the naxis kwarg.
         y_tables = [t for t in (wcs_new.cpdis2, wcs_new.det2im2) if t is not None]
         distortion_tables = [*x_tables, *y_tables]
 
+        if self.pixel_bounds is None:
+            pixel_bounds = None
+        else:
+            pixel_bounds = list(self.pixel_bounds)
+
         for i, iview in enumerate(view):
             if iview.step is not None and iview.step < 0:
                 raise NotImplementedError("Reversing an axis is not implemented.")
@@ -3549,8 +3572,12 @@ reduce these to 2 dimensions using the naxis kwarg.
 
             if iview.start is not None:
                 if iview.step not in (None, 1):
-                    crpix = self.wcs.crpix[wcs_index]
-                    cdelt = self.wcs.cdelt[wcs_index]
+                    # We need to get the values from the copy rather than the
+                    # original, since making the copy can cause the units to
+                    # be converted to SI, and cdelt needs to be in the same
+                    # units as in the WCS we are modifying.
+                    crpix = wcs_new.wcs.crpix[wcs_index]
+                    cdelt = wcs_new.wcs.cdelt[wcs_index]
                     # equivalently (keep this comment so you can compare eqns):
                     # wcs_new.wcs.crpix[wcs_index] =
                     # (crpix - iview.start)*iview.step + 0.5 - iview.step/2.
@@ -3575,13 +3602,32 @@ reduce these to 2 dimensions using the naxis kwarg.
                         # If we stride an x axis, for example, x distortions
                         # should be adjusted in magnitude
                         table.data /= iview.step
-                    wcs_new.wcs.cdelt[wcs_index] = cdelt * iview.step
+                    # We set the whole array rather than a single element,
+                    # since the array returned by wcs.cdelt is read-only if
+                    # the original units are being preserved.
+                    cdelt_new = wcs_new.wcs.cdelt.copy()
+                    cdelt_new[wcs_index] = cdelt * iview.step
+                    wcs_new.wcs.cdelt = cdelt_new
                 else:
                     wcs_new.wcs.crpix[wcs_index] -= iview.start
                     if wcs_new.sip is not None:
                         sip_crpix[wcs_index] -= iview.start
                     for table in distortion_tables:
                         table.crval[wcs_index] -= iview.start
+
+            if (
+                pixel_bounds is not None
+                and pixel_bounds[wcs_index] is not None
+                and iview.start is not None
+            ):
+                # The bounds are in pixel coordinates so these need to be
+                # converted to the pixel coordinates of the sliced WCS, taking
+                # into account that pixel centers are at integer values.
+                step = iview.step or 1
+                pixel_bounds[wcs_index] = tuple(
+                    (bound - iview.start + 0.5) / step - 0.5
+                    for bound in pixel_bounds[wcs_index]
+                )
 
             try:
                 # range requires integers but the other attributes can also
@@ -3602,6 +3648,8 @@ reduce these to 2 dimensions using the naxis kwarg.
             wcs_new.sip = Sip(
                 self.sip.a, self.sip.b, self.sip.ap, self.sip.bp, sip_crpix
             )
+
+        wcs_new.pixel_bounds = pixel_bounds
 
         return wcs_new
 

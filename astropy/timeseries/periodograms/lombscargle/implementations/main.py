@@ -55,9 +55,9 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     Parameters
     ----------
     frequency : array-like or `~astropy.units.Quantity` ['frequency']
-        input frequency grid
+        Input frequency grid.
     assume_regular_frequency : bool (default = False)
-        if True, then do not check whether frequency is a regular grid
+        If True, then do not check whether frequency is a regular grid.
 
     Returns
     -------
@@ -75,10 +75,31 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):
+def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):  # ruff: ignore[PLR0917]
     """
     Validate the method argument, and if method='auto'
     choose the appropriate method.
+
+    Parameters
+    ----------
+    method : str
+        The requested Lomb-Scargle implementation, or ``'auto'``.
+    dy : float, array-like, or None
+        The errors on the data, or None if no errors were specified.
+    fit_mean : bool
+        Whether a constant offset is included as part of the model.
+    nterms : int
+        Number of Fourier terms to use in the periodogram.
+    frequency : array-like
+        The frequencies at which the periodogram will be computed.
+    assume_regular_frequency : bool
+        If True, assume that the frequencies are regularly spaced rather than
+        checking.
+
+    Returns
+    -------
+    method : str
+        The name of the implementation to use.
     """
     methods = available_methods()
     prefer_fast = len(frequency) > 200 and (
@@ -106,7 +127,7 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     return method
 
 
-def lombscargle(
+def lombscargle(  # ruff: ignore[PLR0917]
     t,
     y,
     dy=None,
@@ -125,19 +146,19 @@ def lombscargle(
     Parameters
     ----------
     t : array-like
-        sequence of observation times
+        Sequence of observation times.
     y : array-like
-        sequence of observations associated with times t
+        Sequence of observations associated with times t.
     dy : float or array-like, optional
-        error or sequence of observational errors associated with times t
+        Error or sequence of observational errors associated with times t.
     frequency : array-like
-        frequencies (not angular frequencies) at which to evaluate the
+        Frequencies (not angular frequencies) at which to evaluate the
         periodogram. If not specified, optimal frequencies will be chosen using
         a heuristic which will attempt to provide sufficient frequency range
         and sampling so that peaks will not be missed. Note that in order to
         use method='fast', frequencies must be regularly spaced.
     method : str, optional
-        specify the lomb scargle implementation to use. Options are:
+        Specify the lomb scargle implementation to use. Options are:
 
         - 'auto': choose the best method based on the input
         - 'fast': use the O[N log N] fast method. Note that this requires
@@ -157,23 +178,23 @@ def lombscargle(
           heteroskedastic errors.
 
     assume_regular_frequency : bool, optional
-        if True, assume that the input frequency is of the form
+        If True, assume that the input frequency is of the form
         freq = f0 + df * np.arange(N). Only referenced if method is 'auto',
         'fast' or 'cython'.
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard' or 'psd'.
     fit_mean : bool, optional
-        if True, include a constant offset as part of the model at each
+        If True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if `fit_mean = False`
+        If True, pre-center the data by subtracting the weighted mean
+        of the input data. This is especially important if `fit_mean = False`.
     method_kwds : dict, optional
-        additional keywords to pass to the lomb-scargle method
+        Additional keywords to pass to the lomb-scargle method.
     nterms : int, optional
-        number of Fourier terms to use in the periodogram.
+        Number of Fourier terms to use in the periodogram.
         Not supported with every method.
 
     Returns

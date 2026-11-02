@@ -783,6 +783,13 @@ class TestInvariantUfuncs:
             np.hypot,
             np.maximum,
             np.minimum,
+            pytest.param(
+                "umath_minimummaximum",
+                marks=pytest.mark.skipif(
+                    NUMPY_LT_2_6,
+                    reason="minimummaximum is new in NumPy 2.6",
+                ),
+            ),
             np.nextafter,
             np.remainder,
             np.mod,
@@ -792,10 +799,22 @@ class TestInvariantUfuncs:
     def test_invariant_twoarg_array(self, ufunc):
         q_i1 = np.array([-3.3, 2.1, 10.2]) * u.kg / u.s
         q_i2 = np.array([10.0, -5.0, 1.0e6]) * u.g / u.us
-        q_o = ufunc(q_i1, q_i2)
-        assert isinstance(q_o, u.Quantity)
-        assert q_o.unit == q_i1.unit
-        assert_allclose(q_o.value, ufunc(q_i1.value, q_i2.to_value(q_i1.unit)))
+        if isinstance(ufunc, str):
+            if ufunc.startswith("umath_"):
+                ufunc = getattr(np_umath, ufunc.removeprefix("umath_"))
+            else:
+                raise NotImplementedError
+
+        result = ufunc(q_i1, q_i2)
+        ref = ufunc(q_i1.value, q_i2.to_value(q_i1.unit))
+        if not isinstance(result, tuple):
+            result = (result,)
+            ref = (ref,)
+
+        for q_o, r_o in zip(result, ref, strict=True):
+            assert isinstance(q_o, u.Quantity)
+            assert q_o.unit == q_i1.unit
+            assert_allclose(q_o.value, r_o)
 
     @pytest.mark.parametrize(
         ("ufunc", "arbitrary"),

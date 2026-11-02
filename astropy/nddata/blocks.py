@@ -51,7 +51,7 @@ def reshape_as_blocks(data, block_size):
     block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
-        ``block_size`` will be used for for every axis.  Each dimension
+        ``block_size`` will be used for every axis.  Each dimension
         of ``block_size`` must divide evenly into the corresponding
         dimension of ``data``.
 
@@ -113,7 +113,7 @@ def block_reduce(data, block_size, func=np.sum):
     block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
-        ``block_size`` will be used for for every axis.
+        ``block_size`` will be used for every axis.
 
     func : callable, optional
         The method to use to downsample the data. Must be a callable
@@ -173,7 +173,7 @@ def block_replicate(data, block_size, conserve_sum=True):
     block_size : int or array-like (int)
         The integer block size along each axis.  If ``block_size`` is a
         scalar and ``data`` has more than one dimension, then
-        ``block_size`` will be used for for every axis.
+        ``block_size`` will be used for every axis.
 
     conserve_sum : bool, optional
         If `True` (the default) then the sum of the output

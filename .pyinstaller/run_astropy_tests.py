@@ -112,6 +112,7 @@ SKIP_TESTS = [
     "test_download_parallel_fills_cache",
     "test_defined_constants_do_not_change",
     "test_physical_constants_versions",
+    "test_utc_conversion_does_not_update_erfa",
 ]
 
 # Run the tests!

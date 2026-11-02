@@ -23,7 +23,7 @@ class TimeSeries(BaseTimeSeries):
     points in time (for time series with finite time bins, see the
     `~astropy.timeseries.BinnedTimeSeries` class).
     `~astropy.timeseries.TimeSeries` is a sub-class of `~astropy.table.QTable`
-    and thus provides all the standard table maniplation methods available to
+    and thus provides all the standard table manipulation methods available to
     tables, but it also provides additional conveniences for dealing with time
     series, such as a flexible initializer for setting up the times, a method
     for folding time series, and a ``time`` attribute for easy access to the
@@ -167,7 +167,7 @@ class TimeSeries(BaseTimeSeries):
         Parameters
         ----------
         period : `~astropy.units.Quantity` ['time']
-            The period to use for folding
+            The period to use for folding.
         epoch_time : `~astropy.time.Time`
             The time to use as the reference epoch, at which the relative time
             offset / phase will be ``epoch_phase``. Defaults to the first time
@@ -295,6 +295,13 @@ class TimeSeries(BaseTimeSeries):
     def add_column(self, *args, **kwargs):
         """
         See :meth:`~astropy.table.Table.add_column`.
+
+        Parameters
+        ----------
+        *args : tuple
+            Positional arguments passed to :meth:`~astropy.table.Table.add_column`.
+        **kwargs : dict
+            Keyword arguments passed to :meth:`~astropy.table.Table.add_column`.
         """
         # Note that the docstring is inherited from QTable
         result = super().add_column(*args, **kwargs)
@@ -305,6 +312,13 @@ class TimeSeries(BaseTimeSeries):
     def add_columns(self, *args, **kwargs):
         """
         See :meth:`~astropy.table.Table.add_columns`.
+
+        Parameters
+        ----------
+        *args : tuple
+            Positional arguments passed to :meth:`~astropy.table.Table.add_columns`.
+        **kwargs : dict
+            Keyword arguments passed to :meth:`~astropy.table.Table.add_columns`.
         """
         # Note that the docstring is inherited from QTable
         result = super().add_columns(*args, **kwargs)
@@ -325,7 +339,6 @@ class TimeSeries(BaseTimeSeries):
         time_scale : str
             The time scale to pass into `astropy.time.Time`.
             Defaults to ``UTC``.
-
         """
         from pandas import DataFrame, DatetimeIndex
 
@@ -385,14 +398,14 @@ class TimeSeries(BaseTimeSeries):
         ----------
         filename : str
             File to parse.
-        format : str
-            File format specifier.
         time_column : str, optional
             The name of the time column.
         time_format : str, optional
             The time format for the time column.
         time_scale : str, optional
             The time scale for the time column.
+        format : str, optional
+            File format specifier.
         *args : tuple, optional
             Positional arguments passed through to the data reader.
         **kwargs : dict, optional

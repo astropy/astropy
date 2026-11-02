@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import copy
+import warnings
 from functools import lru_cache
 
 import numpy as np
@@ -15,8 +16,13 @@ from astropy.coordinates import (
     SphericalRepresentation,
 )
 from astropy.utils import unbroadcast
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
-from .wcs import WCS, WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+from .wcs import PRJ_CODES, WCS
+from .wcsapi.high_level_api import (
+    high_level_objects_to_values,
+    values_to_high_level_objects,
+)
 
 __doctest_skip__ = ["wcs_to_celestial_frame", "celestial_frame_to_wcs"]
 
@@ -34,6 +40,7 @@ __all__ = [
     "pixel_to_skycoord",
     "proj_plane_pixel_area",
     "proj_plane_pixel_scales",
+    "skycoord_to_celestial_wcs",
     "skycoord_to_pixel",
     "wcs_to_celestial_frame",
 ]
@@ -49,6 +56,12 @@ SOLAR_SYSTEM_OBJ_DICT = {
     "UR": "Uranus",
     "NE": "Neptune",
 }
+
+_UNSUPPORTED_PRJ_CODES = {"ZPN", "BON", "COD", "COE", "COO", "COP"}
+
+SUPPORTED_PRJ_CODES = set(PRJ_CODES) - _UNSUPPORTED_PRJ_CODES
+
+_ARG_NOT_SET = object()
 
 
 @lru_cache(maxsize=100)
@@ -408,6 +421,178 @@ def celestial_frame_to_wcs(frame, projection="TAN"):
     )
 
 
+def skycoord_to_celestial_wcs(
+    reference_position,
+    *,
+    fov=None,
+    pixel_shape=None,
+    pixel_angular_size,
+    reference_pixel=None,
+    frame=None,
+    projection="TAN",
+    rotation=None,
+):
+    """Create a sky WCS from a reference position and a field of view.
+
+    Parameters
+    ----------
+    reference_position : `~astropy.coordinates.SkyCoord`
+        The coordinates of the center of the WCS. It should be scalar.
+    fov : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
+        The field of view in physical units, in x/y order. ``fov`` and ``pixel_shape``
+        are mutually exclusive and one of them must be provided.
+    pixel_shape : Sequence[int, int]
+        The image size in pixels (NAXIS), in x/y order. ``fov`` and ``pixel_shape`` are
+        mutually exclusive and one of them must be provided.
+    pixel_angular_size : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`
+        The pixel angular size along the x and y axis, in x/y order. It is either of
+        length 2 for each axis or of length 1. Then ``cdelt`` will be set to
+        ``[-pixel_angular_size, pixel_angular_size]``.
+    reference_pixel : Sequence[float, float], optional
+        Reference pixel for the projection. In zero-indexed (Python convention)
+        x/y order. If ``None``, it will be set to the center of the view.
+    frame : `~astropy.coordinates.BaseCoordinateFrame`, optional
+        An instance of `~astropy.coordinates.BaseCoordinateFrame` or subclass.
+        Defaults to the frame of ``reference_position``.
+    projection : str, optional
+        Any valid WCS projection code (see the list with ``from astropy.wcs
+        import PRJ_CODES``), by default "TAN"
+    rotation : `~astropy.coordinates.Angle` or `~astropy.units.Quantity`, optional
+        Angle from the +y pixel axis to the latitude axis at the reference pixel,
+        measured towards increasing longitude (as for ``CROTA2``). By default no
+        rotation.
+
+    Returns
+    -------
+    `~astropy.wcs.WCS`
+        A celestial WCS object.
+
+    Examples
+    --------
+    >>> from astropy.wcs.utils import skycoord_to_celestial_wcs
+    >>> from astropy.coordinates import Angle, SkyCoord
+    >>> center = SkyCoord(266.4, -29, unit="deg")
+    >>> fov = Angle([8, 4], unit="deg")
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, fov=fov,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
+    >>> print(wcs)
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN' 'DEC--TAN'
+    CUNIT : '' ''
+    CRVAL : 266.4 -29.0
+    CRPIX : 40.5 20.5
+    PC1_1 PC1_2  : 1.0 0.0
+    PC2_1 PC2_2  : 0.0 1.0
+    CDELT : -0.1 0.1
+    NAXIS : 80  40
+
+    You can also use ``shape`` instead of ``fov``:
+
+    >>> shape = (40, 80)
+    >>> wcs = skycoord_to_celestial_wcs(
+    ...           center, pixel_shape=shape,
+    ...           pixel_angular_size=Angle([-0.1, 0.1], unit="deg")
+    ...           )
+    >>> print(wcs)
+    WCS Keywords
+    <BLANKLINE>
+    Number of WCS axes: 2
+    CTYPE : 'RA---TAN' 'DEC--TAN'
+    CUNIT : '' ''
+    CRVAL : 266.4 -29.0
+    CRPIX : 20.5 40.5
+    PC1_1 PC1_2  : 1.0 0.0
+    PC2_1 PC2_2  : 0.0 1.0
+    CDELT : -0.1 0.1
+    NAXIS : 40  80
+    """
+    if projection not in PRJ_CODES:
+        raise ValueError(
+            "Must specify valid projection code from list of supported types: "
+            f"{', '.join(PRJ_CODES)}"
+        )
+    if not reference_position.isscalar:
+        raise ValueError(
+            "'reference_position' should be scalar, "
+            f"but is of length {len(reference_position)}"
+        )
+
+    if fov is None and pixel_shape is None:
+        raise ValueError(
+            "Missing 'fov' or 'pixel_shape'. The extent of the wcs must be provided "
+            "either as 'fov (an 'astropy.coordinates.Angle') or as "
+            "'pixel_shape' (two integers)."
+        )
+    if fov is not None and pixel_shape is not None:
+        raise ValueError(
+            "Conflicting parameters: 'fov' and 'pixel_shape' are mutually exclusive. "
+            "Provide one or the other."
+        )
+
+    if frame is None:
+        frame = reference_position.frame.replicate_without_data()
+    wcs = celestial_frame_to_wcs(frame=frame, projection=projection)
+
+    pixel_angular_size = u.Quantity(pixel_angular_size)
+    if pixel_angular_size.isscalar:
+        pixel_angular_size_in_deg = abs(float(pixel_angular_size.to_value("deg")))
+        wcs.wcs.cdelt = [-pixel_angular_size_in_deg, pixel_angular_size_in_deg]
+    elif len(pixel_angular_size) == 2:
+        wcs.wcs.cdelt = pixel_angular_size.to_value("deg")
+    else:
+        raise ValueError(
+            "'pixel_angular_size' should be of length 1 or 2 but "
+            f"is {len(pixel_angular_size)}."
+        )
+
+    coo_for_frame = reference_position.transform_to(frame)
+    wcs.wcs.crval = [coo_for_frame.spherical.lon.deg, coo_for_frame.spherical.lat.deg]
+
+    if fov is not None:  # field of view as an Angle or quantity
+        fov = u.Quantity(fov)
+        if fov.isscalar:
+            shape = [abs(round(fov.to_value("deg") / cdelt)) for cdelt in wcs.wcs.cdelt]
+        elif len(fov) != 2:
+            raise ValueError(f"'fov' should be of length 1 or 2, but is {len(fov)}.")
+        else:
+            shape = [
+                abs(round(angle.to_value("deg") / cdelt))
+                for angle, cdelt in zip(fov, wcs.wcs.cdelt)
+            ]
+        # reverse order for shape because `array_shape` is in numpy ordering (y/x)
+        # we replace zero values by one pixel in case the field of view was too small
+        wcs.array_shape = [1 if s == 0 else s for s in shape[::-1]]
+    else:  # image size
+        if len(pixel_shape) != 2:
+            raise ValueError(
+                f"'pixel_shape' should be of length 2, but is {len(pixel_shape)}."
+            )
+        wcs.array_shape = pixel_shape[::-1]  # array_shape is in numpy ordering
+
+    if reference_pixel is not None:
+        if len(reference_pixel) != 2:
+            raise ValueError(
+                f"'reference_pixel' should be of length 2 but is {len(reference_pixel)}."
+            )
+        wcs.wcs.crpix = [reference_pixel[0] + 1, reference_pixel[1] + 1]
+    else:
+        wcs.wcs.crpix = [wcs.pixel_shape[0] / 2.0 + 0.5, wcs.pixel_shape[1] / 2.0 + 0.5]
+
+    if rotation is not None:
+        theta = u.Quantity(rotation).to_value(u.rad)
+        ratio = wcs.wcs.cdelt[1] / wcs.wcs.cdelt[0]  # case of rectangular pixels
+        wcs.wcs.pc = [
+            [np.cos(theta), -ratio * np.sin(theta)],
+            [np.sin(theta) / ratio, np.cos(theta)],
+        ]
+
+    return wcs
+
+
 def proj_plane_pixel_scales(wcs):
     """
     For a WCS returns pixel scales along each axis of the image pixel at
@@ -614,11 +799,33 @@ def _has_distortion(wcs):
     )
 
 
+def _swap_pixel_order(wcs, native_pixel_order, function):
+    """
+    Whether pixel coordinates should be swapped relative to the native order of
+    the pixel axes of the (celestial) WCS, to preserve the historical behavior
+    of ``function`` for WCS objects in which latitude comes before longitude.
+    """
+    if wcs.wcs.lng < wcs.wcs.lat:
+        return False
+    if native_pixel_order is None:
+        warnings.warn(
+            f"The WCS has latitude before longitude, and {function} currently "
+            "treats pixel coordinates as being swapped (with x corresponding to "
+            "longitude and y to latitude) rather than in the native order of the "
+            "WCS pixel axes. In a future version, the native order will be used. "
+            "Pass native_pixel_order=True to opt in to the new behavior now, or "
+            "native_pixel_order=False to keep the current behavior.",
+            AstropyDeprecationWarning,
+        )
+        return True
+    return not native_pixel_order
+
+
 # TODO: in future, we should think about how the following two functions can be
 # integrated better into the WCS class.
 
 
-def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
+def skycoord_to_pixel(coords, wcs, origin=0, mode="all", *, native_pixel_order=None):
     """
     Convert a set of SkyCoord coordinates into pixels.
 
@@ -633,6 +840,15 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     mode : 'all' or 'wcs'
         Whether to do the transformation including distortions (``'all'``) or
         only including only the core WCS transformation (``'wcs'``).
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -642,50 +858,38 @@ def skycoord_to_pixel(coords, wcs, origin=0, mode="all"):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.world_to_pixel
     """
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS needs
-    xw_unit = u.Unit(wcs.wcs.cunit[0])
-    yw_unit = u.Unit(wcs.wcs.cunit[1])
-
-    # Convert positions to frame
-    coords = coords.transform_to(frame)
-
-    # Extract longitude and latitude. We first try and use lon/lat directly,
-    # but if the representation is not spherical or unit spherical this will
-    # fail. We should then force the use of the unit spherical
-    # representation. We don't do that directly to make sure that we preserve
-    # custom lon/lat representations if available.
-    try:
-        lon = coords.data.lon.to(xw_unit)
-        lat = coords.data.lat.to(yw_unit)
-    except AttributeError:
-        lon = coords.spherical.lon.to(xw_unit)
-        lat = coords.spherical.lat.to(yw_unit)
+    # Convert to the frame, units, and axis order (which may be lat/lon) of
+    # the WCS
+    world = high_level_objects_to_values(coords, low_level_wcs=wcs)
 
     # Convert to pixel coordinates
     if mode == "all":
-        xp, yp = wcs.all_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.all_world2pix(*world, origin)
     elif mode == "wcs":
-        xp, yp = wcs.wcs_world2pix(lon.value, lat.value, origin)
+        xp, yp = wcs.wcs_world2pix(*world, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
+
+    if _swap_pixel_order(wcs, native_pixel_order, "skycoord_to_pixel"):
+        xp, yp = yp, xp
 
     return xp, yp
 
 
-def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
+def pixel_to_skycoord(  # ruff: ignore[PLR0917]
+    xp, yp, wcs, origin=0, mode="all", cls=None, *, native_pixel_order=None
+):
     """
     Convert a set of pixel coordinates into a `~astropy.coordinates.SkyCoord`
     coordinate.
@@ -705,6 +909,15 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
         The class of object to create.  Should be a
         `~astropy.coordinates.SkyCoord` subclass.  If None, defaults to
         `~astropy.coordinates.SkyCoord`.
+    native_pixel_order : bool or None, optional
+        Whether the pixel coordinates are in the native order of the WCS pixel
+        axes (`True`) or, for WCS objects in which latitude comes before
+        longitude, swapped such that ``xp`` corresponds to longitude and ``yp``
+        to latitude (`False`, the historical behavior). If `None` (the
+        default), the historical behavior is used and a deprecation warning is
+        emitted for WCS objects in which latitude comes before longitude. This
+        argument has no effect for WCS objects in which longitude comes before
+        latitude.
 
     Returns
     -------
@@ -714,49 +927,33 @@ def pixel_to_skycoord(xp, yp, wcs, origin=0, mode="all", cls=None):
     See Also
     --------
     astropy.coordinates.SkyCoord.from_pixel
+    astropy.wcs.WCS.pixel_to_world
     """
-    # Import astropy.coordinates here to avoid circular imports
-    from astropy.coordinates import SkyCoord, UnitSphericalRepresentation
-
-    # we have to do this instead of actually setting the default to SkyCoord
-    # because importing SkyCoord at the module-level leads to circular
-    # dependencies.
-    if cls is None:
-        cls = SkyCoord
-
     if _has_distortion(wcs) and wcs.naxis != 2:
         raise ValueError("Can only handle WCS with distortions for 2-dimensional WCS")
 
-    # Keep only the celestial part of the axes, also re-orders lon/lat
-    wcs = wcs.sub([WCSSUB_LONGITUDE, WCSSUB_LATITUDE])
+    # Keep only the celestial part of the axes, preserving the axis order
+    wcs = wcs.celestial
 
     if wcs.naxis != 2:
         raise ValueError("WCS should contain celestial component")
 
-    # Check which frame the WCS uses
-    frame = wcs_to_celestial_frame(wcs)
-
-    # Check what unit the WCS gives
-    lon_unit = u.Unit(wcs.wcs.cunit[0])
-    lat_unit = u.Unit(wcs.wcs.cunit[1])
+    if _swap_pixel_order(wcs, native_pixel_order, "pixel_to_skycoord"):
+        xp, yp = yp, xp
 
     # Convert pixel coordinates to celestial coordinates
     if mode == "all":
-        lon, lat = wcs.all_pix2world(xp, yp, origin)
+        world = wcs.all_pix2world(xp, yp, origin)
     elif mode == "wcs":
-        lon, lat = wcs.wcs_pix2world(xp, yp, origin)
+        world = wcs.wcs_pix2world(xp, yp, origin)
     else:
         raise ValueError("mode should be either 'all' or 'wcs'")
 
-    # Add units to longitude/latitude
-    lon = lon * lon_unit
-    lat = lat * lat_unit
+    # Convert to a SkyCoord in the frame of the WCS, taking into account the
+    # units and axis order (which may be lat/lon) of the WCS
+    (coords,) = values_to_high_level_objects(*world, low_level_wcs=wcs)
 
-    # Create a SkyCoord-like object
-    data = UnitSphericalRepresentation(lon=lon, lat=lat)
-    coords = cls(frame.realize_frame(data))
-
-    return coords
+    return coords if cls is None else cls(coords)
 
 
 def _unique_with_order_preserved(items):
@@ -981,7 +1178,7 @@ def local_partial_pixel_derivatives(wcs, *pixel, normalize_by_world=False):
     return derivatives
 
 
-def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
+def _linear_wcs_fit(params, lon, lat, x, y, w_obj):  # ruff: ignore[PLR0917]
     """
     Objective function for fitting linear terms.
 
@@ -1001,7 +1198,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
 
     w_obj.wcs.cd = ((cd[0], cd[1]), (cd[2], cd[3]))
     w_obj.wcs.crpix = crpix
-    lon2, lat2 = w_obj.wcs_pix2world(x, y, 0)
+    lon2, lat2 = w_obj.wcs_pix2world(x, y, 1)
 
     lat_resids = lat - lat2
     lon_resids = lon - lon2
@@ -1013,7 +1210,7 @@ def _linear_wcs_fit(params, lon, lat, x, y, w_obj):
     return resids
 
 
-def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
+def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):  # ruff: ignore[PLR0917]
     """Objective function for fitting SIP.
 
     Parameters
@@ -1052,7 +1249,7 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     xo, yo = np.dot(cdx, np.array([u + fuv - crpix[0], v + guv - crpix[1]]))
 
     # use all pix2world in case `projection` contains distortion table
-    x, y = w_obj.all_world2pix(lon, lat, 0)
+    x, y = w_obj.all_world2pix(lon, lat, 1)
     x, y = np.dot(w_obj.wcs.cd, (x - w_obj.wcs.crpix[0], y - w_obj.wcs.crpix[1]))
 
     resids = np.concatenate((x - xo, y - yo))
@@ -1060,8 +1257,13 @@ def _sip_fit(params, lon, lat, u, v, w_obj, order, coeff_names):
     return resids
 
 
-def fit_wcs_from_points(
-    xy, world_coords, proj_point="center", projection="TAN", sip_degree=None
+def fit_wcs_from_points(  # noqa: PLR0917
+    xy,
+    world_coords,
+    origin=_ARG_NOT_SET,
+    proj_point="center",
+    projection="TAN",
+    sip_degree=None,
 ):
     """
     Given two matching sets of coordinates on detector and sky,
@@ -1100,18 +1302,27 @@ def fit_wcs_from_points(
     xy : (`numpy.ndarray`, `numpy.ndarray`) tuple
         x & y pixel coordinates.  These should be in FITS convention, starting
         from (1,1) as the center of the bottom-left pixel.
+
     world_coords : `~astropy.coordinates.SkyCoord`
         Skycoord object with world coordinates.
-    proj_point : 'center' or ~astropy.coordinates.SkyCoord`
+
+    origin : int
+        Pixel origin convention: use 0 for zero-based indexing or 1 for
+        FITS-style 1-based indexing.
+
+    proj_point : 'center' or `~astropy.coordinates.SkyCoord`
         Defaults to 'center', in which the geometric center of input world
         coordinates will be used as the projection point. To specify an exact
         point for the projection, a Skycoord object with a coordinate pair can
         be passed in. For consistency, the units and frame of these coordinates
         will be transformed to match ``world_coords`` if they don't.
+
     projection : str or `~astropy.wcs.WCS`
-        Three letter projection code, of any of standard projections defined
-        in the FITS WCS standard. Optionally, a WCS object with projection
-        keywords set may be passed in.
+        Three letter projection code of most of standard projections defined
+        in the FITS WCS standard. For a complete set of supported projections,
+        see ``astropy.wcs.utils.SUPPORTED_PRJ_CODES`` in this module.
+        Optionally, a WCS object with projection keywords set may be passed in.
+
     sip_degree : None or int
         If set to a non-zero integer value, will fit SIP of degree
         ``sip_degree`` to model geometric distortion. Defaults to None, meaning
@@ -1130,6 +1341,21 @@ def fit_wcs_from_points(
     from .wcs import Sip
 
     xp, yp = xy
+
+    if origin is _ARG_NOT_SET:
+        warnings.warn(
+            "Omitting argument 'origin' in "
+            "fit_wcs_from_points(..., origin=...) is deprecated and it will "
+            "be required in a future release. Defaulting to 1 for now.",
+            category=FutureWarning,
+            stacklevel=2,
+        )
+        origin = 1
+
+    elif origin == 0:
+        xp = xp + 1
+        yp = yp + 1
+
     try:
         lon, lat = world_coords.data.lon.deg, world_coords.data.lat.deg
     except AttributeError:
@@ -1149,40 +1375,11 @@ def fit_wcs_from_points(
     if not use_center_as_proj_point:
         assert proj_point.size == 1
 
-    proj_codes = [
-        "AZP",
-        "SZP",
-        "TAN",
-        "STG",
-        "SIN",
-        "ARC",
-        "ZEA",
-        "AIR",
-        "CYP",
-        "CEA",
-        "CAR",
-        "MER",
-        "SFL",
-        "PAR",
-        "MOL",
-        "AIT",
-        "COP",
-        "COE",
-        "COD",
-        "COO",
-        "BON",
-        "PCO",
-        "TSC",
-        "CSC",
-        "QSC",
-        "HPX",
-        "XPH",
-    ]
     if type(projection) == str:
-        if projection not in proj_codes:
+        if projection not in SUPPORTED_PRJ_CODES:
             raise ValueError(
                 "Must specify valid projection code from list of supported types: ",
-                ", ".join(proj_codes),
+                ", ".join(SUPPORTED_PRJ_CODES),
             )
         # empty wcs to fill in with fit values
         wcs = celestial_frame_to_wcs(frame=world_coords.frame, projection=projection)
@@ -1204,8 +1401,8 @@ def fit_wcs_from_points(
 
     # set pixel_shape to span of input points
     wcs.pixel_shape = (
-        1 if xpmax <= 0.0 else int(np.ceil(xpmax)),
-        1 if ypmax <= 0.0 else int(np.ceil(ypmax)),
+        1 if xpmax <= 1.0 else int(np.ceil(xpmax)) - 1,
+        1 if ypmax <= 1.0 else int(np.ceil(ypmax)) - 1,
     )
 
     # determine CRVAL from input
@@ -1222,8 +1419,8 @@ def fit_wcs_from_points(
         converted_point = proj_point.transform_to(world_coords)
         wcs.wcs.crval = (converted_point.data.lon.deg, converted_point.data.lat.deg)
         wcs.wcs.crpix = (
-            close(lon - wcs.wcs.crval[0], xp + 1),
-            close(lat - wcs.wcs.crval[1], yp + 1),
+            close(lon - wcs.wcs.crval[0], xp),
+            close(lat - wcs.wcs.crval[1], yp),
         )
 
     # fit linear terms, assign to wcs
@@ -1241,8 +1438,8 @@ def fit_wcs_from_points(
         p0,
         args=(lon, lat, xp, yp, wcs),
         bounds=[
-            [-np.inf, -np.inf, -np.inf, -np.inf, xpmin + 1, ypmin + 1],
-            [np.inf, np.inf, np.inf, np.inf, xpmax + 1, ypmax + 1],
+            [-np.inf, -np.inf, -np.inf, -np.inf, xpmin, ypmin],
+            [np.inf, np.inf, np.inf, np.inf, xpmax, ypmax],
         ],
     )
     wcs.wcs.crpix = np.array(fit.x[4:6])
@@ -1273,8 +1470,8 @@ def fit_wcs_from_points(
             p0,
             args=(lon, lat, xp, yp, wcs, degree, coef_names),
             bounds=[
-                [xpmin + 1, ypmin + 1] + [-np.inf] * (4 + 2 * len(coef_names)),
-                [xpmax + 1, ypmax + 1] + [np.inf] * (4 + 2 * len(coef_names)),
+                [xpmin, ypmin] + [-np.inf] * (4 + 2 * len(coef_names)),
+                [xpmax, ypmax] + [np.inf] * (4 + 2 * len(coef_names)),
             ],
         )
         coef_fit = (

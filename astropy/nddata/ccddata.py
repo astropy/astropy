@@ -98,7 +98,7 @@ class CCDData(NDDataArray):
             `~astropy.nddata.InverseVariance`, `~numpy.ndarray` or \
             None, optional
         Uncertainties on the data. If the uncertainty is a `~numpy.ndarray`, it
-        it assumed to be, and stored as, a `~astropy.nddata.StdDevUncertainty`.
+        is assumed to be, and stored as, a `~astropy.nddata.StdDevUncertainty`.
         Default is ``None``.
 
     mask : `~numpy.ndarray` or None, optional
@@ -294,7 +294,7 @@ class CCDData(NDDataArray):
         else:
             self._uncertainty = value
 
-    def to_hdu(
+    def to_hdu(  # ruff: ignore[PLR0917]
         self,
         hdu_mask="MASK",
         hdu_uncertainty="UNCERT",
@@ -341,7 +341,7 @@ class CCDData(NDDataArray):
         ------
         ValueError
             - If ``self.mask`` is set but not a `~numpy.ndarray`.
-            - If ``self.uncertainty`` is set but not a astropy uncertainty
+            - If ``self.uncertainty`` is set but not an astropy uncertainty
               type.
             - If ``self.uncertainty`` is set but has another unit then
               ``self.data``.
@@ -592,7 +592,7 @@ def _generate_wcs_and_update_header(hdr):
     return (new_hdr, wcs)
 
 
-def fits_ccddata_reader(
+def fits_ccddata_reader(  # ruff: ignore[PLR0917]
     filename,
     hdu=0,
     unit=None,
@@ -789,7 +789,7 @@ def fits_ccddata_reader(
         )
 
 
-def fits_ccddata_writer(
+def fits_ccddata_writer(  # ruff: ignore[PLR0917]
     ccd_data,
     filename,
     hdu_mask="MASK",

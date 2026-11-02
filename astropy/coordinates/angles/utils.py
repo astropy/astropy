@@ -48,7 +48,7 @@ def angular_separation(lon1, lat1, lon2, lat2):
     -----
     The angular separation is calculated using the Vincenty formula [1]_,
     which is slightly more complex and computationally expensive than
-    some alternatives, but is stable at at all distances, including the
+    some alternatives, but is stable at all distances, including the
     poles and antipodes.
 
     .. [1] https://en.wikipedia.org/wiki/Great-circle_distance

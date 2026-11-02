@@ -171,7 +171,7 @@ calculated as
 
     y = \frac{\log{(a x + 1)}}{\log{(a + 1)}}
 
-can be beneficial. In this case, the a stretch instance of
+can be beneficial. In this case, a stretch instance of
 :class:`~astropy.visualization.LogStretch` is directly passed:
 
 .. plot::

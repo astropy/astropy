@@ -31,7 +31,7 @@ Shapes
 These models provide shapes, often used to model general x, y data.
 
 - :class:`~astropy.modeling.functional_models.Linear1D` model provides a
-  line parameterizied by the slope and y-intercept
+  line parameterized by the slope and y-intercept
 
 - :class:`~astropy.modeling.functional_models.Sine1D` model provides a sine
   parameterized by an amplitude, frequency, and phase shift.
@@ -81,7 +81,7 @@ These models provide profiles, often used for lines in spectra.
   a Gaussian with an amplitude centered at x_0 with the specified width.
 
 - :class:`~astropy.modeling.functional_models.KingProjectedAnalytic1D` model
-  computes the analytic form of the a King model with an amplitude and
+  computes the analytic form of a King model with an amplitude and
   core and tidal radii.
 
 - :class:`~astropy.modeling.functional_models.Lorentz1D` model computes

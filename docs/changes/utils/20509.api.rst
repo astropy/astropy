@@ -1,0 +1,5 @@
+The end event that ``astropy.utils.xml.iterparser.get_xml_iterator`` gives for
+an element that contains other elements now has empty text, and its position
+is the line of the element's own closing tag. Code that read the text of the
+last element inside it from such an end event should read it from that
+element's own end event instead.

@@ -69,6 +69,27 @@ def test_take_out_raises():
 TEST_SHAPE = (13, 16, 4, 90)
 
 
+@pytest.mark.parametrize(
+    ("index", "expected"),
+    [
+        (slice(None), (slice(None), slice(0, 10, 1))),
+        ((Ellipsis, -3), (slice(None), 7)),
+        ((slice(2, -2), slice(-3, None)), (slice(2, -2), slice(7, 10, 1))),
+        ((3, slice(None, None, 2)), (3, slice(0, 10, 2))),
+    ],
+)
+def test_simplify_basic_index_unknown_size(index, expected):
+    # If the size along a dimension is not known, the index for that dimension
+    # should be returned unchanged.
+    assert simplify_basic_index(index, shape=(None, 10)) == expected
+
+
+@pytest.mark.parametrize("index", [-1, slice(-3, None), (slice(None), -1)])
+def test_simplify_basic_index_unknown_size_negative(index):
+    with pytest.raises(ValueError, match="since its size is not known"):
+        simplify_basic_index(index, shape=(None, None))
+
+
 class TestSimplifyBasicIndex:
     # We use a class here so that we can allocate the data once and for all to
     # speed up the testing.

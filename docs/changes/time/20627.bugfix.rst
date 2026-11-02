@@ -1,0 +1,9 @@
+Leap seconds have been discontinued (CGPM 2026, Resolution 5), so the
+leap-second table built into ERFA is final. ``Time`` therefore no longer checks
+whether that table has expired on the first conversion to or from UTC. That
+check read a file, and once the available leap-second files were within 150
+days of expiring it would try to download newer ones, warning if it could not
+find an unexpired table. Conversion results are unchanged. For pyerfa versions
+that still consider the built-in table expired, ``LeapSeconds.from_erfa()`` now
+sets ``erfa.leap_seconds.expires`` to 180 days in the future, so that
+``erfa.leap_seconds.expired`` is ``False``, consistent with newer pyerfa.

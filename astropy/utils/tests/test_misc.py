@@ -2,7 +2,6 @@
 
 import json
 import locale
-import sys
 import urllib.error
 from datetime import datetime
 
@@ -113,19 +112,25 @@ def test_JsonCustomEncoder_FITS_rec_from_files():
         )
 
 
-@pytest.mark.xfail(sys.platform == "emscripten", reason="known failure on emscripten")
 def test_set_locale():
+    date = datetime(2000, 10, 1, 0, 0, 0)
+
     # First, test if the required locales are available
     current = locale.setlocale(locale.LC_ALL)
     try:
         locale.setlocale(locale.LC_ALL, "en_US.utf8")
         locale.setlocale(locale.LC_ALL, "fr_FR.utf8")
+        # Some platforms (e.g. emscripten) accept any locale name without
+        # actually localizing anything
+        localized = date.strftime("%a") != "Sun"
     except locale.Error as e:
         pytest.skip(f"Locale error: {e}")
     finally:
         locale.setlocale(locale.LC_ALL, current)
 
-    date = datetime(2000, 10, 1, 0, 0, 0)
+    if not localized:
+        pytest.skip("Locales are accepted but not applied on this platform")
+
     day_mon = date.strftime("%a, %b")
 
     with misc._set_locale("en_US.utf8"):

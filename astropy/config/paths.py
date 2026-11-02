@@ -169,7 +169,9 @@ class _Envvar:
             case _SpecSource.XDG, _DirType.CONFIG:
                 return "XDG_CONFIG_HOME"
             case _ as unreachable:
-                assert_never(unreachable)
+                # mypy doesn't narrow correctly here
+                # other type checkers (ty, pyrefly) do
+                assert_never(unreachable)  # type: ignore[arg-type]
 
     @property
     def value(self) -> str | None:
@@ -230,7 +232,9 @@ class _DirectoryFinder:
         if self.envvars.astropy.is_defined() and ns.root == "astropy":
             match self.envvars.astropy.resolve():
                 case Path() as base_node:
-                    return replace(de, base_node=base_node, sub_nodes=ns.fragments)
+                    return replace(
+                        de, base_node=base_node, sub_nodes=list(ns.fragments)
+                    )
                 case str() as err:
                     warn(err, AstropyUserWarning, stacklevel=2)
                 case _ as unreachable:

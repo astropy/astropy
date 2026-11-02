@@ -1,0 +1,3 @@
+Fixed the fast ASCII reader corrupting the collected comment lines when a comment
+appears after the header line. Comments read before the header were truncated and
+replaced by spurious empty entries in ``table.meta['comments']``.

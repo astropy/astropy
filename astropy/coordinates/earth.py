@@ -37,7 +37,7 @@ class GeodeticLocation(NamedTuple):
     """
 
     lon: Longitude
-    """The longitude, increasting to the east."""
+    """The longitude, increasing to the east."""
 
     lat: Latitude
     """The latitude."""

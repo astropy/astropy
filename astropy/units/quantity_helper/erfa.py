@@ -6,6 +6,7 @@
 # We also avoid importing erfa up front since otherwise type stub generation
 # in the build process can only run with erfa as a build requirement.
 # TODO: solve both of the above by defining inside get_erfa_helpers?
+# ruff: file-ignore[PLR0917]
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError

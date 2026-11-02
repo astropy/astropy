@@ -517,6 +517,11 @@ class ScalarDistribution(Distribution, np.void):
     all subclasses.  It is a scalar element, still with n_samples samples.
     """
 
+    def __getitem__(self, item):
+        if item is Ellipsis:
+            return Distribution(self.view(np.ndarray))
+        return super().__getitem__(item)
+
 
 class ArrayDistribution(Distribution, np.ndarray):
     # This includes the important override of view and __getitem__

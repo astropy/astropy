@@ -27,7 +27,7 @@ either `True`, `False` or an `int`.
   the same way as non-WCS keywords in the header, i.e. by simply
   ignoring them.
 
-- If an `int`, is is a bit field to provide fine-grained control over
+- If an `int`, it is a bit field to provide fine-grained control over
   what non-standard WCS keywords to accept.  The flag bits are subject
   to change in future and should be set by using the constants
   beginning with ``WCSHDR_`` in the `astropy.wcs` module.
@@ -318,7 +318,7 @@ has a *relax* argument which may be either `True`, `False` or an
 - If `False` (default), write all extensions that are considered to be
   safe and recommended, equivalent to ``WCSHDO_safe`` (described below).
 
-- If an `int`, is is a bit field to provide fine-grained control over
+- If an `int`, it is a bit field to provide fine-grained control over
   what non-standard WCS keywords to accept.  The flag bits are subject
   to change in future and should be set by using the constants
   beginning with ``WCSHDO_`` in the `astropy.wcs` module.

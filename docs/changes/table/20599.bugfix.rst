@@ -1,0 +1,2 @@
+Fixed a ``UnicodeDecodeError`` when creating a ``MaskedColumn`` with
+``dtype=object`` from mixed text and non-ASCII bytes.

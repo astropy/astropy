@@ -9,9 +9,11 @@ import numpy as np
 from ._impl import bls_impl
 
 
-def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
+def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):  # ruff: ignore[PLR0917]
     """Compute the periodogram using a brute force reference method.
 
+    Parameters
+    ----------
     t : array-like
         Sequence of observation times.
     y : array-like
@@ -22,9 +24,9 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
         The trial periods where the periodogram should be computed.
     duration : array-like
         The durations that should be tested.
-    oversample :
+    oversample : int
         The resolution of the phase grid in units of durations.
-    use_likeliood : bool
+    use_likelihood : bool
         If true, maximize the log likelihood over phase, duration, and depth.
 
     Returns
@@ -45,15 +47,16 @@ def bls_slow(t, y, ivar, period, duration, oversample, use_likelihood):
         The signal-to-noise with which the depth is measured at maximum power.
     log_likelihood : array-like
         The log likelihood of the maximum power model.
-
     """
     f = partial(_bls_slow_one, t, y, ivar, duration, oversample, use_likelihood)
     return _apply(f, period)
 
 
-def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
+def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):  # ruff: ignore[PLR0917]
     """Compute the periodogram using an optimized Cython implementation.
 
+    Parameters
+    ----------
     t : array-like
         Sequence of observation times.
     y : array-like
@@ -64,9 +67,9 @@ def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
         The trial periods where the periodogram should be computed.
     duration : array-like
         The durations that should be tested.
-    oversample :
+    oversample : int
         The resolution of the phase grid in units of durations.
-    use_likeliood : bool
+    use_likelihood : bool
         If true, maximize the log likelihood over phase, duration, and depth.
 
     Returns
@@ -87,13 +90,37 @@ def bls_fast(t, y, ivar, period, duration, oversample, use_likelihood):
         The signal-to-noise with which the depth is measured at maximum power.
     log_likelihood : array-like
         The log likelihood of the maximum power model.
-
     """
     return bls_impl(t, y, ivar, period, duration, oversample, use_likelihood)
 
 
-def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):
-    """A private function to compute the brute force periodogram result."""
+def _bls_slow_one(t, y, ivar, duration, oversample, use_likelihood, period):  # ruff: ignore[PLR0917]
+    """A private function to compute the brute force periodogram result.
+
+    Parameters
+    ----------
+    t : array-like
+        Sequence of observation times.
+    y : array-like
+        Sequence of observations associated with times t.
+    ivar : array-like
+        The inverse variance of ``y``.
+    duration : array-like
+        The durations that should be tested.
+    oversample : int
+        The resolution of the phase grid in units of durations.
+    use_likelihood : bool
+        If true, maximize the log likelihood over phase, duration, and depth.
+    period : float
+        The trial period where the periodogram should be computed.
+
+    Returns
+    -------
+    result : tuple or None
+        The objective, depth, depth uncertainty, duration, transit time,
+        depth signal-to-noise and log likelihood of the maximum power model,
+        or `None` if no model with a positive depth was found.
+    """
     best = (-np.inf, None)
     hp = 0.5 * period
     min_t = np.min(t)

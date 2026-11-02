@@ -121,7 +121,7 @@ e.g. FITS, that now work with |Cosmology|.
 
 .. EXAMPLE END
 
-To see the a list of the available conversion formats:
+To see the list of the available conversion formats:
 
 .. code-block:: python
 

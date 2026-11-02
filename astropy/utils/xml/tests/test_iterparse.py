@@ -5,7 +5,9 @@
 import io
 import zlib
 
-from astropy.utils.xml.iterparser import _fast_iterparse
+import pytest
+
+from astropy.utils.xml.iterparser import _fast_iterparse, get_xml_iterator
 
 # The C-based XML parser for VOTables previously used fixed-sized
 # buffers (allocated at __init__() time).  This test will
@@ -130,3 +132,27 @@ def test_iterparser_over_read_simple():
     uncompressed_fd = UngzipFileWrapper(fd)
     iterable = _fast_iterparse(uncompressed_fd.read, MINIMUM_REQUESTABLE_BUFFER_SIZE)
     list(iterable)
+
+
+@pytest.mark.parametrize("python_parser", [False, True])
+def test_parent_end_event_has_no_child_text(python_parser):
+    """
+    get_xml_iterator on a parent element holding one child with text gives
+    the parent's end event empty text.
+
+    The parent's end event used to repeat the child's text, so reading a
+    VOTable BINARY stream held several copies of the whole table (#8946).
+    It runs with both the C parser and the pure-Python parser, which must give
+    the same events.
+    """
+    xml = io.BytesIO(b"<parent><child>text</child></parent>")
+
+    with get_xml_iterator(xml, _debug_python_based_parser=python_parser) as iterator:
+        events = [event[:3] for event in iterator]
+
+    assert events == [
+        (True, "parent", {}),
+        (True, "child", {}),
+        (False, "child", "text"),
+        (False, "parent", ""),
+    ]

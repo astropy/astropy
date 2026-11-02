@@ -205,7 +205,7 @@ class Mapping:
 
 class LinearMapping(Mapping):
     """
-    A linear map map of red, blue, green intensities into uint8 values.
+    A linear map of red, blue, green intensities into uint8 values.
 
     A linear stretch from [minimum, maximum].
     If one or both are omitted use image min and/or max to set them.
@@ -590,7 +590,7 @@ class RGBImageMappingLupton(RGBImageMapping):
         Compared to astropy's ImageNormalize which first normalizes images
         by cropping and linearly mapping onto [0.,1.] and then applies
         a specified stretch algorithm, the Lupton et al. algorithm applies
-        stretching to an multi-color intensity and then computes per-band
+        stretching to a multi-color intensity and then computes per-band
         scaled images with bound cropping.
 
         This is modified here by allowing for different minimum values
@@ -664,7 +664,7 @@ class RGBImageMappingLupton(RGBImageMapping):
         return np.asarray(image_rgb)
 
 
-def make_lupton_rgb(
+def make_lupton_rgb(  # ruff: ignore[PLR0917]
     image_r,
     image_g,
     image_b,

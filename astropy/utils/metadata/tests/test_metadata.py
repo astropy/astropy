@@ -192,6 +192,18 @@ def test_metadata_merging():
     assert np.all(out["k1"] == np.array(["3"]))
 
 
+@pytest.mark.parametrize("metadata_conflicts", ["warn", "error", "silent"])
+@pytest.mark.parametrize("left,right", [(b"alpha", "beta"), ("alpha", b"beta")])
+def test_metadata_merging_bytes_text(metadata_conflicts, left, right):
+    out = merge(
+        {"labels": np.array([left])},
+        {"labels": np.array([right])},
+        metadata_conflicts=metadata_conflicts,
+    )
+    assert out["labels"].dtype == np.dtype("U5")
+    assert out["labels"].tolist() == ["alpha", "beta"]
+
+
 def test_metadata_merging_new_strategy():
     original_merge_strategies = list(metadata.MERGE_STRATEGIES)
 

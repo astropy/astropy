@@ -23,6 +23,7 @@ Core Package Contributors
 * Akeem
 * Akshat Dixit
 * Al Niessner
+* Alasdair Wilson
 * Albert Y\. Shih
 * Albert Zhang
 * Aleh Khvalko
@@ -215,6 +216,7 @@ Core Package Contributors
 * Giang Nguyen
 * Gilles Landais
 * Giorgio Calderone
+* gitpsii
 * Gordon Gibb
 * Graham Kanarek
 * Grant Jenks
@@ -320,6 +322,7 @@ Core Package Contributors
 * Kieran Leschinski
 * Kim Searle
 * Kirill Tchernyshyov
+* Kris Cooper
 * Kris Stern
 * Kristin Berry
 * Kunam Balaram Reddy
@@ -395,6 +398,7 @@ Core Package Contributors
 * Max Voronkov
 * Maximilian Linhoff
 * Maximillian Weber
+* Mayank Singh
 * Médéric Boquien
 * Megan Sosey
 * Melissa Weber Mendonça
@@ -525,6 +529,7 @@ Core Package Contributors
 * Sam Lee
 * Sam Van Kooten
 * Sam Verstocken
+* Samarth D N
 * Samruddhi Khandale
 * Samuel Brice
 * Sandeep Desai

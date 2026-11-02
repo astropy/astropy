@@ -39,6 +39,25 @@ from .sky_coordinate_parsers import (
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
 
+def _item_equal(val1, val2):
+    """Compare two items of a ``SkyCoord.info._represent_as_dict()`` dict."""
+    if isinstance(val1, BaseCoordinateFrame):
+        # A coordinate frame attribute, e.g. the ``origin`` of a
+        # ``SkyOffsetFrame``.  Comparing two frames raises instead of giving
+        # False when they are not equivalent, or when only one of them has data,
+        # but for an attribute that simply means the two are not equal.
+        try:
+            return val1 == val2
+        except (TypeError, ValueError) as err:
+            # Only the frame comparison itself declining to compare, not e.g. an
+            # unrelated TypeError from within it.
+            if not str(err).startswith("cannot compare"):
+                raise
+            return False
+
+    return val1 == val2
+
+
 class SkyCoordInfo(CoordinateFrameInfo):
     # Information for a SkyCoord is almost identical to that of a frame;
     # we only need to add the name of the frame used underneath.
@@ -124,7 +143,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
     ----------
     frame : `~astropy.coordinates.BaseCoordinateFrame` class or string, optional
         Type of coordinate frame this |SkyCoord| should represent. Defaults to
-        to ICRS if not given or given as None.
+        ICRS if not given or given as None.
     unit : `~astropy.units.Unit`, string, or tuple of :class:`~astropy.units.Unit` or str, optional
         Units for supplied coordinate values.
         If only one unit is supplied then it applies to all values.
@@ -153,7 +172,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         pm_ra_cosdec, pm_dec  : `~astropy.units.Quantity` ['angular speed'], optional
             Proper motion components, in angle per time units.
         l, b : angle-like, optional
-            Galactic ``l`` and ``b`` for for frames where ``l`` and ``b`` are
+            Galactic ``l`` and ``b`` for frames where ``l`` and ``b`` are
             keys in the frame's ``representation_component_names``, including
             the ``Galactic`` frame.
         pm_l_cosb, pm_b : `~astropy.units.Quantity` ['angular speed'], optional
@@ -296,30 +315,57 @@ class SkyCoord(MaskableShapedLikeNDArray):
     def __eq__(self, value):
         """Equality operator for SkyCoord.
 
-        This implements strict equality and requires that the frames are
-        equivalent, extra frame attributes are equivalent, and that the
-        representation data are exactly equal.
+        This implements strict equality, requiring that the right object be
+        strictly consistent with the left one:
+
+        - Identical frame type
+        - Identical ``representation_type``
+        - Identical representation differentials keys
+        - Identical frame attributes
+        - Identical "extra" frame attributes (e.g. ``obstime`` for an ICRS coord)
+
+        All of these, along with the coordinate data itself, are held by
+        ``self.info._represent_as_dict()``, which is what is required to
+        reconstruct the object.  The comparison is therefore just an item by item
+        comparison of two such dicts.  Items are compared element-wise and
+        broadcast against each other, so the result has the broadcast shape of
+        everything involved.  An item defined on only one of the two objects
+        makes the comparison `False` everywhere.
         """
         if isinstance(value, BaseCoordinateFrame):
             if value._data is None:
                 raise ValueError("Can only compare SkyCoord to Frame with data")
 
-            return self.frame == value
+            return self == SkyCoord(value, copy=False)
 
         if not isinstance(value, SkyCoord):
             return NotImplemented
 
-        # Make sure that any extra frame attribute names are equivalent.
-        for attr in self._extra_frameattr_names | value._extra_frameattr_names:
-            if not self.frame._frameattr_equiv(
-                getattr(self, attr), getattr(value, attr)
-            ):
-                raise ValueError(
-                    f"cannot compare: extra frame attribute '{attr}' is not equivalent"
-                    " (perhaps compare the frames directly to avoid this exception)"
-                )
+        repr1 = self.info._represent_as_dict()
+        repr2 = value.info._represent_as_dict()
 
-        return self._sky_coord_frame == value._sky_coord_frame
+        if repr1.keys() != repr2.keys():
+            # A different frame type, or an attribute that is set on one of the
+            # two objects but not the other, so nothing can be equal.
+            try:
+                shape = np.broadcast_shapes(self.shape, value.shape)
+            except ValueError as err:
+                raise ValueError(f"cannot compare: {err}") from err
+
+            return np.zeros(shape, bool)[()]
+
+        extra_attrs = self._extra_frameattr_names | value._extra_frameattr_names
+        out = True
+        for attr, val1 in repr1.items():
+            try:
+                out = out & _item_equal(val1, repr2[attr])
+            except ValueError as err:
+                kind = "extra frame attribute" if attr in extra_attrs else "attribute"
+                raise ValueError(
+                    f"cannot compare: {kind} {attr!r} has shape mismatch: {err}"
+                ) from err
+
+        return out
 
     def __ne__(self, value):
         return np.logical_not(self == value)
@@ -849,7 +895,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
                     'lon': {'pad': True, 'unit': "hour"}
 
         See :meth:`~astropy.coordinates.Angle.to_string` for details and
-        keyword arguments (the two angles forming the coordinates are are
+        keyword arguments (the two angles forming the coordinates are
         both :class:`~astropy.coordinates.Angle` instances). Keyword
         arguments have precedence over the style defaults and are passed
         to :meth:`~astropy.coordinates.Angle.to_string`.
@@ -1421,7 +1467,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
         # return get_constellation(self, short_name, constellation_list)
 
     # WCS pixel to/from sky conversions
-    def to_pixel(self, wcs, origin=0, mode="all"):
+    def to_pixel(self, wcs, origin=0, mode="all", *, native_pixel_order=None):
         """
         Convert this coordinate to pixel coordinates using a `~astropy.wcs.WCS`
         object.
@@ -1435,6 +1481,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         mode : 'all' or 'wcs'
             Whether to do the transformation including distortions (``'all'``) or
             only including only the core WCS transformation (``'wcs'``).
+        native_pixel_order : bool or None, optional
+            Whether the pixel coordinates are in the native order of the WCS
+            pixel axes (`True`) or, for WCS objects in which latitude comes
+            before longitude, swapped such that ``xp`` corresponds to longitude
+            and ``yp`` to latitude (`False`, the historical behavior). If `None`
+            (the default), the historical behavior is used and a deprecation
+            warning is emitted for WCS objects in which latitude comes before
+            longitude. This argument has no effect for WCS objects in which
+            longitude comes before latitude.
 
         Returns
         -------
@@ -1447,10 +1502,16 @@ class SkyCoord(MaskableShapedLikeNDArray):
         """
         from astropy.wcs.utils import skycoord_to_pixel
 
-        return skycoord_to_pixel(self, wcs=wcs, origin=origin, mode=mode)
+        return skycoord_to_pixel(
+            self,
+            wcs=wcs,
+            origin=origin,
+            mode=mode,
+            native_pixel_order=native_pixel_order,
+        )
 
     @classmethod
-    def from_pixel(cls, xp, yp, wcs, origin=0, mode="all"):
+    def from_pixel(cls, xp, yp, wcs, origin=0, mode="all", *, native_pixel_order=None):
         """
         Create a new SkyCoord from pixel coordinates using a World Coordinate System.
 
@@ -1465,6 +1526,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         mode : 'all' or 'wcs'
             Whether to do the transformation including distortions (``'all'``) or
             only including only the core WCS transformation (``'wcs'``).
+        native_pixel_order : bool or None, optional
+            Whether the pixel coordinates are in the native order of the WCS
+            pixel axes (`True`) or, for WCS objects in which latitude comes
+            before longitude, swapped such that ``xp`` corresponds to longitude
+            and ``yp`` to latitude (`False`, the historical behavior). If `None`
+            (the default), the historical behavior is used and a deprecation
+            warning is emitted for WCS objects in which latitude comes before
+            longitude. This argument has no effect for WCS objects in which
+            longitude comes before latitude.
 
         Returns
         -------
@@ -1479,7 +1549,15 @@ class SkyCoord(MaskableShapedLikeNDArray):
         """
         from astropy.wcs.utils import pixel_to_skycoord
 
-        return pixel_to_skycoord(xp, yp, wcs=wcs, origin=origin, mode=mode, cls=cls)
+        return pixel_to_skycoord(
+            xp,
+            yp,
+            wcs=wcs,
+            origin=origin,
+            mode=mode,
+            cls=cls,
+            native_pixel_order=native_pixel_order,
+        )
 
     def contained_by(self, wcs, image=None, **kwargs):
         """
@@ -1510,6 +1588,7 @@ class SkyCoord(MaskableShapedLikeNDArray):
             #  Suppress warnings since they just mean we didn't find the coordinate
             warnings.simplefilter("ignore")
             try:
+                kwargs.setdefault("native_pixel_order", True)
                 x, y = self.to_pixel(wcs, **kwargs)
             except Exception:
                 return False

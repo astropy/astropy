@@ -78,7 +78,7 @@ class IllegalHourWarning(AstropyWarning):
 
 class IllegalMinuteError(RangeError):
     """
-    Raised when an minute value is not in the range [0,60].
+    Raised when a minute value is not in the range [0,60].
 
     Parameters
     ----------
@@ -127,7 +127,7 @@ class IllegalMinuteWarning(AstropyWarning):
 
 class IllegalSecondError(RangeError):
     """
-    Raised when an second value (time) is not in the range [0,60].
+    Raised when a second value (time) is not in the range [0,60].
 
     Parameters
     ----------

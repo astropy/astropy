@@ -115,12 +115,12 @@ static int Prjprm_clear(Prjprm* self)
 
 static void Prjprm_dealloc(Prjprm* self)
 {
-    Prjprm_clear(self);
     if (self->prefcount && (--(*self->prefcount)) == 0) {
         wcslib_prj_to_python_exc(prjfree(self->x));
         free(self->x);
         free(self->prefcount);
     }
+    Prjprm_clear(self);
     PyTypeObject *tp = Py_TYPE((PyObject*)self);
     freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
     free_func((PyObject*)self);

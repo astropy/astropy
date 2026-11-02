@@ -42,6 +42,16 @@
 #undef CLAMP
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
+/* expat 2.9.0 deprecates the line and column functions in favor of 64-bit
+   versions, but a system expat (ASTROPY_USE_SYSTEM_EXPAT) may be older. */
+#if XML_MAJOR_VERSION > 2 || (XML_MAJOR_VERSION == 2 && XML_MINOR_VERSION >= 9)
+#define GET_LINE_NUMBER XML_GetCurrentLineNumber64
+#define GET_COLUMN_NUMBER XML_GetCurrentColumnNumber64
+#else
+#define GET_LINE_NUMBER XML_GetCurrentLineNumber
+#define GET_COLUMN_NUMBER XML_GetCurrentColumnNumber
+#endif
+
 static Py_ssize_t next_power_of_2(Py_ssize_t n)
 {
     /* Calculate the next-higher power of two that is >= 'n' */
@@ -281,6 +291,38 @@ static void text_clear(IterParser *self)
     self->text_size = 0;
 }
 
+/*
+ * Size above which the text buffer is freed once an element's text has been
+ * handed over.  Below it, keeping the buffer avoids reallocating it for every
+ * element.
+ */
+#define TEXT_KEEP_MAX (1 << 20)
+
+/*
+ * Erase the text buffer once its content has been handed to Python.
+ *
+ * The text of a single element, such as the base64 STREAM of a VOTable
+ * BINARY table, can grow the buffer to gigabytes.  A buffer that has
+ * grown past TEXT_KEEP_MAX is therefore swapped for a small one,
+ * rather than being held until the parser is freed.
+ */
+static void text_release(IterParser *self)
+{
+    XML_Char *small = NULL;
+
+    if (self->text_alloc > TEXT_KEEP_MAX && self->text_alloc > self->buffersize) {
+        small = malloc((size_t)self->buffersize * sizeof(XML_Char));
+        /* If that fails, keep using the large buffer */
+        if (small != NULL) {
+            free(self->text);
+            self->text = small;
+            self->text_alloc = self->buffersize;
+        }
+    }
+
+    text_clear(self);
+}
+
 /******************************************************************************
  * XML event handling
  ******************************************************************************/
@@ -413,8 +455,8 @@ static void startElement(IterParser *self, const XML_Char *name, const XML_Char 
         PyTuple_SetItem(tuple, 2, pyatts);
         pyatts = NULL;
 
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
+        self->last_line = (unsigned long)GET_LINE_NUMBER(self->parser);
+        self->last_col = (unsigned long)GET_COLUMN_NUMBER(self->parser);
 
         pos = make_pos(self);
         if (pos == NULL) {
@@ -509,6 +551,10 @@ static void endElement(IterParser *self, const XML_Char *name)
         PyTuple_SetItem(tuple, 2, pytext);
         pytext = NULL;
 
+        /* The text belongs to this element alone.  Clearing it here stops
+           the end events of its ancestors from each carrying a copy. */
+        text_release(self);
+
         pos = make_pos(self);
         if (pos == NULL) {
             goto fail;
@@ -548,8 +594,8 @@ static void characterData(IterParser *self, const XML_Char *text, int len)
     }
 
     if (self->text_size == 0) {
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
+        self->last_line = (unsigned long)GET_LINE_NUMBER(self->parser);
+        self->last_col = (unsigned long)GET_COLUMN_NUMBER(self->parser);
     }
 
     if (self->keep_text) {
@@ -627,8 +673,8 @@ static void xmlDecl(
         PyTuple_SetItem(tuple, 2, attrs);
         attrs = NULL;
 
-        self->last_line = (unsigned long)XML_GetCurrentLineNumber(self->parser);
-        self->last_col = (unsigned long)XML_GetCurrentColumnNumber(self->parser);
+        self->last_line = (unsigned long)GET_LINE_NUMBER(self->parser);
+        self->last_col = (unsigned long)GET_COLUMN_NUMBER(self->parser);
 
         pos = make_pos(self);
         if (pos == NULL) {
@@ -761,8 +807,8 @@ static PyObject *IterParser_next(PyObject *selfO)
             PyErr_Format(
                 PyExc_ValueError,
                 "%lu:%lu: %s",
-                XML_GetCurrentLineNumber(self->parser),
-                XML_GetCurrentColumnNumber(self->parser),
+                (unsigned long)GET_LINE_NUMBER(self->parser),
+                (unsigned long)GET_COLUMN_NUMBER(self->parser),
                 XML_ErrorString(XML_GetErrorCode(self->parser))
             );
             goto fail;

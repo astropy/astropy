@@ -40,7 +40,7 @@ tokenizer_t *create_tokenizer(
     tokenizer->use_fast_converter = use_fast_converter;
     tokenizer->comment_lines = (char *)malloc(INITIAL_COMMENT_LEN);
     tokenizer->comment_pos = 0;
-    tokenizer->comment_lines_len = 0;
+    tokenizer->comment_lines_len = INITIAL_COMMENT_LEN;
 
     // This is a bit of a hack -- buf holds an empty string to represent
     // empty field values
@@ -115,15 +115,17 @@ void resize_col(tokenizer_t *self, int index)
 void resize_comments(tokenizer_t *self)
 {
     // Double the size of the comments string
-    self->comment_lines = (char *)realloc(self->comment_lines, self->comment_pos + 1);
-    // Set the second (newly allocated) half of the column string to all zeros
+    int new_len = self->comment_lines_len * 2;
+
+    self->comment_lines = (char *)realloc(self->comment_lines, new_len * sizeof(char));
+    // Set the second (newly allocated) half of the comment string to all zeros
     memset(
         self->comment_lines + self->comment_lines_len * sizeof(char),
         0,
-        (self->comment_pos + 1 - self->comment_lines_len) * sizeof(char)
+        (new_len - self->comment_lines_len) * sizeof(char)
     );
 
-    self->comment_lines_len = self->comment_pos + 1;
+    self->comment_lines_len = new_len;
 }
 
 /*
@@ -319,7 +321,6 @@ int tokenize(tokenizer_t *self, int end, int header, int num_cols)
     int whitespace = 1;
     delete_data(self); // Clear old reading data
     self->num_rows = 0;
-    self->comment_lines_len = INITIAL_COMMENT_LEN;
 
     if (header) {
         self->num_cols = 1; // Store header output in one column

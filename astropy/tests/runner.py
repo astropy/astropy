@@ -406,7 +406,7 @@ class TestRunner(TestRunnerBase):
                     os.path.join(abs_docs_path, os.pardir, test_path)
                 )
 
-                common = os.path.commonprefix((abs_docs_path, abs_test_path))
+                common = os.path.commonpath((abs_docs_path, abs_test_path))
 
                 if os.path.exists(abs_test_path) and common == abs_docs_path:
                     # Turn on the doctest_rst plugin

@@ -43,6 +43,8 @@ def result_type(arrs):
     Hence, a mix like integer and string will raise instead of resulting
     in a string type.
 
+    A mix of bytes and text results in text, with one character per byte.
+
     Parameters
     ----------
     arrs : list of ndarray
@@ -65,5 +67,13 @@ def result_type(arrs):
         tme = MergeConflictError(f"Arrays have incompatible types {incompat_types}")
         tme._incompat_types = incompat_types
         raise tme
+
+    if {dt.kind for dt in dtypes} == {"S", "U"}:
+        # Coerce ASCII bytes to unicode, non-ASCII bytes will trigger a
+        # UnicodeDecodeError. NumPy used to do this automatically but that
+        # behavior is deprecated.
+        dtypes = [
+            np.dtype(f"U{dt.itemsize}") if dt.kind == "S" else dt for dt in dtypes
+        ]
 
     return np.result_type(*dtypes)

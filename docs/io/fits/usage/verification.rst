@@ -253,7 +253,7 @@ Unfixable Cards:
 We will summarize the verification with a "life-cycle" example::
 
     >>> h = fits.PrimaryHDU()  # create a PrimaryHDU
-    >>> # Try to add an non-standard FITS keyword 'P.I.' (FITS does no allow
+    >>> # Try to add a non-standard FITS keyword 'P.I.' (FITS does not allow
     >>> # '.' in the keyword), if using the update() method - doesn't work!
     >>> h.header['P.I.'] = 'Hubble' # doctest: +SHOW_WARNINGS
     VerifyWarning: Keyword name 'P.I.' is greater than 8 characters or

@@ -119,7 +119,7 @@ class FunctionTransformWithFiniteDifference(FunctionTransform):
 
     """
 
-    def __init__(
+    def __init__(  # ruff: ignore[PLR0917]
         self,
         func,
         fromsys,

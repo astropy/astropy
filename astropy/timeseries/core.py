@@ -24,6 +24,16 @@ def autocheck_required_columns(cls):
     methods indicated by the _required_columns attribute. The aim is to
     decorate all methods that might affect the columns in the table and check
     for consistency after the methods have been run.
+
+    Parameters
+    ----------
+    cls : type
+        The table class whose column-related methods should be wrapped.
+
+    Returns
+    -------
+    type
+        The same class, with its column-related methods wrapped in place.
     """
 
     def decorator_method(method):
@@ -62,6 +72,11 @@ class BaseTimeSeries(QTable):
         for an index on this column rather than for no indices at all.  The
         primary key is set explicitly since ``add_index`` only does that when
         the table has no other indices.
+
+        Parameters
+        ----------
+        colname : str
+            The name of the column to use as the primary key.
         """
         if (colname,) not in [index.id for index in self.indices]:
             self.add_index(colname)

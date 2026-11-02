@@ -674,6 +674,22 @@ class TestCutout2D:
         assert_quantity_allclose(skycoord_original.ra, skycoord_cutout.ra)
         assert_quantity_allclose(skycoord_original.dec, skycoord_cutout.dec)
 
+    def test_skycoord_lat_lon_order(self):
+        # Regression test for a bug that caused cutouts to be centered on the
+        # wrong position for a WCS in which latitude comes before longitude
+        from astropy.wcs import WCSSUB_LATITUDE, WCSSUB_LONGITUDE
+
+        position = self.wcs.pixel_to_world(1, 3)
+        c = Cutout2D(self.data, position, (3, 3), wcs=self.wcs)
+        assert_allclose(c.center_original, (1, 3))
+
+        # This swaps both the world and the pixel axes, so we transpose the
+        # data too and the cutout should be the transpose of the one above
+        wcs_swapped = self.wcs.sub([WCSSUB_LATITUDE, WCSSUB_LONGITUDE])
+        c_swapped = Cutout2D(self.data.T, position, (3, 3), wcs=wcs_swapped)
+        assert_allclose(c_swapped.center_original, (3, 1))
+        assert_allclose(c_swapped.data, c.data.T)
+
     def test_skycoord_partial(self):
         c = Cutout2D(self.data, self.position, (3, 3), wcs=self.wcs, mode="partial")
         skycoord_original = self.position.from_pixel(

@@ -59,7 +59,7 @@ def get_data_and_mask(array):
         (but ignored when a possible ``masked`` attribute is `False`).
         If so, checks for having an ``unmasked`` attribute (as expected for
         instances of `~astropy.utils.masked.Masked`), or uses the ``_data``
-        attribute if the inpuit is an instance of `~numpy.ma.MaskedArray`.
+        attribute if the input is an instance of `~numpy.ma.MaskedArray`.
 
     Returns
     -------

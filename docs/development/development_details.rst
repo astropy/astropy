@@ -205,7 +205,7 @@ it into Astropy:
    down arrow next to it and select "Create draft pull request". This will let
    the maintainers know that your work is not ready for a full review nor to be
    merged yet. In addition, if your commits are not ready for CI testing, you
-   should also use ``[ci skip]`` or ``[skip ci]`` directive in your commit message.
+   should also use ``[ci skip] [skip docs]`` or ``[skip ci] [skip docs]`` directive in your commit message.
    For usage of pre-commit hooks and directives, see :ref:`pre-commit` and :ref:`pre-commit_bot`.
 
 .. _revise and push:

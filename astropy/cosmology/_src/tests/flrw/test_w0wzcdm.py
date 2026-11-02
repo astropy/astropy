@@ -121,8 +121,9 @@ class Testw0wzCDM(FLRWTest, Parameterw0TestMixin, ParameterwzTestMixin):
         """
         super().test_Otot(cosmo, z)
 
-    @pytest.mark.xfail(
-        sys.platform == "emscripten", reason="known failure on emscripten"
+    @pytest.mark.skipif(
+        sys.platform == "emscripten",
+        reason="floating-point exceptions not supported on emscripten",
     )
     def test_Otot_overflow(self, cosmo):
         """Test :meth:`astropy.cosmology.w0wzCDM.Otot` for overflow."""

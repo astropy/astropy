@@ -283,7 +283,7 @@ def represent_mixins_as_columns(
     tbl : `~astropy.table.Table` or subclass
         Table to represent mixins as Columns
     exclude_classes : tuple of class
-        Exclude any mixin columns which are instannces of any classes in the tuple
+        Exclude any mixin columns which are instances of any classes in the tuple
 
     Returns
     -------

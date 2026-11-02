@@ -183,7 +183,7 @@ class BaseLowLevelWCS(metaclass=abc.ABCMeta):
         * The second element, should be a tuple specifying the positional
           arguments required to initialize the class. If
           `~astropy.wcs.wcsapi.BaseLowLevelWCS.world_axis_object_components` specifies that the
-          world coordinates should be passed as a positional argument, this this
+          world coordinates should be passed as a positional argument, this
           tuple should include `None` placeholders for the world coordinates.
 
         * The third tuple element must be a dictionary with the keyword

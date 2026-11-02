@@ -4,7 +4,7 @@
 Implements projections--particularly sky projections defined in WCS Paper II
 [1]_.
 
-All angles are set and and displayed in degrees but internally computations are
+All angles are set and displayed in degrees but internally computations are
 performed in radians. All functions expect inputs and outputs degrees.
 
 References

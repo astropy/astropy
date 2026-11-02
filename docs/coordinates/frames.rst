@@ -236,7 +236,7 @@ set of coordinates, you will need to make sure that the shapes allow this::
    any non-scalar attributes are broadcast to have matching shapes
    (as can be seen for ``obstime`` in the last line above).
 
-Coordinate values in a array-valued frame object can be modified in-place
+Coordinate values in an array-valued frame object can be modified in-place
 (added in astropy 4.1). This requires that the new values be set from an
 another frame object that is equivalent in all ways except for the actual
 coordinate data values. In this way, no frame transformations are required and

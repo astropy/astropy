@@ -5,6 +5,7 @@ import pkgutil
 import platform
 import urllib.request
 import warnings
+from datetime import datetime, timedelta
 
 import erfa
 import numpy as np
@@ -27,18 +28,15 @@ with warnings.catch_warnings():
 
 # Now test that the erfa leap_seconds table has not been updated. This must be
 # done at the module level, which unfortunately will abort the entire test run
-# if if fails. Running within a normal pytest test will not work because the
-# other tests will end up updating this attribute by virtue of doing Time UTC
-# transformations.
+# if it fails. Running within a normal pytest test will not work because other
+# tests change this attribute, e.g., via LeapSeconds.from_erfa().
 assert erfa.leap_seconds._expires is None
 
-# Tests in this module assume that the erfa.leap_seconds attribute has been
-# updated from the `erfa` package built-in table to the astropy built-in
-# leap-second table. That has the effect of ensuring that the
-# `erfa.leap_seconds.expires` property is sufficiently in the future.
+# Tests in this module assume that the erfa.leap_seconds table has been
+# updated from the best available table. Its expiration may or may not change,
+# depending on whether pyerfa still treats the built-in table as expired.
 iers_table = iers.LeapSeconds.auto_open()
 erfa.leap_seconds.update(iers_table)
-assert erfa.leap_seconds._expires is not None
 
 SYSTEM_FILE = "/usr/share/zoneinfo/leap-seconds.list"
 
@@ -370,7 +368,14 @@ class ERFALeapSecondsSafe:
     def setup_method(self):
         # Keep current leap-second table and expiration.
         self.erfa_ls = self._erfa_ls = erfa.leap_seconds.get()
-        self.erfa_expires = self._expires = erfa.leap_seconds._expires
+        self._expires = erfa.leap_seconds._expires
+        # Expected LeapSeconds.from_erfa().expires: leap seconds were
+        # discontinued, so an expired ERFA table is treated as valid for
+        # another 180 days.  Compare dates, since pyerfa may give a time too.
+        if erfa.leap_seconds.expired:
+            self.erfa_expires = datetime.now().date() + timedelta(180)
+        else:
+            self.erfa_expires = erfa.leap_seconds.expires.date()
 
     def teardown_method(self):
         # Restore leap-second table and expiration.
@@ -383,7 +388,7 @@ class TestFromERFA(ERFALeapSecondsSafe):
         ls = iers.LeapSeconds.from_erfa()
         assert ls.colnames == ["year", "month", "tai_utc"]
         assert isinstance(ls.expires, Time)
-        assert ls.expires == self.erfa_expires
+        assert ls.expires.datetime.date() == self.erfa_expires
         ls_array = np.array(ls["year", "month", "tai_utc"])
         assert np.all(ls_array == self.erfa_ls)
 
@@ -411,7 +416,7 @@ class TestFromERFA(ERFALeapSecondsSafe):
     def test_open(self):
         ls = iers.LeapSeconds.open("erfa")
         assert isinstance(ls.expires, Time)
-        assert ls.expires == self.erfa_expires
+        assert ls.expires.datetime.date() == self.erfa_expires
         ls_array = np.array(ls["year", "month", "tai_utc"])
         assert np.all(ls_array == self.erfa_ls)
 

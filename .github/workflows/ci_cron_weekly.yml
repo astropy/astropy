@@ -81,7 +81,7 @@ jobs:
 
           - name: Documentation link check
             os: ubuntu-latest
-            python: '3.x'
+            python: '3.14'
             toxenv: linkcheck
             toxposargs: --color
 
@@ -92,7 +92,7 @@ jobs:
         persist-credentials: false
         fetch-depth: 0
     - name: Set up Python
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
       with:
         python-version: ${{ matrix.python }}
     - name: Install language-pack-de and tzdata
@@ -145,7 +145,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: uraimo/run-on-arch-action@460cb8e6d9f726a588fc9b5e681c8a6cab09ae41 # v3.2.0
+      - uses: uraimo/run-on-arch-action@fa1f3e7de95534497266c7265950b5188355fbfb # v3.2.1
         name: Run tests
         id: build
         with:

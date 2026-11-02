@@ -5,7 +5,7 @@ import numpy as np
 from .utils import trig_sum
 
 
-def lombscargle_fastchi2(
+def lombscargle_fastchi2(  # ruff: ignore[PLR0917]
     t,
     y,
     dy,
@@ -31,29 +31,37 @@ def lombscargle_fastchi2(
     Parameters
     ----------
     t, y, dy : array-like
-        times, values, and errors of the data points. These should be
+        Times, values, and errors of the data points. These should be
         broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     f0, df, Nf : (float, float, int)
-        parameters describing the frequency grid, f = f0 + df * arange(Nf).
+        Parameters describing the frequency grid, f = f0 + df * arange(Nf).
     normalization : str, optional
         Normalization to use for the periodogram.
         Options are 'standard', 'model', 'log', or 'psd'.
     fit_mean : bool, optional
-        if True, include a constant offset as part of the model at each
+        If True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage.
     center_data : bool, optional
-        if True, pre-center the data by subtracting the weighted mean
-        of the input data. This is especially important if ``fit_mean = False``
+        If True, pre-center the data by subtracting the weighted mean
+        of the input data. This is especially important if ``fit_mean = False``.
     nterms : int, optional
-        Number of Fourier terms in the fit
+        Number of Fourier terms in the fit.
+    use_fft : bool (default=True)
+        If True, then use an approximate FFT-based O[NlogN] algorithm to
+        compute the trigonometric sums. Otherwise, use a slower O[N^2]
+        algorithm.
+    trig_sum_kwds : dict or None, optional
+        Extra keyword arguments to pass to the ``trig_sum`` utility.
+        Options are ``oversampling``, ``Mfft`` and ``eps``. See documentation
+        of ``trig_sum`` for details.
     algorithm : 'lra' (default), or 'fasper'
         This option is ignored if use_fft is False.
         Specify the approximation used to approximate the NUDFT of type 1. If the value is not valid falls back to the default option.
         Supported options are:
 
-        - 'fasper': use Press & Rybicki's piecewise Lagrange polynomial extirpolation. This is the default option.
-        - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend.
+        - 'fasper': use Press & Rybicki's piecewise Lagrange polynomial extirpolation.
+        - 'lra': Use the more accurate (but slower) Low Rank Approximation by Ruiz-Antolin and Townsend. This is the default option.
 
     Returns
     -------

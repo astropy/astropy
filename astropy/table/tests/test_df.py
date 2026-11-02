@@ -607,7 +607,7 @@ class TestDataFrameConversion:
         t["b"] = [1.0, 2.0, 3.0]
         t["b"].mask = [False, False, True]
 
-        t["u"] = ["a", "b", "c"]
+        t["u"] = ["ä", "b", "c"]
         t["u"].mask = [False, True, False]
 
         t["s"] = [b"a", b"b", b"c"]

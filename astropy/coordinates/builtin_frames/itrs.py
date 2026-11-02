@@ -58,7 +58,7 @@ class ITRS(BaseCoordinateFrame):
     ephemerides), then this is the way to go.
 
     Note to ILRS ephemeris users: Astropy does not currently consider relativistic
-    effects of the Earth's gravatational field. Nor do the `~astropy.coordinates.AltAz`
+    effects of the Earth's gravitational field. Nor do the `~astropy.coordinates.AltAz`
     or `~astropy.coordinates.HADec` refraction corrections compute the change in the
     range due to the curved path of light through the atmosphere, so Astropy is no
     substitute for the ILRS software in these respects.

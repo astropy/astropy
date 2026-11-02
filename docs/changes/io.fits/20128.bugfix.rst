@@ -1,0 +1,4 @@
+Fixed a bug in :class:`~astropy.io.fits.FITS_rec` where an empty entry in a
+variable-length array column that has a ``TDIM`` (``dim``) set was reshaped
+using the column dimension, producing a spurious shape such as ``(0, 5)``
+instead of the natural ``(0,)`` required by the FITS standard.

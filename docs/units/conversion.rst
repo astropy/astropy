@@ -56,7 +56,7 @@ Incompatible Conversions
 
 .. EXAMPLE START: Conversions Between Incompatible Units
 
-If you attempt to convert to a incompatible unit, a
+If you attempt to convert to an incompatible unit, a
 :class:`~astropy.units.UnitConversionError` will result:
 
   >>> cms = u.cm / u.s

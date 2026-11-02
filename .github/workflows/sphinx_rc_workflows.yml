@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   tests:
-    uses: OpenAstronomy/github-actions-workflows/.github/workflows/tox.yml@3a3dcf3ba6828dac29eba10334948ef38364ed14  # v3.1.0
+    uses: OpenAstronomy/github-actions-workflows/.github/workflows/publish.yml@1285b95e32c783cfa40eb2ffbd6ca4cd023fb884  # v3.2.2
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:

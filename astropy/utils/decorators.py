@@ -31,7 +31,7 @@ __all__ = [
 _NotFound = object()
 
 
-def deprecated(
+def deprecated(  # ruff: ignore[PLR0917]
     since,
     message="",
     name="",
@@ -181,7 +181,7 @@ def deprecated(
             )
         return cls
 
-    def deprecate(
+    def deprecate(  # ruff: ignore[PLR0917]
         obj,
         message=message,
         name=name,
@@ -238,7 +238,7 @@ def deprecated(
     return deprecate
 
 
-def deprecated_attribute(
+def deprecated_attribute(  # ruff: ignore[PLR0917]
     name,
     since,
     message=None,
@@ -335,7 +335,7 @@ def deprecated_attribute(
     return property(get, set, delete)
 
 
-def deprecated_renamed_argument(
+def deprecated_renamed_argument(  # ruff: ignore[PLR0917]
     old_name,
     new_name,
     since,

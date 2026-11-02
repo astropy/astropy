@@ -1151,7 +1151,7 @@ after the header lines and counting the data lines from 0 as usual in Python). I
 just two lines the problem is easy to spot, but for longer tables, the line number is
 very helpful. We can now fix that line by hand in the file by adding quotes
 around ``"alpha Cen"``. Then we can try to read the table again and see
-if it works or if there is a another badly formatted data line.
+if it works or if there is another badly formatted data line.
 
 .. _io-ascii-read-gaia-tables:
 

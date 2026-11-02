@@ -88,7 +88,7 @@ class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
     """Print diagnostic output from solver."""
 
 
-def _z_at_scalar_value(
+def _z_at_scalar_value(  # ruff: ignore[PLR0917]
     func,
     fval: float | FArray | Quantity,
     zmin: float | FArray | Quantity = 1e-8,
@@ -194,7 +194,7 @@ def _z_at_scalar_value(
     return res.x
 
 
-def z_at_value(
+def z_at_value(  # ruff: ignore[PLR0917]
     func,
     fval,
     zmin: ArrayLike = 1e-8,
@@ -417,7 +417,7 @@ def z_at_value(
     ...            zmin=[0, 2.5], zmax=[2, 4])            # doctest: +FLOAT_CMP
     <Quantity [0.68127747, 3.79149062] redshift>
 
-    The ``bracket`` argument can likewise be be an array. However, since
+    The ``bracket`` argument can likewise be an array. However, since
     bracket must already be a sequence (or None), it MUST be given as an
     object `numpy.ndarray`. Importantly, the depth of the array must be such
     that each bracket subsequence is an object. Errors or unexpected results
