@@ -111,14 +111,14 @@ def _ndarray_representer(dumper, obj):
     if obj.dtype.hasobject:
         raise TypeError(f"cannot serialize numpy object array: {obj}")
 
-    if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
-        obj = np.ascontiguousarray(obj)
-
-    if np.isfortran(obj):
-        obj = obj.T
+    if obj.flags.c_contiguous:
+        order = "C"
+    elif obj.flags.f_contiguous:
         order = "F"
+        obj = obj.T
     else:
         order = "C"
+        obj = np.ascontiguousarray(obj)
 
     data_b64 = base64.b64encode(obj.tobytes())
 
