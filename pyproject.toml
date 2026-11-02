@@ -44,7 +44,7 @@ keywords = [
 # When adding a dependency here, make sure to preserve alphabetical sorting
 # so that cycling a dependency with uv add/uv remove doesn't change their order
 dependencies = [
-    "astropy-iers-data>=0.2026.9.21.0.56.25",
+    "astropy-iers-data>=0.2026.10.19.0.52.1",
     "configobj>=5.0.9",
     "numpy>=2.0",
     "packaging>=25.0",
