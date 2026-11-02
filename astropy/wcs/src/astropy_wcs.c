@@ -26,6 +26,14 @@
 #include <wcserr.h>
 #include <wtbarr.h>
 
+#ifndef _ASTROPY_MULTI_PHASE_MODULE_INIT
+// Python 3.15 is needed for PyModExport_*
+// There's also no reason not to do this on any 3.15+ (not PYTHON_LT_3_15) build.
+#define _ASTROPY_MULTI_PHASE_MODULE_INIT \
+     ( defined(Py_LIMITED_API) && Py_LIMITED_API >= 0x030F0000) \
+  || (!defined(Py_LIMITED_API) && PY_VERSION_HEX >= 0x030F0000)
+#endif
+
 /***************************************************************************
  * Wcs type
  ***************************************************************************/
@@ -834,24 +842,8 @@ struct module_state {
 #endif
 };
 
-static struct PyModuleDef moduledef = {
-    PyModuleDef_HEAD_INIT,
-    "_wcs",
-    NULL,
-    sizeof(struct module_state),
-    module_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
-PyMODINIT_FUNC
-PyInit__wcs(void)
-
+int module_exec(PyObject *m)
 {
-  PyObject* m;
-
   wcs_errexc[0] = NULL;                         /* Success */
   wcs_errexc[1] = &PyExc_MemoryError;           /* Null wcsprm pointer passed */
   wcs_errexc[2] = &PyExc_MemoryError;           /* Memory allocation failed */
@@ -869,13 +861,6 @@ PyInit__wcs(void)
   wcs_errexc[12] = &WcsExc_InvalidSubimageSpecification; /* Invalid subimage specification (no spectral axis) */
   wcs_errexc[13] = &WcsExc_NonseparableSubimageCoordinateSystem; /* Non-separable subimage coordinate system */
 
-  m = PyModule_Create(&moduledef);
-
-  if (m == NULL)
-    return NULL;
-
-  import_array();
-
   if (_setup_api(m)                 ||
       _setup_str_list_proxy_type(m) ||
       _setup_unit_list_proxy_type(m)||
@@ -890,19 +875,68 @@ PyInit__wcs(void)
       _setup_sip_type(m)            ||
       _setup_wcs_type(m)          ||
       _define_exceptions(m)) {
-    Py_DECREF(m);
-    return NULL;
+    return -1;
   }
 
 #ifdef HAVE_WCSLIB_VERSION
   if (PyModule_AddStringConstant(m, "WCSLIB_VERSION", wcslib_version(NULL))) {
-    return NULL;
+    return -1;
   }
 #else
   if (PyModule_AddStringConstant(m, "WCSLIB_VERSION", "4.x")) {
-    return NULL;
+    return -1;
   }
 #endif
 
+  return 0;
+}
+
+#if _ASTROPY_MULTI_PHASE_MODULE_INIT
+
+PyABIInfo_VAR(abi_info);
+
+static PySlot module_slots[] = {
+    PySlot_PTR_STATIC(Py_mod_abi, &abi_info),
+    PySlot_PTR_STATIC(Py_mod_name, "_wcs"),
+    PySlot_PTR_STATIC(Py_mod_state_size, (void*)sizeof(struct module_state)),
+    PySlot_PTR_STATIC(Py_mod_methods, &module_methods),
+    PySlot_PTR_STATIC(Py_mod_exec, &module_exec),
+    PySlot_END,
+};
+
+PyMODEXPORT_FUNC
+PyModExport__wcs(void)
+{
+    return module_slots;
+}
+
+#else // _ASTROPY_MULTI_PHASE_MODULE_INIT
+
+static struct PyModuleDef moduledef = {
+    PyModuleDef_HEAD_INIT,
+    "_wcs",
+    NULL,
+    sizeof(struct module_state),
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit__wcs(void)
+
+{
+  if (PyArray_ImportNumPyAPI() < 0) {
+      return NULL;
+  }
+  PyObject* m = PyModule_Create(&moduledef);
+  if (module_exec(m) != 0) {
+    // Error
+    Py_CLEAR(m);
+  }
   return m;
 }
+
+#endif // _ASTROPY_MULTI_PHASE_MODULE_INIT
