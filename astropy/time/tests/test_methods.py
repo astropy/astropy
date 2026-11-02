@@ -331,12 +331,12 @@ class TestSetShape(ShapeSetup):
         with warnings.catch_warnings():
             warnings.simplefilter(depr_warning_action, DeprecationWarning)
             with pytest.raises(ValueError):
-                t0_reshape_t.shape = (12,)  # Wrong number of elements.
+                t0_reshape_t._set_shape((12,))  # Wrong number of elements.
             with pytest.raises((AttributeError, ValueError)):
                 # the exact exception type isn't really in our control,
                 # as it ultimately comes from numpy but depends on astropy's
                 # execution flow
-                t0_reshape_t.shape = (10, 5)  # Cannot be done without copy.
+                t0_reshape_t._set_shape((10, 5))  # Cannot be done without copy.
         # check no shape was changed.
         assert t0_reshape_t.shape == t0_reshape.T.shape
         assert t0_reshape_t.jd1.shape == t0_reshape.T.shape
@@ -350,7 +350,7 @@ class TestSetShape(ShapeSetup):
         # For reshape(5, 2, 5), the location array can remain the same.
         # Note that we need to work directly on self.t2 here, since any
         # copy would cause location to have the full shape.
-        self.t2.shape = (5, 2, 5)
+        self.t2._set_shape((5, 2, 5))
         assert self.t2.shape == (5, 2, 5)
         assert self.t2.jd1.shape == (5, 2, 5)
         assert self.t2.jd2.shape == (5, 2, 5)
@@ -360,7 +360,7 @@ class TestSetShape(ShapeSetup):
         # should fail.
         oldshape = self.t2.shape
         with pytest.raises(AttributeError):
-            self.t2.shape = (50,)
+            self.t2._set_shape((50,))
         # check no shape was changed.
         assert self.t2.jd1.shape == oldshape
         assert self.t2.jd2.shape == oldshape

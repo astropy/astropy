@@ -249,7 +249,7 @@ class TestSetShape(ShapeSetup):
         # Shape-setting should be on the object itself, since copying removes
         # zero-strides due to broadcasting.  Hence, this should be the only
         # test in this class.
-        self.s0.shape = (2, 3, 7)
+        self.s0._set_shape((2, 3, 7))
         assert self.s0.shape == (2, 3, 7)
         assert self.s0.lon.shape == (2, 3, 7)
         assert self.s0.lat.shape == (2, 3, 7)
@@ -260,7 +260,7 @@ class TestSetShape(ShapeSetup):
         assert self.diff.d_distance.shape == (2, 3, 7)
 
         # this works with the broadcasting.
-        self.s1.shape = (2, 3, 7)
+        self.s1._set_shape((2, 3, 7))
         assert self.s1.shape == (2, 3, 7)
         assert self.s1.lon.shape == (2, 3, 7)
         assert self.s1.lat.shape == (2, 3, 7)
@@ -270,9 +270,9 @@ class TestSetShape(ShapeSetup):
         # but this one does not.
         oldshape = self.s1.shape
         with pytest.raises(ValueError):
-            self.s1.shape = (1,)
+            self.s1._set_shape((1,))
         with pytest.raises(AttributeError):
-            self.s1.shape = (42,)
+            self.s1._set_shape((42,))
         assert self.s1.shape == oldshape
         assert self.s1.lon.shape == oldshape
         assert self.s1.lat.shape == oldshape
@@ -286,7 +286,7 @@ class TestSetShape(ShapeSetup):
         assert 0 not in s2.lon.strides
         assert 0 in s2.lat.strides
         with pytest.raises(AttributeError):
-            s2.shape = (42,)
+            s2._set_shape((42,))
         assert s2.shape == oldshape
         assert s2.lon.shape == oldshape
         assert s2.lat.shape == oldshape

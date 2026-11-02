@@ -1,0 +1,1 @@
+Deprecated ``shape`` property setter in the ``TimeBase`` class in favor of the semi private function ``_set_shape()``.
