@@ -37,7 +37,6 @@ a column since MRT format does not preserve table metadata.
     --------------------------------------------------------------------------------
     ...
 
-
 .. testcleanup::
 
     >>> temp_dir.cleanup()
@@ -96,12 +95,12 @@ def read_mrt(
         any non-mandatory arguments missing in 'table'.
 
     **kwargs
-        Passed to ``QTable.read``
+        Passed to ``QTable.read``.
 
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
-
+        The cosmology instance.
 
     Examples
     --------
@@ -186,7 +185,7 @@ def write_mrt[T: Table](
 
     Parameters
     ----------
-    cosmology : |Cosmology| subclass instance
+    cosmo : |Cosmology| subclass instance, positional-only
         The cosmology to serialize.
     file : path-like or file-like
         Where to write the MRT table.
@@ -243,14 +242,9 @@ def write_mrt[T: Table](
         --------------------------------------------------------------------------------
         ...
 
-
     .. testcleanup::
 
         >>> temp_dir.cleanup()
-
-    Notes
-    -----
-
     """
     if (fmt := kwargs.pop("format", "ascii.mrt")) != "ascii.mrt":
         raise ValueError(f"format must be 'ascii.mrt', not {fmt}")
@@ -291,7 +285,7 @@ def write_mrt[T: Table](
 
 
 def mrt_identify(
-    _: object, filepath: str | None, /, *args: object, **kwargs: object
+    origin: object, filepath: str | None, /, *args: object, **kwargs: object
 ) -> bool:
     """Identify if an object uses the HTML Table format.
 

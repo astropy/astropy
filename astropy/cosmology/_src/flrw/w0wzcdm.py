@@ -18,7 +18,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 @dataclass_decorator
-class w0wzCDM(FLRW):
+class w0wzCDM(FLRW):  # numpydoc ignore=PR02
     """FLRW cosmology with a variable dark energy EoS and curvature.
 
     The equation for the dark energy equation of state (EoS) uses the simple form:
@@ -181,11 +181,6 @@ class w0wzCDM(FLRW):
         I : ndarray
             The scaling of the energy density of dark energy with redshift.
 
-        References
-        ----------
-        .. [1] Linder, E. (2003). Exploring the Expansion History of the Universe.
-               Physics Review Letters, 90(9), 091301.
-
         Notes
         -----
         The scaling factor, I, is defined by :math:`\rho(z) = \rho_0 I`,
@@ -195,13 +190,18 @@ class w0wzCDM(FLRW):
 
            I = \left(1 + z\right)^{3 \left(1 + w_0 - w_z\right)}
                      \exp \left(3 w_z z\right)
+
+        References
+        ----------
+        .. [1] Linder, E. (2003). Exploring the Expansion History of the Universe.
+               Physics Review Letters, 90(9), 091301.
         """
         z = aszarr(z)
         return (z + 1.0) ** (3.0 * (1.0 + self.w0 - self.wz)) * exp(3.0 * self.wz * z)
 
 
 @dataclass_decorator
-class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):
+class Flatw0wzCDM(FlatFLRWMixin, w0wzCDM):  # numpydoc ignore=PR02
     """FLRW cosmology with a variable dark energy EoS and no curvature.
 
     The equation for the dark energy equation of state (EoS) uses the simple form:

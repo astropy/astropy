@@ -2,7 +2,6 @@
 """CMB Temperature.
 
 This is private API. See `~astropy.cosmology.traits` for public API.
-
 """
 
 __all__ = ("TemperatureCMB",)

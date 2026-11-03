@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True)
-class ParametersAttribute:
+class ParametersAttribute:  # numpydoc ignore=PR02
     """Immutable mapping of the :class:`~astropy.cosmology.Parameter` objects or values.
 
     If accessed from the :class:`~astropy.cosmology.Cosmology` class, this returns a

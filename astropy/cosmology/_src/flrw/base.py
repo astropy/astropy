@@ -88,7 +88,6 @@ class NeutrinoInfo(NamedTuple):
     """A container for neutrino information.
 
     This is Private API - internal to FLRW cosmologies.
-
     """
 
     n_nu: int
@@ -129,7 +128,7 @@ ParameterOde0 = Parameter(
 
 
 @dataclass_decorator
-class FLRW(
+class FLRW(  # numpydoc ignore=PR02
     Cosmology,
     # Traits
     BaryonComponent,
@@ -295,6 +294,18 @@ class FLRW(
         There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
         neutrinos must match floor(Neff). Neutrino masses cannot be
         negative.
+
+        Parameters
+        ----------
+        param : `~astropy.cosmology.Parameter`
+            The ``m_nu`` parameter.
+        value : Any
+            The neutrino masses to validate.
+
+        Returns
+        -------
+        Quantity ['energy'] or None
+            The validated neutrino masses, or `None` if there are no neutrinos.
         """
         # Check if there are any neutrinos
         if (n_nu := floor(self.Neff)) == 0 or self.Tcmb0.value == 0:
@@ -323,7 +334,20 @@ class FLRW(
 
     @Ob0.validator
     def Ob0(self, param: Parameter, value: Any) -> float:
-        """Validate baryon density to a non-negative float > matter density."""
+        """Validate baryon density to a non-negative float > matter density.
+
+        Parameters
+        ----------
+        param : `~astropy.cosmology.Parameter`
+            The ``Ob0`` parameter.
+        value : Any
+            The baryon density to validate.
+
+        Returns
+        -------
+        float
+            The validated baryon density.
+        """
         value = validate_non_negative(self, param, value)
         if value > self.Om0:
             raise ValueError(
@@ -340,7 +364,6 @@ class FLRW(
 
         The critical density is the density of the Universe at which the Universe is
         flat. It is defined as :math:`\rho_{\text{crit}} = 3 H_0^2 / (8 \pi G)`.
-
         """
         return (3 * self.H0**2 / (8 * pi * const.G)).cgs
 
@@ -450,7 +473,7 @@ class FLRW(
 
     @property
     def has_massive_nu(self) -> bool:
-        """Does this cosmology have at least one massive neutrino species?"""
+        """Whether this cosmology has at least one massive neutrino species."""
         if self.Tnu0.value == 0:
             return False
         return self._nu_info.has_massive_nu
@@ -564,6 +587,11 @@ class FLRW(
 
     def _lookback_time_integrand_scalar(self, z: float, /) -> float:
         """Integrand of the lookback time (equation 30 of [1]_).
+
+        Parameters
+        ----------
+        z : float
+            Input redshift.
 
         Returns
         -------
@@ -999,7 +1027,18 @@ class FLRW(
     def angular_diameter_distance_z1z2(
         self, z1: u.Quantity | ArrayLike, z2: u.Quantity | ArrayLike
     ) -> u.Quantity:
-        """See ``angular_diameter_distance(z1, z2)``."""
+        """See ``angular_diameter_distance(z1, z2)``.
+
+        Parameters
+        ----------
+        z1, z2 : Quantity-like ['redshift'], array-like
+            Input redshifts.
+
+        Returns
+        -------
+        Quantity ['length']
+            Angular diameter distance in Mpc between redshifts ``z1`` and ``z2``.
+        """
         return self.angular_diameter_distance(z1, z2)
 
     def luminosity_distance(self, z: u.Quantity | ArrayLike, /) -> u.Quantity:
@@ -1326,6 +1365,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         Returns
         -------
         Otot : array
+            The total density parameter, which is 1 for a flat cosmology.
         """
         return np.ones_like(aszarr(z), subok=True)
 

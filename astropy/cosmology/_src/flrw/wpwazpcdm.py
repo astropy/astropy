@@ -19,7 +19,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 @dataclass_decorator
-class wpwaCDM(FLRW):
+class wpwaCDM(FLRW):  # numpydoc ignore=PR02
     r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and curvature.
 
     The equation for the dark energy equation of state (EoS) uses the CPL form as
@@ -49,7 +49,7 @@ class wpwaCDM(FLRW):
         to the scale factor. A cosmological constant has wp=-1.0 and wa=0.0.
 
     zp : float or quantity-like ['redshift'], optional
-        Pivot redshift -- the redshift where w(z) = wp
+        Pivot redshift -- the redshift where w(z) = wp.
 
     Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K]. Default: 0 [K].
@@ -78,16 +78,6 @@ class wpwaCDM(FLRW):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
-    Examples
-    --------
-    >>> from astropy.cosmology import wpwaCDM
-    >>> cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.7, wp=-0.9, wa=0.2, zp=0.4)
-
-    The comoving distance in Mpc at redshift z:
-
-    >>> z = 0.5
-    >>> dc = cosmo.comoving_distance(z)
-
     References
     ----------
     .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
@@ -99,6 +89,16 @@ class wpwaCDM(FLRW):
            D., Guzzo, L., Hirata, C., Huterer, D., Kirshner, R., Kolb, E., &
            Nichol, R. (2009). Findings of the Joint Dark Energy Mission Figure
            of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
+
+    Examples
+    --------
+    >>> from astropy.cosmology import wpwaCDM
+    >>> cosmo = wpwaCDM(H0=70, Om0=0.3, Ode0=0.7, wp=-0.9, wa=0.2, zp=0.4)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> z = 0.5
+    >>> dc = cosmo.comoving_distance(z)
     """
 
     wp: Parameter = Parameter(
@@ -231,7 +231,7 @@ class wpwaCDM(FLRW):
 
 
 @dataclass_decorator
-class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
+class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):  # numpydoc ignore=PR02
     r"""FLRW cosmology with a CPL dark energy EoS, a pivot redshift, and no curvature.
 
     The equation for the dark energy equation of state (EoS) uses the CPL form as
@@ -257,7 +257,7 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         to the scale factor. A cosmological constant has wp=-1.0 and wa=0.0.
 
     zp : float or quantity-like ['redshift'], optional
-        Pivot redshift -- the redshift where w(z) = wp
+        Pivot redshift -- the redshift where w(z) = wp.
 
     Tcmb0 : float or scalar quantity-like ['temperature'], optional
         Temperature of the CMB z=0. If a float, must be in [K]. Default: 0 [K].
@@ -286,16 +286,6 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
-    Examples
-    --------
-    >>> from astropy.cosmology import FlatwpwaCDM
-    >>> cosmo = FlatwpwaCDM(H0=70, Om0=0.3, wp=-0.9, wa=0.2, zp=0.4)
-
-    The comoving distance in Mpc at redshift z:
-
-    >>> cosmo.comoving_distance(0.5)
-    <Quantity 1868.68474438 Mpc>
-
     References
     ----------
     .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
@@ -307,6 +297,16 @@ class FlatwpwaCDM(FlatFLRWMixin, wpwaCDM):
         D., Guzzo, L., Hirata, C., Huterer, D., Kirshner, R., Kolb, E., &
         Nichol, R. (2009). Findings of the Joint Dark Energy Mission Figure
         of Merit Science Working Group. arXiv e-prints, arXiv:0901.0721.
+
+    Examples
+    --------
+    >>> from astropy.cosmology import FlatwpwaCDM
+    >>> cosmo = FlatwpwaCDM(H0=70, Om0=0.3, wp=-0.9, wa=0.2, zp=0.4)
+
+    The comoving distance in Mpc at redshift z:
+
+    >>> cosmo.comoving_distance(0.5)
+    <Quantity 1868.68474438 Mpc>
     """
 
     def __post_init__(self) -> None:
