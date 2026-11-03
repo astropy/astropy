@@ -181,7 +181,7 @@ def test_integer_inputs(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        elif with_errors:
+        if with_errors:
             pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
@@ -204,7 +204,7 @@ def test_integer_inputs(
     kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
     P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
-    assert_allclose(P_int, P_float)
+    assert_allclose(P_float, P_int)
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)

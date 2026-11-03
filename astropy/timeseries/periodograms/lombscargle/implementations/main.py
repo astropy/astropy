@@ -76,7 +76,14 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
 
 
 def validate_method(  # ruff: ignore[PLR0917]
-    method, dy, fit_mean, nterms, frequency, assume_regular_frequency, *, method_kwds=None
+    method,
+    dy,
+    fit_mean,
+    nterms,
+    frequency,
+    assume_regular_frequency,
+    *,
+    method_kwds=None,
 ):
     """
     Validate the method argument, and if method='auto'
@@ -109,7 +116,7 @@ def validate_method(  # ruff: ignore[PLR0917]
     )
     # the scipy method accepts no additional keywords, so never select it
     # automatically when method_kwds are passed
-    prefer_scipy = (
+    can_use_scipy = (
         "scipy" in methods
         and dy is None
         and method_kwds is None
@@ -125,7 +132,7 @@ def validate_method(  # ruff: ignore[PLR0917]
                 method = "chi2"
         elif prefer_fast:
             method = "fast"
-        elif prefer_scipy:
+        elif can_use_scipy:
             method = "scipy"
         else:
             method = "cython"
