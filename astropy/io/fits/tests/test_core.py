@@ -11,6 +11,7 @@ import shutil
 import sys
 import urllib.request
 import zipfile
+from tempfile import SpooledTemporaryFile
 from unittest.mock import Mock, patch
 
 import numpy as np
@@ -1129,6 +1130,27 @@ class TestFileFunctions(FitsTestCase):
             filelike.write(f.read())
         filelike.seek(0)
         assert len(fits.open(filelike)) == 5
+
+    @pytest.mark.parametrize("ext", ["gz", "bz2", "xz"])
+    def test_read_compressed_file_like_object(self, ext):
+        """
+        Regression test for gh-16171: compression should be detected
+        from the magic bytes when reading a compressed FITS file from
+        a file-like object, which is not recognized as a file by
+        isfile().
+        """
+        compressors = {"gz": gzip.compress, "bz2": bz2.compress, "xz": lzma.compress}
+        with open(self.data("test0.fits"), "rb") as f:
+            compressed = compressors[ext](f.read())
+
+        with fits.open(io.BytesIO(compressed)) as hdul:
+            assert len(hdul) == 5
+
+        with SpooledTemporaryFile() as spool:
+            spool.write(compressed)
+            spool.seek(0)
+            with fits.open(spool) as hdul:
+                assert len(hdul) == 5
 
     def test_updated_file_permissions(self):
         """
