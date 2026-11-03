@@ -1013,7 +1013,7 @@ def convert_numpy(numpy_type):
             converter_type = FloatType
         case "b":
             converter_type = BoolType
-        case "U":
+        case "U" | "T":
             converter_type = StrType
         case _:
             converter_type = AllType

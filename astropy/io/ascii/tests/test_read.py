@@ -95,11 +95,7 @@ def test_read_specify_converters_with_names():
     "converter",
     [
         pytest.param(ascii.convert_numpy(str), id="str"),
-        pytest.param(
-            ascii.convert_numpy("T"),
-            markers=pytest.mark.xfail(strict=True),
-            id="StringDType",
-        ),
+        pytest.param(ascii.convert_numpy("T"), id="StringDType"),
     ],
 )
 def test_read_specify_converters_invalid_stringdtype(converter):
