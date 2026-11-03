@@ -44,7 +44,7 @@ def lombscargle_scipy(
         If True, pre-center the data by subtracting the weighted mean
         of the input data.
     fit_mean : bool, optional, keyword-only
-        if True, include a constant offset as part of the model at each
+        If True, include a constant offset as part of the model at each
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
         to the ``floating_mean`` argument in `scipy.signal.lombscargle`.

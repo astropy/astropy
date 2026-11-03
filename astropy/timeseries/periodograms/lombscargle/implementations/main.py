@@ -104,6 +104,10 @@ def validate_method(  # ruff: ignore[PLR0917]
     assume_regular_frequency : bool
         If True, assume that the frequencies are regularly spaced rather than
         checking.
+    method_kwds : dict, optional, keyword-only
+        Additional keywords to pass to the implementation, or None if none
+        were specified. The scipy method accepts no additional keywords, so
+        it is never chosen automatically when this is not None.
 
     Returns
     -------
