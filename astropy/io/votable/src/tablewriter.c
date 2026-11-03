@@ -359,7 +359,10 @@ static PyObject *write_tabledata(PyObject *self, PyObject *args, PyObject *kwds)
         if (_write_cstring(&buf, &buf_size, &x, " </TR>\n", 7)) {
             goto exit;
         }
-
+        /* Ensure space for the null-terminator before writing it */
+        if (_buffer_realloc(&buf, &buf_size, &x, (x - buf) + 1)) {
+            goto exit;
+        }
         /* NULL-terminate the string */
         *x = (CHAR)0;
         if ((tmp = PyObject_CallFunction(write_method, "s#", buf, (Py_ssize_t)(x - buf))) == NULL) {
