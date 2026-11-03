@@ -599,14 +599,14 @@ def false_alarm_probability(  # ruff: ignore[PLR0917]
     false_alarm_probability : array-like
         The false alarm probability.
 
+    See Also
+    --------
+    false_alarm_level : Compute the periodogram level for a particular fap.
+
     Notes
     -----
     For normalization='psd', the distribution can only be computed for
     periodograms constructed with errors specified.
-
-    See Also
-    --------
-    false_alarm_level : Compute the periodogram level for a particular fap.
 
     References
     ----------
@@ -662,14 +662,14 @@ def false_alarm_level(  # ruff: ignore[PLR0917]
     z : array-like
         The periodogram level.
 
+    See Also
+    --------
+    false_alarm_probability : Compute the fap for a given periodogram level.
+
     Notes
     -----
     For normalization='psd', the distribution can only be computed for
     periodograms constructed with errors specified.
-
-    See Also
-    --------
-    false_alarm_probability : Compute the fap for a given periodogram level.
 
     References
     ----------

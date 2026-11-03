@@ -120,6 +120,6 @@ repos:
         files: \.(c|h)$
 
   - repo: https://github.com/numpy/numpydoc
-    rev: v1.10.0
+    rev: v1.11.0
     hooks:
       - id: numpydoc-validation
