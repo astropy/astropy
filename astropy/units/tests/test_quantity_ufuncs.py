@@ -17,6 +17,7 @@ from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
 from astropy.units.quantity_helper.helpers import helper_sqrt
+from astropy.utils import minversion
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_3, NUMPY_LT_2_6
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -1617,11 +1618,22 @@ if HAS_SCIPY:
 
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
-        if sps.erf in qh.UFUNC_HELPERS:
+        # On scipy >= 2.0, sps functions are wrappers, but we need the ufunc.
+        # See comment in quantity_helpers.scipy_special.
+        # Use try/except since in principle, with "SCIPY_ARRAY_APY=1",
+        # this could already happen on older scipy.
+        try:
+            erf_ufunc = sps._ufuncs.erf
+        except AttributeError:
+            # We must be on older scipy
+            assert not minversion("scipy", "2.0.0dev"), "Expected SCIPY_LT_2_0"
+            erf_ufunc = sps.erf
+
+        if erf_ufunc in qh.UFUNC_HELPERS:
             # Generally, scipy will not be loaded here, but in a double run it might.
             pytest.skip()
         sps.erf(1.0 * u.percent)
-        assert sps.erf in qh.UFUNC_HELPERS
+        assert erf_ufunc in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
         @pytest.mark.parametrize("function", erf_like_ufuncs)
