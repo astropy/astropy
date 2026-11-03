@@ -67,7 +67,15 @@ def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
 
 
 def get_scipy_special_helpers():
-    import scipy.special as sps
+    # On scipy >= 2.0, as well as on somewhat earlier versions with
+    # SCIPY_ARRAY_API=1 set, sps functions are wrappers that call different
+    # functions depending on the input array type.  Quantity are based on
+    # numpy arrays, so Quantity.__array_ufunc__ will get passed an entry in
+    # sps._ufuncs, which is what UFUNC_HELPERS will be keyed with.
+    try:
+        import scipy.special._ufuncs as sps
+    except ImportError:  # must be SCIPY_LT_2_0 without env. variable.
+        import scipy.special as sps
 
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
