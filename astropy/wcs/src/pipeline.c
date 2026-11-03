@@ -96,7 +96,8 @@ pipeline_all_pixel2world(
     if (nelem != 2) {
       status = wcserr_set(
         PIP_ERRMSG(WCSERR_BAD_COORD_TRANS),
-        "Data must be 2-dimensional when Paper IV lookup table or SIP transform is present.");
+        "Data must be 2-dimensional when a lookup table described in the "
+        "draft FITS WCS distortion paper or a SIP transform is present.");
       goto exit;
     }
   }

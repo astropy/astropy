@@ -2110,6 +2110,244 @@ def test_alternate_wcs_distortion_independent():
     )
 
 
+def _stsci_hst_distortion_header(alt_keys="O"):
+    """
+    Header of a SCI extension laid out like STScI-calibrated HST ACS/WFC3
+    data: a primary WCS with unsuffixed NPOL lookup-table keywords and
+    alternate WCSs (``alt_keys``) without distortion keywords of their own.
+    """
+    header = fits.Header()
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 1024
+    header["NAXIS2"] = 1024
+    for k in ["", *alt_keys]:
+        header[f"CTYPE1{k}"] = "RA---TAN"
+        header[f"CTYPE2{k}"] = "DEC--TAN"
+        header[f"CRPIX1{k}"] = 512.0
+        header[f"CRPIX2{k}"] = 512.0
+        header[f"CRVAL1{k}"] = 150.0
+        header[f"CRVAL2{k}"] = -35.0
+        header[f"CDELT1{k}"] = -0.0002777778
+        header[f"CDELT2{k}"] = 0.0002777778
+    for j in (1, 2):
+        header[f"CPERR{j}"] = 0.05
+        header[f"CPDIS{j}"] = "Lookup"
+        header[f"DP{j}.EXTVER"] = float(j)
+        header[f"DP{j}.NAXES"] = 2.0
+        header[f"DP{j}.AXIS.1"] = 1.0
+        header[f"DP{j}.AXIS.2"] = 2.0
+        header[f"DP{j}.SCALE.1"] = 1.0  # ignored by the detection
+    return header
+
+
+def _stsci_hst_distortion_hdulist(telescope="HST", instrument="ACS", nextver=2):
+    phdu = fits.PrimaryHDU()
+    if telescope is not None:
+        phdu.header["TELESCOP"] = telescope
+    if instrument is not None:
+        phdu.header["INSTRUME"] = instrument
+    hdus = [phdu]
+    rng = default_rng(1234)
+    for extver in range(1, nextver + 1):
+        hdu = fits.ImageHDU(
+            (rng.standard_normal((33, 65)) * 0.01).astype(np.float32),
+            name="WCSDVARR",
+        )
+        hdu.ver = extver
+        hdu.header["CRPIX1"] = 0.0
+        hdu.header["CRPIX2"] = 0.0
+        hdu.header["CRVAL1"] = 0.0
+        hdu.header["CRVAL2"] = 0.0
+        hdu.header["CDELT1"] = 16.0
+        hdu.header["CDELT2"] = 32.0
+        hdus.append(hdu)
+    return fits.HDUList(hdus)
+
+
+def _edit_header(header, changes):
+    for keyword, value in changes.items():
+        if value is None:
+            del header[keyword]
+        else:
+            header[keyword] = value
+    return header
+
+
+def test_stsci_shared_prior_distortion_auto():
+    """
+    An alternate WCS without its own prior-distortion keywords uses the
+    primary WCS lookup tables in STScI-calibrated HST ACS/WFC3 files.
+    """
+    hdulist = _stsci_hst_distortion_hdulist()
+    header = _stsci_hst_distortion_header()
+
+    w_primary = wcs.WCS(header, hdulist)
+    w_alt = wcs.WCS(header, hdulist, key="O")
+
+    for w in (w_primary, w_alt):
+        assert w.cpdis1 is not None
+        assert w.cpdis2 is not None
+    assert_array_equal(w_alt.cpdis1.data, w_primary.cpdis1.data)
+    assert_array_equal(w_alt.cpdis2.data, w_primary.cpdis2.data)
+    assert_array_equal(w_alt.cpdis1.data, hdulist["WCSDVARR", 1].data)
+    assert_array_equal(w_alt.cpdis2.data, hdulist["WCSDVARR", 2].data)
+
+
+@pytest.mark.parametrize("instrument", ["ACS", "WFC3", " wfc3  "])
+def test_stsci_shared_prior_distortion_instruments(instrument):
+    hdulist = _stsci_hst_distortion_hdulist(instrument=instrument)
+    w = wcs.WCS(_stsci_hst_distortion_header(), hdulist, key="O")
+    assert w.cpdis1 is not None
+    assert w.cpdis2 is not None
+
+
+@pytest.mark.parametrize(
+    "telescope, instrument",
+    [
+        ("JWST", "NIRCAM"),
+        ("HST", "WFPC2"),
+        ("HST", "STIS"),
+        (None, "ACS"),  # e.g. a headerlet or an HDUList without the real primary
+        ("HST", None),
+    ],
+)
+def test_stsci_shared_prior_distortion_not_hst(telescope, instrument):
+    hdulist = _stsci_hst_distortion_hdulist(telescope=telescope, instrument=instrument)
+    w = wcs.WCS(_stsci_hst_distortion_header(), hdulist, key="O")
+    assert w.cpdis1 is None
+    assert w.cpdis2 is None
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"CPDIS1": "Polynomial"},
+        {"CPDIS3": "Lookup"},  # an axis other than 1 or 2
+        {"DP3.EXTVER": 3.0},
+        {"CPERR3": 0.1},
+        {"CPDIS2": None},  # only axis 1 has a distortion function
+        {"DP1.AXIS.2": None},
+        {"DP1.AXIS.1": 2.0},  # AXIS.1 == AXIS.2
+        {"DP1.AXIS.1": 3.0},
+        {"DP2.AXIS.3": 3.0},
+        {"DP1.EXTVER": None},
+        {"DP1.EXTVER": 5.0},
+        {"DP1.EXTVER": 0.0},
+        {"DP1.EXTVER": 1.5},
+        {"DP2.EXTVER": 1.0},  # both axes use the same table
+        {"CPDIS1B": "Lookup"},  # a keyed distortion for another alternate WCS
+        {"DP2B.EXTVER": 3.0},
+        {"CPERR1O": 0.1},
+    ],
+)
+def test_stsci_shared_prior_distortion_layout_rejected(changes):
+    hdulist = _stsci_hst_distortion_hdulist(nextver=5)
+    header = _edit_header(_stsci_hst_distortion_header(), changes)
+    assert not wcs.wcs._is_stsci_prior_distortion(header)
+    assert not wcs.WCS._inherit_primary_prior_distortion(header, hdulist, "O", None)
+
+
+def test_stsci_shared_prior_distortion_unparsed_record():
+    """A ``DPj`` card whose value is not 'field: number' is not STScI layout."""
+    header = _stsci_hst_distortion_header()
+    header.append(("DP1", "not a record value"))
+    assert not wcs.wcs._is_stsci_prior_distortion(header)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {},
+        {"CPDIS1": "LOOKUP", "CPDIS2": "lookup"},
+        {"CPERR1": None, "CPERR2": None},
+        {"DP1.NAXES": None, "DP2.NAXES": 7.0},  # NAXES is ignored
+        {"DP1.OFFSET.1": 10.0, "DP2.Scale1": 2.0},  # other fields are ignored
+        {"DP1.AXIS.1": 2.0, "DP1.AXIS.2": 1.0},  # transposed table
+        {"DP1.EXTVER": 3.0, "DP2.EXTVER": 4.0},  # second chip of ACS/WFC
+        {"DP1.EXTVER": 4, "DP2.EXTVER": 3},  # integer record values
+    ],
+)
+def test_stsci_shared_prior_distortion_layout_accepted(changes):
+    header = _edit_header(_stsci_hst_distortion_header(), changes)
+    assert wcs.wcs._is_stsci_prior_distortion(header)
+
+
+def test_stsci_shared_prior_distortion_keyed_disables_sharing():
+    """
+    A keyed prior distortion for any alternate WCS turns sharing off for the
+    whole header: the keyed WCS uses its own tables and the others none.
+    """
+    hdulist = _stsci_hst_distortion_hdulist(nextver=4)
+    header = _stsci_hst_distortion_header(alt_keys="AB")
+    for j in (1, 2):
+        header[f"CPDIS{j}A"] = "Lookup"
+        header[f"DP{j}A.EXTVER"] = float(j + 2)
+        header[f"DP{j}A.NAXES"] = 2.0
+        header[f"DP{j}A.AXIS.1"] = 1.0
+        header[f"DP{j}A.AXIS.2"] = 2.0
+
+    w_a = wcs.WCS(header, hdulist, key="A")
+    w_b = wcs.WCS(header, hdulist, key="B")
+    w_primary = wcs.WCS(header, hdulist)
+
+    assert_array_equal(w_a.cpdis1.data, hdulist["WCSDVARR", 3].data)
+    assert_array_equal(w_a.cpdis2.data, hdulist["WCSDVARR", 4].data)
+    assert w_b.cpdis1 is None
+    assert w_b.cpdis2 is None
+    assert_array_equal(w_primary.cpdis1.data, hdulist["WCSDVARR", 1].data)
+
+
+def test_shared_prior_distortion_explicit():
+    # Not an HST file: shared only when explicitly requested.
+    hdulist = _stsci_hst_distortion_hdulist(telescope="PUNCH", instrument="WFI1")
+    header = _stsci_hst_distortion_header()
+
+    assert wcs.WCS(header, hdulist, key="O").cpdis1 is None
+    w = wcs.WCS(header, hdulist, key="O", shared_cpdis=True)
+    assert_array_equal(w.cpdis1.data, hdulist["WCSDVARR", 1].data)
+    assert_array_equal(w.cpdis2.data, hdulist["WCSDVARR", 2].data)
+
+    # HST file: sharing can be turned off.
+    hdulist = _stsci_hst_distortion_hdulist()
+    w = wcs.WCS(header, hdulist, key="O", shared_cpdis=False)
+    assert w.cpdis1 is None
+    assert w.cpdis2 is None
+
+    # The primary WCS always uses its own keywords.
+    w = wcs.WCS(header, hdulist, shared_cpdis=False)
+    assert w.cpdis1 is not None
+    assert w.cpdis2 is not None
+
+
+def test_shared_prior_distortion_explicit_keyed_wins():
+    """With shared_cpdis=True, a keyed WCS still uses its own tables."""
+    hdulist = _stsci_hst_distortion_hdulist(telescope=None, instrument=None, nextver=4)
+    header = _stsci_hst_distortion_header(alt_keys="A")
+    for j in (1, 2):
+        header[f"CPDIS{j}A"] = "LOOKUP"
+        header[f"DP{j}A.EXTVER"] = float(j + 2)
+        header[f"DP{j}A.NAXES"] = 2.0
+        header[f"DP{j}A.AXIS.1"] = 1.0
+        header[f"DP{j}A.AXIS.2"] = 2.0
+
+    w = wcs.WCS(header, hdulist, key="A", shared_cpdis=True)
+    assert_array_equal(w.cpdis1.data, hdulist["WCSDVARR", 3].data)
+    assert_array_equal(w.cpdis2.data, hdulist["WCSDVARR", 4].data)
+
+
+def test_shared_prior_distortion_pickle_alternate():
+    """An alternate WCS keeps its prior distortion through a pickle round trip."""
+    import pickle
+
+    hdulist = _stsci_hst_distortion_hdulist()
+    w = wcs.WCS(_stsci_hst_distortion_header(), hdulist, key="O")
+    w2 = pickle.loads(pickle.dumps(w))
+
+    assert w2.wcs.alt == "O"
+    assert_array_equal(w2.cpdis1.data, w.cpdis1.data)
+    assert_array_equal(w2.cpdis2.data, w.cpdis2.data)
+
+
 def test_DistortionLookupTable():
     img_world_wcs = wcs.WCS(naxis=2)
     # A simple "pixel coordinates are world coordinates" WCS, to which we'll

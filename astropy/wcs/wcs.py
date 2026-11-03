@@ -277,6 +277,117 @@ WCSHDO_SIP = 0x80000
 # Keyword optionally ends with a capital letter.
 SIP_KW = re.compile("""^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$""")
 
+# Regular expression matching distortion paper (WCS Distortion Paper Draft)
+# prior-distortion keywords: ``CPDISja``, ``CPERRja`` and record-valued
+# ``DPja.<field>``. Groups are the keyword family, the axis number, the
+# alternate WCS key ('' for the primary WCS) and the record field.
+_PRIOR_DIS_KW = re.compile(r"(CPDIS|CPERR|DP)([0-9]+)([A-Z]?)(?:\.(.+))?")
+
+# HST/STScI convention for prior-distortion lookup tables shared between the
+# primary and alternate WCSs (see the ``shared_cpdis`` parameter).
+_STSCI_TELESCOPE = "HST"
+_STSCI_INSTRUMENTS = frozenset({"ACS", "WFC3"})
+_STSCI_AXES = frozenset({1, 2})
+_STSCI_MAX_EXTVER = 4  # 2 chips x 2 axes (ACS/WFC, WFC3/UVIS)
+
+
+def _as_int(value):
+    """Return ``value`` as an `int` if it is a whole number, otherwise `None`."""
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    return int(f) if f.is_integer() else None
+
+
+def _prior_distortion_keywords(header):
+    """
+    Yield ``(keyword, family, axis, key, field)`` for every prior-distortion
+    keyword in ``header``: the keyword as found in ``header``; ``'CPDIS'``,
+    ``'CPERR'`` or ``'DP'``; the axis number; the alternate WCS key (``''``
+    for the primary WCS); and the record field of a ``DPja`` keyword (`None`
+    otherwise, including for a ``DPja`` card whose value is not a record).
+    """
+    for keyword in header:
+        match = _PRIOR_DIS_KW.fullmatch(str(keyword).strip().upper())
+        if match is None:
+            continue
+        family, axis, key, field = match.groups()
+        if field is not None and family != "DP":
+            continue  # e.g. "CPDIS1.X" is not a distortion keyword
+        yield keyword, family, int(axis), key, field
+
+
+def _has_prior_distortion_kw(header, key):
+    """
+    Return `True` if ``header`` contains any ``CPDISja``, ``CPERRja`` or
+    ``DPja`` keyword for WCS ``key`` (``''`` for the primary WCS).
+    """
+    return any(k == key for _, _, _, k, _ in _prior_distortion_keywords(header))
+
+
+def _is_hst_acs_wfc3(fobj):
+    """
+    Return `True` if the primary header of ``fobj`` has ``TELESCOP = 'HST'``
+    and ``INSTRUME`` equal to ``'ACS'`` or ``'WFC3'``.
+    """
+    if not isinstance(fobj, fits.HDUList) or not len(fobj):
+        return False
+    phdr = fobj[0].header
+    telescope = str(phdr.get("TELESCOP", "")).strip().upper()
+    instrument = str(phdr.get("INSTRUME", "")).strip().upper()
+    return telescope == _STSCI_TELESCOPE and instrument in _STSCI_INSTRUMENTS
+
+
+def _is_stsci_prior_distortion(header):  # noqa: PLR0911
+    """
+    Return `True` if every prior-distortion keyword in ``header`` follows the
+    layout written by STScI for HST non-polynomial (``NPOLFILE``) distortion
+    corrections:
+
+    - there are no keyed (alternate WCS) ``CPDISja``, ``CPERRja`` or ``DPja``
+      keywords;
+    - prior-distortion keywords exist for axes 1 and 2 only, and for both;
+    - ``CPDISj`` is ``'Lookup'`` (case-insensitive);
+    - ``DPj.AXIS.1`` and ``DPj.AXIS.2`` are present, have the values 1 and 2
+      in either order, and there are no other ``DPj.AXIS.n`` fields;
+    - ``DPj.EXTVER`` is a whole number from 1 to 4, different for the two
+      axes.
+
+    ``CPERRj`` and all other ``DPj`` record fields (``NAXES``, ``OFFSET``,
+    ``SCALE``, ...) are ignored.
+    """
+    axes = {}
+    for keyword, family, axis, key, field in _prior_distortion_keywords(header):
+        if key or axis not in _STSCI_AXES:
+            return False
+        entry = axes.setdefault(axis, {"dp": {}})
+        if family == "CPDIS":
+            entry["cpdis"] = header[keyword]
+        elif family == "DP":
+            if field is None:
+                return False  # a DPj card whose value is not 'field: number'
+            entry["dp"][field.upper()] = header[keyword]
+
+    if set(axes) != _STSCI_AXES:
+        return False
+
+    extvers = set()
+    for entry in axes.values():
+        if str(entry.get("cpdis", "")).strip().upper() != "LOOKUP":
+            return False
+        dp = entry["dp"]
+        if {f for f in dp if f.startswith("AXIS.")} != {"AXIS.1", "AXIS.2"}:
+            return False
+        if {_as_int(dp["AXIS.1"]), _as_int(dp["AXIS.2"])} != _STSCI_AXES:
+            return False
+        extver = _as_int(dp.get("EXTVER"))
+        if extver is None or not 1 <= extver <= _STSCI_MAX_EXTVER:
+            return False
+        extvers.add(extver)
+
+    return len(extvers) == len(_STSCI_AXES)
+
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -449,6 +560,32 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         in units of arcsec might be converted to deg. If ``preserve_units``
         is set to `True`, the original units will be preserved.
 
+    shared_cpdis : bool or None, optional
+        Whether an alternate WCS (*key* other than ``' '``) that has no
+        prior-distortion keywords of its own (``CPDISja``, ``CPERRja``,
+        ``DPja``) uses the unsuffixed ``CPDISj``, ``CPERRj`` and ``DPj``
+        keywords of the primary WCS. HST ACS and WFC3 files calibrated
+        by STScI store their non-polynomial distortion tables once,
+        shared by all WCSs in the header.
+
+        - `None` (default): share prior distortions only when the file
+          follows the HST/STScI convention for shared distortion tables
+          (see Notes). This preserves compatibility with existing
+          HST/STScI files. Otherwise, each WCS uses only its own
+          prior-distortion keywords (as if ``shared_cpdis`` were `False`).
+
+        - `True`: share the primary WCS's prior distortions whenever the
+          alternate WCS has no prior-distortion keywords of its own.
+
+        - `False`: do not share prior distortions. Each WCS uses only its
+          own prior-distortion keywords, following the draft
+          `distortion paper`_, which has not been adopted as a FITS WCS
+          standard.
+
+        Keywords belonging to *key* itself always take precedence. This
+        parameter does not affect detector-to-image (``D2IMDISj``) or
+        `SIP`_ distortions.
+
     Raises
     ------
     MemoryError
@@ -505,6 +642,27 @@ class WCS(FITSWCSAPIMixin, WCSBase):
        be raised by the constructor, not when subsequently calling a
        transformation method.
 
+    5. HST ACS and WFC3 files calibrated by STScI store the
+       `distortion paper`_ lookup tables of the primary WCS in unsuffixed
+       ``CPDISj``/``DPj`` keywords and share them with every alternate WCS
+       in the same header. With ``shared_cpdis=None``, an
+       alternate WCS uses these tables only if all of the following hold:
+
+       - the primary header of *fobj* has ``TELESCOP = 'HST'`` and
+         ``INSTRUME`` equal to ``'ACS'`` or ``'WFC3'``;
+
+       - the header has no keyed ``CPDISja``, ``CPERRja`` or ``DPja``
+         keywords for any alternate WCS;
+
+       - the prior-distortion keywords exist for axes 1 and 2 only, with
+         ``CPDISj = 'Lookup'``, ``DPj.AXIS.1`` and ``DPj.AXIS.2`` equal to
+         1 and 2 in either order, and ``DPj.EXTVER`` a whole number from
+         1 to 4 that differs between the two axes.
+
+       In all other cases (including when *fobj* is not provided, or when
+       any keyed prior-distortion keyword is present), each WCS uses only
+       its own keywords.
+
     """
 
     def __init__(  # ruff: ignore[PLR0917]
@@ -521,6 +679,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         translate_units="",
         _do_set=True,
         preserve_units=False,
+        shared_cpdis=None,
     ):
         close_fds = []
 
@@ -631,8 +790,16 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             header = fits.Header.fromstring(header_string)
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
+            inherit_cpdis = self._inherit_primary_prior_distortion(
+                header, fobj, key, shared_cpdis
+            )
             cpdis = self._read_distortion_kw(
-                header, fobj, dist="CPDIS", err=minerr, key=key
+                header,
+                fobj=fobj,
+                dist="CPDIS",
+                err=minerr,
+                key=key,
+                inherit_primary=inherit_cpdis,
             )
             self._fix_pre2012_scamp_tpv(header)
 
@@ -1166,7 +1333,29 @@ reduce these to 2 dimensions using the naxis kwarg.
         write_d2i(1, self.det2im1)
         write_d2i(2, self.det2im2)
 
-    def _read_distortion_kw(self, header, fobj, dist="CPDIS", err=0.0, key=" "):
+    @staticmethod
+    def _inherit_primary_prior_distortion(header, fobj, key, shared_cpdis):
+        """
+        Decide whether the alternate WCS ``key`` should use the unsuffixed
+        (primary WCS) prior-distortion keywords. See the
+        ``shared_cpdis`` parameter of `WCS` for details.
+        """
+        if not isinstance(header, fits.Header):
+            return False
+        key = (key or " ").strip().upper()
+        if not key or (shared_cpdis is not None and not shared_cpdis):
+            return False
+        if _has_prior_distortion_kw(header, key):
+            return False  # the alternate WCS has its own keywords
+        if not _has_prior_distortion_kw(header, ""):
+            return False  # nothing to share
+        if shared_cpdis is None:
+            return _is_hst_acs_wfc3(fobj) and _is_stsci_prior_distortion(header)
+        return True
+
+    def _read_distortion_kw(
+        self, header, fobj, *, dist="CPDIS", err=0.0, key=" ", inherit_primary=False
+    ):
         """
         Reads `distortion paper`_ table-lookup keywords and data, and
         returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
@@ -1190,6 +1379,9 @@ reduce these to 2 dimensions using the naxis kwarg.
             WCS key character (e.g., ' ', 'A', 'B', etc.). This is used
             to construct the proper keyword names with the appropriate
             suffix. Default is ' ' (primary WCS).
+        inherit_primary : bool, optional
+            If `True`, read the unsuffixed (primary WCS) keywords instead of
+            those suffixed with *key*. Default is `False`.
 
         Returns
         -------
@@ -1201,9 +1393,7 @@ reduce these to 2 dimensions using the naxis kwarg.
         if isinstance(header, (str, bytes)):
             return (None, None)
 
-        key = key.strip().upper()
-
-        key_suffix = key
+        key_suffix = "" if inherit_primary else key.strip().upper()
 
         if dist == "CPDIS":
             d_kw = "DP"
@@ -1267,9 +1457,9 @@ reduce these to 2 dimensions using the naxis kwarg.
                     d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
                     tables[i] = d_lookup
 
-                    for key in set(header):
-                        if key.startswith(dp + "."):
-                            del header[key]
+                    for kwd in set(header):
+                        if kwd.startswith(dp + "."):
+                            del header[kwd]
                 else:
                     warnings.warn(
                         "Polynomial distortion is not implemented.\n",
@@ -3412,6 +3602,13 @@ reduce these to 2 dimensions using the naxis kwarg.
         # non-picklable cache contents (e.g. closures) from breaking pickle.
         dct = {k: v for k, v in self.__dict__.items() if not k.endswith("_cache")}
         dct["_alt_wcskey"] = self.wcs.alt
+        # The serialized file holds only this object's own distortion tables.
+        # For an alternate WCS they may be written without the key suffix, so
+        # make sure they are read back when unpickling.
+        dct["_init_kwargs"] = {
+            **dct.get("_init_kwargs", {}),
+            "shared_cpdis": True,
+        }
 
         return (
             __WCS_unpickle__,
