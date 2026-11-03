@@ -171,7 +171,7 @@ class custom_ctype_to_ucd_mapping:
     Parameters
     ----------
     mapping : dict
-        A dictionary mapping a CTYPE value to a UCD1+ value
+        A dictionary mapping a CTYPE value to a UCD1+ value.
 
     Examples
     --------
