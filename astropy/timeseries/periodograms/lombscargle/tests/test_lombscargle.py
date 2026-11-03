@@ -345,8 +345,8 @@ def test_unit_conversions(data, with_error):
     y_millimeter = u.Quantity(y_meter, "millimeter")
 
     # sanity check on inputs
-    assert_quantity_allclose(t_hour, t_day)
-    assert_quantity_allclose(y_millimeter, y_meter)
+    assert_quantity_allclose(t_day, t_hour)
+    assert_quantity_allclose(y_meter, y_millimeter)
 
     if with_error:
         dy = dy * u.meter
@@ -361,13 +361,13 @@ def test_unit_conversions(data, with_error):
     assert freq_hour.unit == 1.0 / u.hour
 
     # Check that results match
-    assert_quantity_allclose(freq_hour, freq_day)
-    assert_quantity_allclose(P2, P1)
+    assert_quantity_allclose(freq_day, freq_hour)
+    assert_quantity_allclose(P1, P2)
 
     # Check that switching frequency units doesn't change things
     P3 = LombScargle(t_day, y_meter, dy).power(freq_hour)
     P4 = LombScargle(t_hour, y_meter, dy).power(freq_day)
-    assert_quantity_allclose(P4, P3)
+    assert_quantity_allclose(P3, P4)
 
 
 @pytest.mark.parametrize("fit_mean", [True, False])
@@ -450,8 +450,8 @@ def test_autopower(data):
     power1 = ls.power(freq1)
     freq2, power2 = ls.autopower(**kwargs)
 
-    assert_allclose(freq2, freq1)
-    assert_allclose(power2, power1)
+    assert_allclose(freq1, freq2)
+    assert_allclose(power1, power2)
 
 
 @pytest.mark.parametrize("with_units", [True, False])
@@ -536,20 +536,20 @@ def test_absolute_times(data, timedelta):
 
     freq1 = ls1.autofrequency(**kwargs)
     freq2 = ls2.autofrequency(**kwargs)
-    assert_quantity_allclose(freq2, freq1)
+    assert_quantity_allclose(freq1, freq2)
 
     power1 = ls1.power(freq1)
     power2 = ls2.power(freq2)
-    assert_quantity_allclose(power2, power1)
+    assert_quantity_allclose(power1, power2)
 
     freq1, power1 = ls1.autopower(**kwargs)
     freq2, power2 = ls2.autopower(**kwargs)
-    assert_quantity_allclose(freq2, freq1)
-    assert_quantity_allclose(power2, power1)
+    assert_quantity_allclose(freq1, freq2)
+    assert_quantity_allclose(power1, power2)
 
     model1 = ls1.model(t, 2 / u.day)
     model2 = ls2.model(trel, 2 / u.day)
-    assert_quantity_allclose(model2, model1)
+    assert_quantity_allclose(model1, model2)
 
     # Check model validation
     MESSAGE = (
@@ -567,7 +567,7 @@ def test_absolute_times(data, timedelta):
 
     design1 = ls1.design_matrix(2 / u.day, t=t)
     design2 = ls2.design_matrix(2 / u.day, t=trel)
-    assert_quantity_allclose(design2, design1)
+    assert_quantity_allclose(design1, design2)
 
     # Check design matrix validation
 
