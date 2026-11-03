@@ -20,7 +20,7 @@ import pytest
 from astropy.io import fits
 from astropy.io.fits.convenience import _getext
 from astropy.io.fits.diff import FITSDiff
-from astropy.io.fits.file import GZIP_MAGIC, _File
+from astropy.io.fits.file import GZIP_MAGIC, _File, _wrap_fileobj_if_compressed
 from astropy.io.tests import safeio
 from astropy.utils import data
 from astropy.utils.compat.optional_deps import (
@@ -1131,6 +1131,21 @@ class TestFileFunctions(FitsTestCase):
         filelike.seek(0)
         assert len(fits.open(filelike)) == 5
 
+    def _assert_file_like_matches_reference(self, filelike):
+        """Open a file-like object and check headers and data of every
+        HDU against the on-disk test0.fits reference."""
+        with (
+            fits.open(self.data("test0.fits")) as ref,
+            fits.open(filelike) as hdul,
+        ):
+            assert len(hdul) == len(ref)
+            for hdu, ref_hdu in zip(hdul, ref):
+                assert hdu.header == ref_hdu.header
+                if ref_hdu.data is None:
+                    assert hdu.data is None
+                else:
+                    assert np.all(hdu.data == ref_hdu.data)
+
     @pytest.mark.parametrize("ext", ["gz", "bz2", "xz"])
     def test_read_compressed_file_like_object(self, ext):
         """
@@ -1143,14 +1158,57 @@ class TestFileFunctions(FitsTestCase):
         with open(self.data("test0.fits"), "rb") as f:
             compressed = compressors[ext](f.read())
 
-        with fits.open(io.BytesIO(compressed)) as hdul:
-            assert len(hdul) == 5
+        self._assert_file_like_matches_reference(io.BytesIO(compressed))
 
         with SpooledTemporaryFile() as spool:
             spool.write(compressed)
             spool.seek(0)
-            with fits.open(spool) as hdul:
-                assert len(hdul) == 5
+            self._assert_file_like_matches_reference(spool)
+
+    def test_read_uncompressed_file_like_object(self):
+        """Control for gh-16171: uncompressed file-like objects are
+        passed through unchanged and read as before."""
+        with open(self.data("test0.fits"), "rb") as f:
+            raw = f.read()
+
+        self._assert_file_like_matches_reference(io.BytesIO(raw))
+
+    def test_file_like_peek_seek_failure_propagates(self):
+        """
+        gh-16171: if the position of a file-like object cannot be
+        restored after peeking at its magic bytes, the error must
+        propagate instead of silently leaving the stream shifted.
+        """
+
+        class SeekFailingBytesIO(io.BytesIO):
+            def seek(self, *args, **kwargs):
+                raise OSError("seek is not supported")
+
+        with open(self.data("test0.fits"), "rb") as f:
+            compressed = gzip.compress(f.read())
+
+        with pytest.raises(OSError, match="seek is not supported"):
+            fits.open(SeekFailingBytesIO(compressed))
+
+    def test_file_like_peek_non_seekable_passes_through(self):
+        """
+        gh-16171: a file-like object that cannot be seeked at all is
+        returned unchanged by the compression detection (detection is
+        skipped, exactly as before this change).
+        """
+
+        class NonSeekableBytesIO(io.BytesIO):
+            def seek(self, *args, **kwargs):
+                raise io.UnsupportedOperation("not seekable")
+
+            def tell(self):
+                raise io.UnsupportedOperation("not seekable")
+
+        with open(self.data("test0.fits"), "rb") as f:
+            compressed = gzip.compress(f.read())
+
+        filelike = NonSeekableBytesIO(compressed)
+        assert _wrap_fileobj_if_compressed(filelike, None) is filelike
 
     def test_updated_file_permissions(self):
         """

@@ -149,7 +149,10 @@ def _wrap_fileobj_if_compressed(fileobj, mode):
 
     Compression is detected from the magic bytes at the current
     position of the object, whose position is restored before
-    returning.  This provides compression detection for file-like
+    returning.  If the position cannot be restored after peeking,
+    the error is allowed to propagate rather than returning a stream
+    whose position has been shifted by the peek.  This provides
+    compression detection for file-like
     objects such as ``io.BytesIO``, which are not recognized by
     `isfile` and so do not get the detection done for real file
     objects in ``_File._open_fileobj`` (gh-16171).
@@ -173,13 +176,23 @@ def _wrap_fileobj_if_compressed(fileobj, mode):
 
     try:
         pos = fileobj.tell()
-        magic = fileobj.read(6)
-        fileobj.seek(pos)
     except OSError:
         return fileobj
 
+    try:
+        magic = fileobj.read(6)
+    except OSError:
+        magic = None
+    finally:
+        # Always restore the position, even if reading failed.  If the
+        # position cannot be restored, the stream may have been shifted
+        # by the peek, so let the error propagate rather than silently
+        # handing a shifted stream to ``_File``.
+        fileobj.seek(pos)
+
     if not isinstance(magic, bytes):
-        # A text-mode object; compression cannot be detected
+        # A text-mode object, or the peek failed; either way compression
+        # cannot be detected
         return fileobj
 
     if magic.startswith(GZIP_MAGIC):
