@@ -700,6 +700,33 @@ def test_plot_quantity_with_transform(cunit, frame, unit):
     assert_allclose(to_pixel.transform(quadrangle.get_xy()[:1]), expected)
 
 
+def test_plot_quantity_1d():
+    # For 1D frames, only the x axis is a world coordinate
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.cunit = ["um"]
+    wcs.wcs.crval = [1]
+    wcs.wcs.crpix = [1]
+    wcs.wcs.cdelt = [0.01]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    transform = ax.get_transform("world")
+    (line,) = ax.plot(15000 * u.AA, 3 * u.Jy, "o", transform=transform)
+    assert_allclose((transform - ax.transData).transform(line.get_xydata()), [[50, 3]])
+    assert ax.yaxis.get_units() is None
+
+
+def test_plot_quantity_1d_slice_of_2d():
+    # A 1D slice of a celestial WCS has two world coordinates, which cannot
+    # both be set as axis units, so the y axis must be left for data values.
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER), slices=("x", 0))
+    ax.plot([1, 2] * u.pix, [3, 4] * u.Jy)
+    assert ax.yaxis.get_units() is None
+
+
 def test_plot_quantity_incompatible_unit():
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
