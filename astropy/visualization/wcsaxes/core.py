@@ -8,7 +8,9 @@ from matplotlib import rcParams
 from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
+from matplotlib.units import ConversionInterface
 
+from astropy import units as u
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.wcs import WCS
@@ -46,6 +48,22 @@ class _WCSAxesArtist(Artist):
 
     def draw(self, renderer):
         self.axes.draw_wcsaxes(renderer)
+
+
+class _WorldUnitConverter(ConversionInterface):
+    """
+    Convert `~astropy.units.Quantity` values to the units of an axis, which
+    `WCSAxes` sets to the world units of the WCS. Other values pass through.
+    """
+
+    @staticmethod
+    def convert(value, unit, axis):
+        if isinstance(value, u.Quantity):
+            return value.to_value(unit)
+        return value
+
+
+_WORLD_UNIT_CONVERTER = _WorldUnitConverter()
 
 
 class WCSAxes(Axes):
@@ -520,6 +538,7 @@ class WCSAxes(Axes):
         )
 
         self._transform_pixel2world = transform
+        self._set_world_units()
 
         if previous_frame["path"] is not None:
             self.coords.frame.set_color(previous_frame["color"])
@@ -552,6 +571,27 @@ class WCSAxes(Axes):
 
         if rcParams["axes.grid"]:
             self.grid()
+
+    def _set_world_units(self):
+        # Matplotlib strips the units from Quantity values before they reach
+        # the transform, so we instead set the world units on the x and y axis
+        # and convert Quantity values to these units.
+        units = getattr(self._transform_pixel2world, "units_out", None)
+        if units is None or len(units) != 2:
+            return
+        for axis, unit in zip((self.xaxis, self.yaxis), units):
+            if hasattr(axis, "set_converter"):
+                axis.set_converter(_WORLD_UNIT_CONVERTER)
+            else:  # Matplotlib < 3.10
+                axis.converter = _WORLD_UNIT_CONVERTER
+            # Not set_units, which would trigger autoscaling of the view limits
+            axis.units = u.Unit(unit)
+
+    def clear(self):
+        super().clear()
+        # Axis.clear resets the unit converters
+        if hasattr(self, "_transform_pixel2world"):
+            self._set_world_units()
 
     def _update_tick_and_label_positions(self, keep_coord_range=False):
         """
@@ -779,7 +819,7 @@ class WCSAxes(Axes):
             if coord_meta is None:
                 coord_meta = wcs_coord_meta
         else:
-            transform = self._get_transform_no_transdata(frame)
+            transform = self._get_transform_no_transdata(frame, units=["deg", "deg"])
 
         if coord_meta is None:
             coord_meta = get_coord_meta(frame)
@@ -843,13 +883,19 @@ class WCSAxes(Axes):
                   ``WCSAxes`` instance).
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
                   the specified frame to the pixel/data coordinates. In this
-                  case, the values are assumed to be in degrees.
+                  case, the values are assumed to be in the world units of
+                  the WCS (see ``world_axis_units``).
                 * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
-                  In this case, the values are assumed to be in degrees.
+                  In this case, the values are assumed to be in the world
+                  units of the WCS.
+
+            `~astropy.units.Quantity` values plotted with the ``'world'``
+            transform or a coordinate frame are converted to the world units
+            of the WCS.
         """
         return self._get_transform_no_transdata(frame).inverted() + self.transData
 
-    def _get_transform_no_transdata(self, frame):
+    def _get_transform_no_transdata(self, frame, units=None):
         """
         Return a transform from data to the specified frame.
 
@@ -858,6 +904,9 @@ class WCSAxes(Axes):
         frame : :class:`~astropy.wcs.WCS`, :class:`~matplotlib.transforms.Transform`, or str
             The frame to transform to, as for
             `~astropy.visualization.wcsaxes.WCSAxes.get_transform`.
+        units : list of str, optional
+            The units of the output coordinates when ``frame`` is a coordinate
+            frame. Defaults to the world units of the WCS.
         """
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
             if isinstance(frame, BaseHighLevelWCS):
@@ -902,7 +951,7 @@ class WCSAxes(Axes):
                     self._transform_pixel2world.frame_out,
                     self._transform_pixel2world.units_out,
                     frame,
-                    ["deg", "deg"],
+                    self._transform_pixel2world.units_out if units is None else units,
                 )
 
                 # The frame and the units both have to match, the world units are not necessarily in degrees.

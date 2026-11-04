@@ -88,7 +88,12 @@ For example, if your WCS defines an image where the coordinate system consists o
 
     ax.scatter([34], [3.2], transform=ax.get_transform('world'))
 
-to plot a marker at (34deg, 3.2nm).
+to plot a marker at (34deg, 3.2nm). Plain numbers are assumed to be in the
+world units of the WCS, which are given by ``wcs.world_axis_units``. Values
+can also be given as `~astropy.units.Quantity` objects, which are then
+converted to the world units of the WCS::
+
+    ax.scatter(34 * u.deg, 32 * u.angstrom, transform=ax.get_transform('world'))
 
 Using ``ax.get_transform('pixel')`` is equivalent to not using any
 transformation at all (and things then behave as described in the `Pixel
@@ -107,6 +112,11 @@ are:
 * ``'galactic'``: Galactic coordinates
 
 In addition, any valid `astropy.coordinates` coordinate frame can be passed.
+As for ``'world'``, plain numbers are assumed to be in the world units of the
+WCS (usually degrees), and `~astropy.units.Quantity` objects are converted to
+these units. To plot `~astropy.coordinates.SkyCoord` objects directly, see
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` and
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`.
 
 For example, you can add markers with positions defined in the FK5 system using:
 

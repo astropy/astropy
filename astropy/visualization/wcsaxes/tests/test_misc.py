@@ -22,6 +22,7 @@ from astropy.visualization.wcsaxes.frame import (
     RectangularFrame,
     RectangularFrame1D,
 )
+from astropy.visualization.wcsaxes.patches import Quadrangle
 from astropy.visualization.wcsaxes.ticklabels import TickLabels
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 from astropy.visualization.wcsaxes.utils import get_coord_meta
@@ -625,11 +626,64 @@ def test_get_transform_frame_with_non_degree_world_units(cunit, cdelt):
     # get_transform ends in display coordinates, removing transData leaves pixels
     world_to_pixel = ax.get_transform("icrs") - ax.transData
 
+    # Values for a frame transform are in the world units of the WCS
     coord = SkyCoord(0.05, 0, unit="deg")
     assert_allclose(
-        world_to_pixel.transform(np.array([[0.05, 0.0]])),
+        world_to_pixel.transform(np.array([[(0.05 * u.deg).to_value(cunit), 0.0]])),
         [wcs.world_to_pixel(coord)],
     )
+
+
+@pytest.mark.parametrize("cunit", ["deg", "arcsec"])
+@pytest.mark.parametrize("frame", ["world", "icrs", "galactic"])
+@pytest.mark.parametrize("unit", [u.deg, u.arcsec])
+def test_plot_quantity_with_transform(cunit, frame, unit):
+    # Regression test for a bug that caused the unit of a Quantity plotted
+    # with a world or frame transform to be ignored.
+    # https://github.com/astropy/astropy/issues/20777
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = [cunit, cunit]
+    wcs.wcs.crpix = [50.5, 50.5]
+    wcs.wcs.crval = [(10 * u.deg).to_value(cunit), (20 * u.deg).to_value(cunit)]
+    wcs.wcs.cdelt = [(-0.01 * u.deg).to_value(cunit), (0.01 * u.deg).to_value(cunit)]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    transform = ax.get_transform(frame)
+    world_to_pixel = transform - ax.transData
+
+    coord = SkyCoord(10.1, 20.1, unit="deg")
+    sph = coord.transform_to("icrs" if frame == "world" else frame).spherical
+    lon, lat = sph.lon.to(unit), sph.lat.to(unit)
+
+    expected = [wcs.world_to_pixel(coord)]
+    (line,) = ax.plot(lon, lat, "o", transform=transform)
+    assert_allclose(world_to_pixel.transform(line.get_xydata()), expected)
+    points = ax.scatter(lon, lat, transform=transform)
+    assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
+
+    # Default patch vertices also follow the world units of the WCS
+    quadrangle = Quadrangle((lon, lat), 0.1 * u.deg, 0.1 * u.deg, transform=transform)
+    ax.add_patch(quadrangle)
+    to_pixel = quadrangle.get_transform() - ax.transData
+    assert_allclose(to_pixel.transform(quadrangle.get_xy()[:1]), expected)
+
+
+def test_plot_quantity_incompatible_unit():
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+    with pytest.raises(mpl.units.ConversionError):
+        ax.plot(1 * u.m, 1 * u.m, transform=ax.get_transform("world"))
+
+
+def test_world_units_converter_survives_clear():
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+    ax.clear()
+    assert ax.xaxis.get_units() == u.deg
+    assert ax.yaxis.get_units() == u.deg
 
 
 def test_multiple_draws_grid_contours(tmp_path):
