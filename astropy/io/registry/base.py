@@ -313,14 +313,29 @@ class _UnifiedIORegistryBase:
         -------
         valid_formats : list
             List of matching formats.
+
+        Raises
+        ------
+        RuntimeError
+            If an identifier function raises an exception, which is chained as
+            the ``__cause__``. Identification stops at the first such exception,
+            even if another format has already matched.
         """
         valid_formats = []
         for data_format, data_class in self._identifiers:
             if self._is_best_match(data_class_required, data_class, self._identifiers):
-                if self._identifiers[(data_format, data_class)](
-                    origin, path, fileobj, *args, **kwargs
-                ):
-                    valid_formats.append(data_format)
+                identify_func = self._identifiers[(data_format, data_class)]
+                try:
+                    if identify_func(origin, path, fileobj, *args, **kwargs):
+                        valid_formats.append(data_format)
+                except Exception as e:
+                    # A functools.partial or callable object has no __name__.
+                    func_name = getattr(identify_func, "__name__", identify_func)
+                    raise RuntimeError(
+                        f"Unexpected exception identifying format {data_format!r} "
+                        f"in function {func_name!r}.\n\n"
+                        "Try specifying the file format using the 'format' argument to avoid this error."
+                    ) from e
 
         return valid_formats
 
