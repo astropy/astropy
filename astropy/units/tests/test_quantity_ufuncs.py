@@ -16,7 +16,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
-from astropy.utils import minversion
+from astropy.units.quantity_helper.scipy_special import _has_scipy_array_api
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_3, NUMPY_LT_2_6
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -112,9 +112,9 @@ class TestUfuncHelpers:
                 get_scipy_special_helpers,
             )
 
-            try:
+            if _has_scipy_array_api():
                 import scipy.special._ufuncs as sps
-            except ImportError:
+            else:
                 import scipy.special as sps
 
             all_sps_ufuncs = {
@@ -1627,15 +1627,9 @@ if HAS_SCIPY:
 
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
-        # On scipy >= 2.0, sps functions are wrappers, but we need the ufunc.
-        # See comment in quantity_helpers.scipy_special.
-        # Use try/except since in principle, with "SCIPY_ARRAY_APY=1",
-        # this could already happen on older scipy.
-        try:
+        if _has_scipy_array_api():
             erf_ufunc = sps._ufuncs.erf
-        except AttributeError:
-            # We must be on older scipy
-            assert not minversion("scipy", "2.0.0dev"), "Expected SCIPY_LT_2_0"
+        else:
             erf_ufunc = sps.erf
 
         if erf_ufunc in qh.UFUNC_HELPERS:
