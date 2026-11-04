@@ -2,18 +2,18 @@
 
 __all__ = ("DarkMatterComponent",)
 
-from collections.abc import Callable
-from typing import Any
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 from astropy.cosmology._src.typing import FArray
 from astropy.cosmology._src.utils import aszarr
 from astropy.units import Quantity
 
+from .hubble import _HasH0overH
 
-class DarkMatterComponent:
+
+class DarkMatterComponent(_HasH0overH):
     """The cosmology has attributes and methods for the dark matter density.
 
     This trait provides an ``Odm`` method that returns the dark matter
@@ -22,8 +22,6 @@ class DarkMatterComponent:
 
     Odm0: float | np.floating
     """Omega dark matter: dark matter density/critical density at z=0."""
-
-    inv_efunc: Callable[[NDArray[Any]], NDArray[Any]]
 
     def Odm(self, z: Quantity | ArrayLike, /) -> FArray:
         """Return the density parameter for dark matter at redshift ``z``.
