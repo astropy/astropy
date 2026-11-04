@@ -313,6 +313,13 @@ class _UnifiedIORegistryBase:
         -------
         valid_formats : list
             List of matching formats.
+
+        Raises
+        ------
+        RuntimeError
+            If an identifier function raises an exception, which is chained as
+            the ``__cause__``. Identification stops at the first such exception,
+            even if another format has already matched.
         """
         valid_formats = []
         for data_format, data_class in self._identifiers:

@@ -1,4 +1,6 @@
-Allows the ``identify_format`` function in ``_UnifiedIORegistryBase`` class to raise a ``RuntimeError``
-exception if one of its identifier functions raises an exception. The raised identifier function's exception
-is chained to the ``RuntimeError`` exception.
-This exception is raised even when a valid format was found for that format inference.
+When the ``format`` argument is not given, the unified I/O ``read`` and ``write``
+functions and ``identify_format`` now raise a ``RuntimeError`` if an identifier
+function raises an exception. The message names the format and the identifier
+function and suggests passing ``format``. The original exception is chained as
+``__cause__``, so code that catches it by type, for example ``except OSError``
+around ``Table.read()``, needs to be updated.
