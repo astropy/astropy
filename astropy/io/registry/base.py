@@ -322,9 +322,11 @@ class _UnifiedIORegistryBase:
                     if identify_func(origin, path, fileobj, *args, **kwargs):
                         valid_formats.append(data_format)
                 except Exception as e:
+                    # A functools.partial or callable object has no __name__.
+                    func_name = getattr(identify_func, "__name__", identify_func)
                     raise RuntimeError(
                         f"Unexpected exception identifying format {data_format!r} "
-                        f"in function {identify_func.__name__!r}.\n\n"
+                        f"in function {func_name!r}.\n\n"
                         "Try specifying the file format using the 'format' argument to avoid this error."
                     ) from e
 
