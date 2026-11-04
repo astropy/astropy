@@ -3432,16 +3432,15 @@ class TableElement(
                         indent,
                         1 << 8,
                     )
-                except Exception as e:
+                except (ValueError, TypeError, AttributeError) as e:
                     # The C writer cannot say which cell it failed at writing, so find
                     # the offending cell here to give the Exception a more useful message.
                     row, field = self._find_unwritable_cell(outputs)
-                    additional = (
-                        f"(in row {row:d}, col '{field.ID}')"
-                        if field is not None
-                        else ""
-                    )
-                    vo_reraise(e, additional=additional)
+                    # ValueError can also come from writing to a closed file, so if no
+                    # cell fails, just raise.
+                    if field is None:
+                        raise
+                    vo_reraise(e, additional=f"(in row {row:d}, col '{field.ID}')")
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
