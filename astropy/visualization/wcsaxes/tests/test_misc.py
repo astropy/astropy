@@ -692,6 +692,10 @@ def test_plot_quantity_with_transform(cunit, frame, unit):
     assert_allclose(world_to_pixel.transform(line.get_xydata()), expected)
     points = ax.scatter(lon, lat, transform=transform)
     assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
+    # Lists of Quantity scalars are converted by scatter (but not by plot, which
+    # turns them into arrays before converting units)
+    points = ax.scatter([lon], [lat], transform=transform)
+    assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
 
     # Default patch vertices also follow the world units of the WCS
     quadrangle = Quadrangle((lon, lat), 0.1 * u.deg, 0.1 * u.deg, transform=transform)
