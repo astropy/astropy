@@ -577,9 +577,14 @@ class WCSAxes(Axes):
         # the transform, so we instead set the world units on the x and y axis
         # and convert Quantity values to these units.
         units = getattr(self._transform_pixel2world, "units_out", None)
-        if units is None or len(units) != 2:
+        # For 1D frames, the y axis shows data values, not a world coordinate
+        if self.frame_class is RectangularFrame1D:
+            axes = (self.xaxis,)
+        else:
+            axes = (self.xaxis, self.yaxis)
+        if units is None or len(units) != len(axes):
             return
-        for axis, unit in zip((self.xaxis, self.yaxis), units):
+        for axis, unit in zip(axes, units):
             if hasattr(axis, "set_converter"):
                 axis.set_converter(_WORLD_UNIT_CONVERTER)
             else:  # Matplotlib < 3.10
