@@ -381,7 +381,7 @@ class HTML(core.BaseReader):
         raw_html_clean_kwargs = self.html.get("raw_html_clean_kwargs", {})
 
         # Use XMLWriter to output HTML to lines
-        w = writer.XMLWriter(ListWriter(lines))
+        w = writer._HTMLWriter(ListWriter(lines))
 
         with w.tag("html"):
             with w.tag("head"):

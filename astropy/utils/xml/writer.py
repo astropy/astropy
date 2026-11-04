@@ -9,8 +9,15 @@ import textwrap
 
 from astropy.utils.compat.optional_deps import HAS_BLEACH
 
+from ._iterparser import escape_html as _html_escape
+from ._iterparser import escape_html_cdata as _html_escape_cdata
 from ._iterparser import escape_xml as xml_escape
 from ._iterparser import escape_xml_cdata as xml_escape_cdata
+
+# xml_escape and xml_escape_cdata refuse characters that XML does not allow
+# anywhere in a document.  HTML parsers tolerate them, so astropy's HTML output
+# uses _html_escape and _html_escape_cdata, which escape the same way without
+# that check.  See _HTMLWriter below for the writer equivalent.
 
 
 def _validate_xml_chars(text):
@@ -41,6 +48,10 @@ class XMLWriter:
          </body>
         </html>
     """
+
+    # Whether to refuse characters XML does not allow, where the escaper
+    # alone would not (see _flush).
+    _check_chars = True
 
     def __init__(self, file):
         """
@@ -83,7 +94,7 @@ class XMLWriter:
             # of its own; otherwise the call below does it.
             uses_default_escaper = self.xml_escape_cdata is xml_escape_cdata
             try:
-                if wrap or not uses_default_escaper:
+                if self._check_chars and (wrap or not uses_default_escaper):
                     _validate_xml_chars(data)
                 if wrap:
                     indent = self.get_indentation_spaces(1)
@@ -382,3 +393,21 @@ class XMLWriter:
             if getattr(obj, attr) is not None:
                 d[attr.replace("_", "-")] = str(getattr(obj, attr))
         return d
+
+
+class _HTMLWriter(XMLWriter):
+    """
+    An `XMLWriter` for HTML output.
+
+    It escapes text and attributes the same way, but does not refuse the
+    characters XML does not allow: HTML parsers tolerate them, and astropy's
+    HTML output, such as a table's notebook display or a validation report
+    about a broken file, should not fail on them.
+    """
+
+    _check_chars = False
+
+    def __init__(self, file):
+        super().__init__(file)
+        self.xml_escape_cdata = _html_escape_cdata
+        self.xml_escape = _html_escape
