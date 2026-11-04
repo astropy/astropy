@@ -13,6 +13,7 @@ from matplotlib.units import ConversionInterface
 from astropy import units as u
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils.compat.optional_deps import HAS_PIL
+from astropy.visualization.units import MplQuantityConverter
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
@@ -54,13 +55,13 @@ class _WorldUnitConverter(ConversionInterface):
     """
     Convert `~astropy.units.Quantity` values to the units of an axis, which
     `WCSAxes` sets to the world units of the WCS. Other values pass through.
+
+    This reuses the conversion from `~astropy.visualization.quantity_support`,
+    but is only set on the axes of a `WCSAxes` instead of being registered
+    globally, and does not change the axis labels or ticks.
     """
 
-    @staticmethod
-    def convert(value, unit, axis):
-        if isinstance(value, u.Quantity):
-            return value.to_value(unit)
-        return value
+    convert = staticmethod(MplQuantityConverter.convert)
 
 
 _WORLD_UNIT_CONVERTER = _WorldUnitConverter()
