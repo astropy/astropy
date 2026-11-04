@@ -231,7 +231,7 @@ def write_html_table[T: Table](
 
     Notes
     -----
-    A HTML file containing a Cosmology HTML table should have scripts enabling MathJax.
+    An HTML file containing a Cosmology HTML table should have scripts enabling MathJax.
 
     .. code-block:: html
 
