@@ -12,6 +12,7 @@ Test :mod:`astropy.io.registry`.
 import os
 from collections import Counter
 from copy import deepcopy
+from functools import partial
 from io import StringIO
 
 import numpy as np
@@ -72,10 +73,15 @@ def empty_identifier(*args, **kwargs):
     return True
 
 
-def mock_identifier(origin, filepath, fileobj, *args, **kwargs):
-    if origin == "fail":
-        raise IORegistryError("Failed")
-    return True
+def raising_identifier(origin, path, fileobj, *args, **kwargs):
+    raise ValueError("identifier failed")
+
+
+class RaisingIdentifier:
+    """Callable object, which unlike a function has no ``__name__``."""
+
+    def __call__(self, origin, path, fileobj, *args, **kwargs):
+        raise ValueError("identifier failed")
 
 
 @pytest.fixture
@@ -223,12 +229,10 @@ class TestUnifiedIORegistryBase:
             == f"No identifier defined for format '{fmt}' and class '{cls.__name__}'"
         )
 
-    def test_identify_format(self, registry, fmtcls1, fmtcls2):
+    def test_identify_format(self, registry, fmtcls1):
         """Test ``registry.identify_format()``."""
         fmt, cls = fmtcls1
-        fmt2, cls2 = fmtcls2
         args = (None, cls, None, None, (None,), {})
-        argsFail = ("fail", cls2, None, None, (None,), {})
 
         # test no formats to identify
         formats = registry.identify_format(*args)
@@ -239,35 +243,86 @@ class TestUnifiedIORegistryBase:
         formats = registry.identify_format(*args)
         assert fmt in formats
 
-        # test with a identifier function that raises an error but a valid format could be found
-        registry.register_identifier(fmt2, cls2, mock_identifier)
-        with pytest.raises(RuntimeError) as exc:
-            formats = registry.identify_format(*argsFail)
-        assert type(exc.value.__cause__) == IORegistryError
-        assert "Failed" in str(exc.value.__cause__)
-        assert f"{fmt2!r}" in str(exc.value)
-        assert "'mock_identifier'" in str(exc.value)
+    def test_identify_format_identifier_raises(self, registry, fmtcls1):
+        """An identifier exception is chained to an informative RuntimeError."""
+        fmt, cls = fmtcls1
+        registry.register_identifier(fmt, cls, raising_identifier)
 
-        # test with no successful format inference and one single exception raised
-        registry.unregister_identifier(fmt, cls2)
         with pytest.raises(RuntimeError) as exc:
-            formats = registry.identify_format(*argsFail)
-        assert type(exc.value.__cause__) == IORegistryError
-        assert "Failed" in str(exc.value.__cause__)
-        assert f"{fmt2!r}" in str(exc.value)
-        assert "'mock_identifier'" in str(exc.value)
+            registry.identify_format("read", cls, None, None, (None,), {})
 
-        # test with no successful format inference and multiple possible exceptions raised
-        #
-        nTests = 9
-        for i in range(3, nTests):
-            registry.register_identifier(f"test{i}", cls2, mock_identifier)
-            with pytest.raises(RuntimeError) as exc:
-                formats = registry.identify_format(*argsFail)
-            assert type(exc.value.__cause__) == IORegistryError
-            assert "Failed" in str(exc.value.__cause__)
-            assert f"{fmt2!r}" in str(exc.value)
-            assert "'mock_identifier'" in str(exc.value)
+        assert str(exc.value) == (
+            f"Unexpected exception identifying format {fmt!r} in function "
+            "'raising_identifier'.\n\n"
+            "Try specifying the file format using the 'format' argument to avoid "
+            "this error."
+        )
+        assert isinstance(exc.value.__cause__, ValueError)
+        assert str(exc.value.__cause__) == "identifier failed"
+
+    @pytest.mark.parametrize(
+        "identifier",
+        [partial(raising_identifier), RaisingIdentifier()],
+        ids=["partial", "callable_object"],
+    )
+    def test_identify_format_identifier_without_name(
+        self, registry, fmtcls1, identifier
+    ):
+        """Identifiers without ``__name__`` must not mask the original exception."""
+        fmt, cls = fmtcls1
+        registry.register_identifier(fmt, cls, identifier)
+
+        with pytest.raises(RuntimeError) as exc:
+            registry.identify_format("read", cls, None, None, (None,), {})
+
+        assert repr(fmt) in str(exc.value)
+        assert repr(identifier) in str(exc.value)
+        assert isinstance(exc.value.__cause__, ValueError)
+
+    @pytest.mark.parametrize("raising_first", [True, False])
+    def test_identify_format_raises_despite_valid_format(
+        self, registry, fmtcls1, fmtcls2, raising_first
+    ):
+        """An exception is not ignored when another identifier matches."""
+        (fmt_raises, cls), (fmt_valid, _) = fmtcls1, fmtcls2
+        registrations = [
+            (fmt_raises, cls, raising_identifier),
+            (fmt_valid, cls, empty_identifier),
+        ]
+        for registration in registrations if raising_first else registrations[::-1]:
+            registry.register_identifier(*registration)
+
+        with pytest.raises(RuntimeError) as exc:
+            registry.identify_format("read", cls, None, None, (None,), {})
+
+        assert repr(fmt_raises) in str(exc.value)
+        assert repr(fmt_valid) not in str(exc.value)
+        assert isinstance(exc.value.__cause__, ValueError)
+
+    def test_identify_format_stops_at_first_exception(self, registry, fmtcls1, fmtcls2):
+        """With several failing identifiers only the first one runs and is reported."""
+        (fmt1, cls), (fmt2, _) = fmtcls1, fmtcls2
+        calls = []
+
+        def identifier1(*args, **kwargs):
+            calls.append(fmt1)
+            raise ValueError("first")
+
+        def identifier2(*args, **kwargs):
+            calls.append(fmt2)
+            raise TypeError("second")
+
+        registry.register_identifier(fmt1, cls, identifier1)
+        registry.register_identifier(fmt2, cls, identifier2)
+
+        with pytest.raises(RuntimeError) as exc:
+            registry.identify_format("read", cls, None, None, (None,), {})
+
+        assert calls == [fmt1]
+        assert repr(fmt1) in str(exc.value)
+        assert "'identifier1'" in str(exc.value)
+        assert repr(fmt2) not in str(exc.value)
+        assert isinstance(exc.value.__cause__, ValueError)
 
     # ===========================================
     # Compat tests
@@ -632,6 +687,18 @@ class TestUnifiedInputRegistry(TestUnifiedIORegistryBase):
         with pytest.raises(IORegistryError) as exc:
             cls.read(registry=registry)
         assert str(exc.value) == f"Format is ambiguous - options are: {fmt1}, {fmt2}"
+
+    def test_read_identifier_raises(self, registry, fmtcls1):
+        """``format`` avoids the failing identifier that ``read`` reports."""
+        fmt, cls = fmtcls1
+        registry.register_identifier(fmt, cls, raising_identifier)
+        registry.register_reader(fmt, cls, empty_reader)
+
+        with pytest.raises(RuntimeError, match="'format' argument") as exc:
+            cls.read(registry=registry)
+        assert isinstance(exc.value.__cause__, ValueError)
+
+        assert isinstance(cls.read(format=fmt, registry=registry), cls)
 
     def test_read_uses_priority(self, registry, fmtcls1, fmtcls2):
         fmt1, cls = fmtcls1
