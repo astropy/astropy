@@ -136,6 +136,26 @@ def test_html_escaping():
     ]
 
 
+def test_table_html_repr_keeps_xml_forbidden_chars():
+    """
+    Table._repr_html_() of a cell holding a form feed writes the form feed
+    unchanged.  XML forbids it, but HTML accepts it.
+    """
+    t = table.Table([["the\x0ctarget"]])
+
+    assert "<tr><td>the\x0ctarget</td></tr>" in t._repr_html_()
+
+
+def test_column_html_repr_keeps_xml_forbidden_chars():
+    """
+    Column._repr_html_() of a cell holding a form feed writes the form feed
+    unchanged.  XML forbids it, but HTML accepts it.
+    """
+    c = table.Column(["the\x0ctarget"])
+
+    assert "<tr><td>the\x0ctarget</td></tr>" in c._repr_html_()
+
+
 @pytest.mark.usefixtures("table_type")
 class TestPprint:
     def _setup(self, table_type):

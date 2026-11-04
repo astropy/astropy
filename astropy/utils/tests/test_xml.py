@@ -193,6 +193,73 @@ def test_writer_rejects_forbidden_chars_without_escaping():
                 w.data("the\x0ctarget")
 
 
+# The HTML escapers do not check characters, but a lone surrogate still
+# cannot be encoded as UTF-8, so leave those out.
+FORBIDDEN_XML_CHARS_ENCODABLE = [
+    c for c in FORBIDDEN_XML_CHARS if not 0xD800 <= ord(c) <= 0xDFFF
+]
+
+
+@pytest.mark.parametrize("char", FORBIDDEN_XML_CHARS_ENCODABLE)
+def test_escape_html_keeps_xml_forbidden_chars(char):
+    """
+    _html_escape() and _html_escape_cdata() of text holding a character XML
+    forbids escape the text and keep that character.
+    """
+    assert writer._html_escape(f"a{char}<b") == f"a{char}&lt;b"
+    assert writer._html_escape_cdata(f"a{char}<b") == f"a{char}&lt;b"
+
+
+def test_escape_html_escapes_like_escape_xml():
+    """
+    _html_escape() and _html_escape_cdata() of text with every escaped
+    character give the same result as xml_escape() and xml_escape_cdata().
+    """
+    text = "<a href='x'>\"this\" & that</a>"
+
+    assert writer._html_escape(text) == writer.xml_escape(text)
+    assert writer._html_escape_cdata(text) == writer.xml_escape_cdata(text)
+
+
+def test_html_writer_keeps_xml_forbidden_chars_in_text():
+    """
+    _HTMLWriter writing a form feed in element text writes it unchanged.
+    """
+    fh = io.StringIO()
+    w = writer._HTMLWriter(fh)
+    with w.tag("td"):
+        w.data("the\x0ctarget")
+
+    assert fh.getvalue() == "<td>\nthe\x0ctarget</td>\n"
+
+
+def test_html_writer_keeps_xml_forbidden_chars_in_attribute():
+    """
+    _HTMLWriter writing a form feed in an attribute value writes it
+    unchanged.
+    """
+    fh = io.StringIO()
+    w = writer._HTMLWriter(fh)
+    w.start("td", {"title": "the\x0ctarget"})
+    w.end()
+
+    assert fh.getvalue() == '<td title="the\x0ctarget"/>\n'
+
+
+def test_html_writer_keeps_xml_forbidden_chars_without_escaping():
+    """
+    _HTMLWriter writing a form feed in element text under
+    xml_cleaning_method("none") writes it unchanged.
+    """
+    fh = io.StringIO()
+    w = writer._HTMLWriter(fh)
+    with w.xml_cleaning_method("none"):
+        with w.tag("script"):
+            w.data("the\x0ctarget")
+
+    assert fh.getvalue() == "<script>\nthe\x0ctarget</script>\n"
+
+
 @pytest.mark.skipif(not HAS_LXML, reason="requires lxml")
 @pytest.mark.parametrize("char", FORBIDDEN_XML_CHARS)
 def test_lxml_also_rejects_forbidden_chars(char):

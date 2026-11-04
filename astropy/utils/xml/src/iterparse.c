@@ -1349,13 +1349,17 @@ static Py_ssize_t _escape_xml_impl(
  * Returns a copy of the given string with the XML control characters
  * converted to XML character entities.
  *
- * Text input is also checked for characters that XML does not allow
- * anywhere in a document, and a ValueError is raised if one is found.  These
- * functions are meant for text; bytes are accepted for backwards
+ * If `check` is set, text input is also checked for characters that XML does
+ * not allow anywhere in a document, and a ValueError is raised if one is
+ * found.  The escape_xml functions set it; the escape_html ones do not, since
+ * HTML parsers tolerate these characters, and HTML output such as a table's
+ * notebook display should not fail on them.
+ *
+ * These functions are meant for text; bytes are accepted for backwards
  * compatibility, are escaped the same way, and are returned as bytes, but
- * they are not checked, since their encoding is not known here.
+ * they are never checked, since their encoding is not known here.
  */
-static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escapes)
+static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escapes, int check)
 {
     PyObject *input_obj;
     PyObject *input_coerce = NULL;
@@ -1365,7 +1369,9 @@ static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escape
     char *output = NULL;
     Py_ssize_t output_len;
 
-    if (!PyArg_ParseTuple(args, "O:escape_xml", &input_obj)) {
+    /* No function name in the format: this serves all four escapers, and
+       naming one would put the wrong name in the others' errors. */
+    if (!PyArg_ParseTuple(args, "O", &input_obj)) {
         return NULL;
     }
 
@@ -1374,7 +1380,7 @@ static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escape
         input_coerce = PyObject_Str(input_obj);
     }
     if (input_coerce) {
-        if (_check_xml_chars(input_coerce) < 0) {
+        if (check && _check_xml_chars(input_coerce) < 0) {
             Py_DECREF(input_coerce);
             return NULL;
         }
@@ -1426,12 +1432,22 @@ static PyObject *_escape_xml(PyObject *self, PyObject *args, const char **escape
 
 static PyObject *escape_xml(PyObject *self, PyObject *args)
 {
-    return _escape_xml(self, args, escapes);
+    return _escape_xml(self, args, escapes, 1);
 }
 
 static PyObject *escape_xml_cdata(PyObject *self, PyObject *args)
 {
-    return _escape_xml(self, args, escapes_cdata);
+    return _escape_xml(self, args, escapes_cdata, 1);
+}
+
+static PyObject *escape_html(PyObject *self, PyObject *args)
+{
+    return _escape_xml(self, args, escapes, 0);
+}
+
+static PyObject *escape_html_cdata(PyObject *self, PyObject *args)
+{
+    return _escape_xml(self, args, escapes_cdata, 0);
 }
 
 /******************************************************************************
@@ -1449,6 +1465,16 @@ static PyMethodDef module_methods[] = {
      METH_VARARGS,
      "Fast method to escape XML text; raises ValueError on a character XML "
      "cannot represent.  Bytes are escaped but not checked."},
+    {"escape_html",
+     (PyCFunction)escape_html,
+     METH_VARARGS,
+     "Fast method to escape HTML text; the same escaping as escape_xml, "
+     "without its character check."},
+    {"escape_html_cdata",
+     (PyCFunction)escape_html_cdata,
+     METH_VARARGS,
+     "Fast method to escape HTML text; the same escaping as "
+     "escape_xml_cdata, without its character check."},
     {NULL} /* Sentinel */
 };
 

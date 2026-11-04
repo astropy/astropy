@@ -544,6 +544,17 @@ def test_multicolumn_write_escape():
     assert out == expected.strip()
 
 
+def test_write_keeps_xml_forbidden_chars():
+    """
+    Writing a table with a form feed in a cell as ascii.html writes the form
+    feed unchanged.  XML forbids it, but HTML accepts it.
+    """
+    out = StringIO()
+    Table({"target": ["the\x0ctarget"]}).write(out, format="ascii.html")
+
+    assert "<td>the\x0ctarget</td>" in out.getvalue()
+
+
 def test_write_no_multicols():
     """
     Test to make sure that the HTML writer will not use
