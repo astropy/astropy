@@ -1,0 +1,5 @@
+Fixed ``add_beam`` and ``add_scalebar`` drawing beams and scale bars at the
+wrong size, and contour-type grids (``grid_type="contours"``) being drawn
+incorrectly or raising an error, in ``WCSAxes`` for celestial WCS with world
+units other than degrees, such as WCS created with ``preserve_units=True``
+from a header in arcseconds.
