@@ -1,0 +1,3 @@
+Fixed ``HDU.fileinfo()`` returning ``None`` and ``HDUList.fileinfo()`` raising
+``UnboundLocalError`` after appending an HDU to a file opened in ``append`` mode
+and flushing.
