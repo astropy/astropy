@@ -78,8 +78,10 @@ def get_scipy_special_helpers():
 
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
-        ufunc = getattr(sps, name, None)
-        SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+        # Some names are aliases defined only in the scipy.special namespace
+        # (e.g., digamma for psi), so are not present in sps._ufuncs.
+        if (ufunc := getattr(sps, name, None)) is not None:
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
     for ufunc in degree_to_dimensionless_sps_ufuncs:
         SCIPY_HELPERS[getattr(sps, ufunc)] = helper_degree_to_dimensionless

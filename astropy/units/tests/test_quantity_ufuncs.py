@@ -109,11 +109,21 @@ class TestUfuncHelpers:
             if isinstance(ufunc, np.ufunc)
         }
         if HAS_SCIPY:
-            import scipy.special as sps
+            from astropy.units.quantity_helper.scipy_special import (
+                get_scipy_special_helpers,
+            )
+
+            try:
+                import scipy.special._ufuncs as sps
+            except ImportError:
+                import scipy.special as sps
 
             all_sps_ufuncs = {
                 ufunc for ufunc in sps.__dict__.values() if isinstance(ufunc, np.ufunc)
             }
+            # Include the scipy helpers even if they have not been loaded yet,
+            # so that the result does not depend on which tests ran before.
+            all_q_ufuncs |= set(get_scipy_special_helpers())
         else:
             all_sps_ufuncs = set()
 
