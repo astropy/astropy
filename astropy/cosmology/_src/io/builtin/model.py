@@ -178,6 +178,7 @@ def from_model(model: _CosmologyModel[_CosmoT]) -> _CosmoT:
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology instance.
 
     Examples
     --------
@@ -207,6 +208,10 @@ def to_model(cosmology: _CosmoT, *_: object, method: str) -> _CosmologyModel[_Co
     Parameters
     ----------
     cosmology : `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology to convert.
+    *_ : object
+        Not used. Needed for compatibility with
+        `~astropy.io.registry.UnifiedReadWriteMethod`.
     method : str, keyword-only
         The name of the method on the ``cosmology``.
 
@@ -283,9 +288,19 @@ def model_identify(
 ) -> bool:
     """Identify if object uses the :class:`~astropy.modeling.Model` format.
 
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    format : str or None
+        The format specified by the user, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
+
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     itis = False
     if origin == "read":

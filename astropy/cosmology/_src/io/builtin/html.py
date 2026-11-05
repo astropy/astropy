@@ -163,6 +163,7 @@ def read_html_table(
     Returns
     -------
     |Cosmology| subclass instance
+        The cosmology instance.
 
     Raises
     ------
@@ -227,6 +228,16 @@ def write_html_table[T: Table](
         If the optional keyword-argument 'cls' is not a subclass of |Table|.
     ValueError
         If the keyword argument 'format' is given and is not "ascii.html".
+
+    Notes
+    -----
+    An HTML file containing a Cosmology HTML table should have scripts enabling MathJax.
+
+    .. code-block:: html
+
+        <script type="text/javascript" id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+        </script>
 
     Examples
     --------
@@ -302,16 +313,6 @@ def write_html_table[T: Table](
     .. testcleanup::
 
         >>> temp_dir.cleanup()
-
-    Notes
-    -----
-    A HTML file containing a Cosmology HTML table should have scripts enabling MathJax.
-
-    .. code-block:: html
-
-        <script type="text/javascript" id="MathJax-script" async
-            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-        </script>
     """
     # Check that the format is 'ascii.html' (or not specified)
     format = kwargs.pop("format", "ascii.html")

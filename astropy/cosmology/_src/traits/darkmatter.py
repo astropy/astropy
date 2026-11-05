@@ -44,7 +44,6 @@ class DarkMatterComponent:
         Odm : ndarray
             The density of dark matter relative to the critical density at
             each redshift.
-
         """
         z = aszarr(z)
         return self.Odm0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2

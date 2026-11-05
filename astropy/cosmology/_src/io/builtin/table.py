@@ -25,7 +25,6 @@ metadata.
     >>> ct.meta
     {..., 'cosmology': 'FlatLambdaCDM'}
 
-
 Cosmology supports the astropy Table-like protocol (see :ref:`Table-like Objects`) to
 the same effect:
 
@@ -39,7 +38,6 @@ the same effect:
       str8     float64    float64 float64 float64  float64[3] float64
     -------- ------------ ------- ------- ------- ----------- -------
     Planck18        67.66 0.30966  2.7255   3.046 0.0 .. 0.06 0.04897
-
 
 To move the cosmology class from the metadata to a Table row, set the
 ``cosmology_in_meta`` argument to `False`:
@@ -203,6 +201,7 @@ def from_table(
     Returns
     -------
     `~astropy.cosmology.Cosmology`
+        The cosmology instance.
 
     Examples
     --------
@@ -348,7 +347,7 @@ def to_table[T: Table](
         The cosmology instance to convert to a table.
     *args : object
         Not used. Needed for compatibility with
-        `~astropy.io.registry.UnifiedReadWriteMethod`
+        `~astropy.io.registry.UnifiedReadWriteMethod`.
     cls : type (optional, keyword-only)
         Astropy :class:`~astropy.table.Table` class or subclass type to return.
         Default is :class:`~astropy.table.QTable`.
@@ -463,9 +462,19 @@ def table_identify(
 ) -> bool:
     """Identify if object uses the Table format.
 
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    format : str or None
+        The format specified by the user, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
+
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     itis = False
     if origin == "read":

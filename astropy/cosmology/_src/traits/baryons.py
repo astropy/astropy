@@ -41,7 +41,6 @@ class BaryonComponent:
         Ob : ndarray
             The density of baryonic matter relative to the critical density at
             each redshift.
-
         """
         z = aszarr(z)
         return self.Ob0 * (z + 1.0) ** 3 * self.inv_efunc(z) ** 2

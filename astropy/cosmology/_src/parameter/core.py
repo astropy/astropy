@@ -72,7 +72,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter:  # numpydoc ignore=PR02
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -182,6 +182,13 @@ class Parameter:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
+
+        Parameters
+        ----------
+        cosmology : `~astropy.cosmology.Cosmology` instance
+            The cosmology on which to set the parameter value.
+        value : Any
+            The parameter value. It is validated before being set.
         """
         # Raise error if setting 2nd time. The built-in Cosmology objects are frozen
         # dataclasses and this is redundant, however user defined cosmology classes do
@@ -218,6 +225,7 @@ class Parameter:
         Parameters
         ----------
         fvalidate : callable[[type, type, Any], Any]
+            Value validation function.
 
         Returns
         -------
@@ -232,6 +240,7 @@ class Parameter:
         Parameters
         ----------
         cosmology : `~astropy.cosmology.Cosmology` instance
+            The cosmology instance.
         value : Any
             The object to validate.
 
@@ -250,13 +259,14 @@ class Parameter:
         Parameters
         ----------
         key : str
+            The name of the validator.
         fvalidate : callable[[object, object, Any], Any] or None, optional
             Value validation function.
 
         Returns
         -------
         ``validator`` or callable[``validator``]
-            if validator is None returns a function that takes and registers a
+            If validator is None returns a function that takes and registers a
             validator. This allows ``register_validator`` to be used as a
             decorator.
         """

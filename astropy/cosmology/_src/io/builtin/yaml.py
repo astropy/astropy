@@ -89,7 +89,7 @@ def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], MappingNo
     Parameters
     ----------
     tag : str
-        The class tag, e.g. '!astropy.cosmology.LambdaCDM'
+        The class tag, e.g. '!astropy.cosmology.LambdaCDM'.
 
     Returns
     -------
@@ -115,7 +115,7 @@ def yaml_representer(tag: str) -> Callable[[AstropyDumper, Cosmology], MappingNo
 def yaml_constructor(
     cls: type[_CosmoT],
 ) -> Callable[[AstropyLoader, MappingNode], _CosmoT]:
-    """Cosmology| object from :mod:`yaml` representation.
+    """|Cosmology| object from :mod:`yaml` representation.
 
     Parameters
     ----------
@@ -134,12 +134,14 @@ def yaml_constructor(
         Parameters
         ----------
         loader : `~astropy.io.misc.yaml.AstropyLoader`
+            The :mod:`yaml` loader.
         node : `yaml.nodes.MappingNode`
-            yaml representation of |Cosmology| object.
+            The :mod:`yaml` representation of |Cosmology| object.
 
         Returns
         -------
         `~astropy.cosmology.Cosmology` subclass instance
+            The cosmology instance.
         """
         # create mapping from YAML node
         map = loader.construct_mapping(node)
@@ -159,6 +161,7 @@ def register_cosmology_yaml(cosmo_cls: type[Cosmology]) -> None:
     Parameters
     ----------
     cosmo_cls : `~astropy.cosmology.Cosmology` class
+        The cosmology class to register.
     """
     fqn = f"{cosmo_cls.__module__}.{cosmo_cls.__qualname__}"
     fqn = FULLQUALNAME_SUBSTITUTIONS.get(fqn, fqn)  # Possibly sub for a preferred path
@@ -178,7 +181,7 @@ def from_yaml(yml: str, *, cosmology: type[_CosmoT] | None = None) -> _CosmoT:
     Parameters
     ----------
     yml : str
-        :mod:`yaml` representation of |Cosmology| object
+        :mod:`yaml` representation of |Cosmology| object.
     cosmology : str, |Cosmology| class, or None (optional, keyword-only)
         The expected cosmology class (or string name thereof). This argument is
         only checked for correctness if not `None`.
@@ -186,6 +189,7 @@ def from_yaml(yml: str, *, cosmology: type[_CosmoT] | None = None) -> _CosmoT:
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology instance.
 
     Raises
     ------
@@ -223,7 +227,7 @@ def to_yaml(cosmology: Cosmology, *args: object) -> str:
         The cosmology to serialize.
     *args : Any
         Not used. Needed for compatibility with
-        `~astropy.io.registry.UnifiedReadWriteMethod`
+        `~astropy.io.registry.UnifiedReadWriteMethod`.
 
     Returns
     -------

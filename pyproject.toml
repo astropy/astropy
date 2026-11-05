@@ -819,7 +819,6 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/constants/.*',
     '^astropy/convolution/.*',
     '^astropy/coordinates/.*',
-    '^astropy/cosmology/.*',
     '^astropy/extern/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
