@@ -140,8 +140,13 @@ def _ndarray_constructor(loader, node):
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
 
-    if map["dtype"] == "object":
+    # Security: never build a numpy object array from a YAML-supplied buffer — the raw bytes
+    # would be interpreted as PyObject* pointers (arbitrary pointer dereference). hasobject
+    # catches 'object', 'O', and structured/void dtypes with object fields.
+    dtype = np.dtype(map["dtype"])
+    if dtype.hasobject:
         raise TypeError("cannot load numpy array with dtype object")
+    map["dtype"] = dtype
     return np.ndarray(**map)
 
 
@@ -158,6 +163,13 @@ def _void_constructor(loader, node):
     # Interpret as node as an array scalar and then index to change to void.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
+    # Security: never build a numpy object array from a YAML-supplied buffer — the raw bytes
+    # would be interpreted as PyObject* pointers (arbitrary pointer dereference). hasobject
+    # catches 'object', 'O', and structured/void dtypes with object fields.
+    dtype = np.dtype(map["dtype"])
+    if dtype.hasobject:
+        raise TypeError("cannot load numpy array with dtype object")
+    map["dtype"] = dtype
     return np.ndarray(shape=(), **map)[()]
 
 

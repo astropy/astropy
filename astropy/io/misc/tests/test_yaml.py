@@ -369,3 +369,17 @@ def test_yaml_load_of_object_arrays_fail():
             order: C
             shape: !!python/tuple [3]"""
         )
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "!numpy.void {dtype: object, buffer: QUFBQUFBQUE=}",
+        '!numpy.ndarray {shape: [1], dtype: "O", buffer: QUFBQUFBQUE=, order: C}',
+        "!numpy.ndarray {shape: [1], dtype: object, buffer: QUFBQUFBQUE=, order: C}",
+    ],
+)
+def test_yaml_rejects_object_dtype_arrays(payload):
+    # Must raise, never construct an object array from an attacker buffer (-> pointer deref).
+    with pytest.raises(TypeError, match="cannot load numpy array with dtype object"):
+        load(payload)
