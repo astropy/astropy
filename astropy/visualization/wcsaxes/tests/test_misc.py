@@ -711,6 +711,17 @@ def test_plot_quantity_incompatible_unit():
         ax.plot(1 * u.m, 1 * u.m, transform=ax.get_transform("world"))
 
 
+def test_plot_pixel_quantity():
+    # Pixel quantities are plotted as pixel coordinates, regardless of the
+    # world units of the WCS
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
+    (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.pix)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+    points = ax.scatter(1 * u.pix, 3 * u.pix)
+    assert_allclose(points.get_offsets(), [[1, 3]])
+
+
 def test_world_units_converter_survives_clear():
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER))
