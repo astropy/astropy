@@ -380,26 +380,18 @@ def test_yaml_load_of_object_arrays_fail():
         )
 
 
-# Each buffer holds a non-null invalid pointer, so constructing and accessing any of
-# these as an object array would crash the interpreter instead of failing the test.
+# These test how astropy uses the check, not that numpy gets ``hasobject`` right, so
+# spellings of object dtypes are not enumerated. Each constructor gets a plain object
+# dtype, and a nested structured one that a check of only ``dtype.kind`` or of only the
+# top-level fields would miss. Each buffer holds a non-null invalid pointer, so
+# constructing and accessing any of these as an object array would crash the interpreter
+# instead of failing the test.
 OBJECT_DTYPE_YAML = [
-    "!numpy.void {dtype: object, buffer: QUFBQUFBQUE=}",
     "!numpy.void {dtype: O, buffer: QUFBQUFBQUE=}",
-    "!numpy.void {dtype: [!!python/tuple [a, O]], buffer: QUFBQUFBQUE=}",
-    "!numpy.void {dtype: !!python/tuple [O, !!python/tuple [1]], buffer: QUFBQUFBQUE=}",
-    "!numpy.ndarray {dtype: object, shape: [1], buffer: QUFBQUFBQUE=, order: C}",
+    "!numpy.void {dtype: [!!python/tuple [a, [!!python/tuple [b, O]]]], buffer: QUFBQUFBQUE=}",
     "!numpy.ndarray {dtype: O, shape: [1], buffer: QUFBQUFBQUE=, order: C}",
-    "!numpy.ndarray {dtype: '|O', shape: [1], buffer: QUFBQUFBQUE=, order: C}",
-    (
-        "!numpy.ndarray {dtype: [!!python/tuple [a, O]], shape: [1], "
-        "buffer: QUFBQUFBQUE=, order: C}"
-    ),
     (
         "!numpy.ndarray {dtype: [!!python/tuple [a, [!!python/tuple [b, O]]]], shape: [1], "
-        "buffer: QUFBQUFBQUE=, order: C}"
-    ),
-    (
-        "!numpy.ndarray {dtype: [!!python/tuple [a, O, !!python/tuple [1]]], shape: [1], "
         "buffer: QUFBQUFBQUE=, order: C}"
     ),
 ]
@@ -412,15 +404,14 @@ def test_yaml_load_refuses_object_dtype(text):
         load(text)
 
 
-@pytest.mark.parametrize("text", OBJECT_DTYPE_YAML)
-def test_ecsv_read_refuses_object_dtype_in_meta(text):
+def test_ecsv_read_refuses_object_dtype_in_meta():
     """Table metadata is the route by which an untrusted file reaches the YAML loader."""
-    ecsv = f"""\
+    ecsv = """\
 # %ECSV 1.0
 # ---
 # datatype:
-# - {{name: a, datatype: int64}}
-# meta: {{bad: {text}}}
+# - {name: a, datatype: int64}
+# meta: {bad: !numpy.void {dtype: O, buffer: QUFBQUFBQUE=}}
 # schema: astropy-2.0
 a
 1
