@@ -72,6 +72,18 @@ class _AngularPolygon(Polygon):
     in degrees scaled to the angular units of the axes it is added to. For
     `~astropy.visualization.wcsaxes.WCSAxes` these are the world units of the
     WCS.
+
+    Parameters
+    ----------
+    vertices : array-like
+        The ``(N, 2)`` polygon vertices, in ``vertex_unit``, or in degrees if
+        ``vertex_unit`` is `None`.
+    vertex_unit : `~astropy.units.Unit` or None
+        The units of the vertices, or `None` to scale them from degrees to the
+        units of the axes.
+    **kwargs
+        Additional keyword arguments are passed to
+        `~matplotlib.patches.Polygon`.
     """
 
     def __init__(self, vertices, vertex_unit, **kwargs):
