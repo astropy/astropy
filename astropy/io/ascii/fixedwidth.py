@@ -272,9 +272,9 @@ class FixedWidthData(basic.BasicData):
             ]
             hdrs_list.append(vals)
 
-        # Widths for data columns
+        # Widths for data columns (a table with no rows has no data widths)
         widths = [
-            max(len(vals[i_col]) for vals in vals_list)
+            max((len(vals[i_col]) for vals in vals_list), default=0)
             for i_col in range(len(self.cols))
         ]
         # Incorporate widths for header columns (if there are any)

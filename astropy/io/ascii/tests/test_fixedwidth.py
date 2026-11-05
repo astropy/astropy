@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose
 
 from astropy.io import ascii
 from astropy.io.ascii.core import InconsistentTableError
+from astropy.table import Table
 
 from .common import assert_equal_splitlines
 
@@ -626,3 +627,35 @@ def test_fixed_width_no_header_header_rows():
     tbl = ["    1    1.00        c     4"]
     with pytest.raises(TypeError, match=r"unexpected keyword argument 'header_rows'"):
         ascii.read(tbl, format="fixed_width_no_header", header_rows=["unit"])
+
+
+@pytest.mark.parametrize(
+    "fmt, kwargs, lines",
+    [
+        ("fixed_width", {}, ["| a | bb |"]),
+        (
+            "fixed_width",
+            {"header_rows": ["name", "dtype"]},
+            ["|     a |      bb |", "| int64 | float64 |"],
+        ),
+        ("fixed_width_two_line", {}, ["a bb", "- --"]),
+    ],
+)
+def test_write_empty_table(fmt, kwargs, lines):
+    """A table with no rows is written with only its header lines"""
+    dat = Table({"a": np.array([], dtype="i8"), "bb": np.array([], dtype="f8")})
+    out = StringIO()
+    ascii.write(dat, out, format=fmt, **kwargs)
+    assert out.getvalue().splitlines() == lines
+
+    dat = ascii.read(lines, format=fmt, **kwargs)
+    assert dat.colnames == ["a", "bb"]
+    assert len(dat) == 0
+
+
+def test_write_noheader_empty_table():
+    """A table with no rows and no header has no lines to write"""
+    dat = Table({"a": np.array([], dtype="i8"), "bb": np.array([], dtype="f8")})
+    out = StringIO()
+    ascii.write(dat, out, format="fixed_width_no_header")
+    assert out.getvalue().strip() == ""

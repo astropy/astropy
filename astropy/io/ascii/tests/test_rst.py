@@ -210,3 +210,21 @@ def test_rst_with_header_rows():
     out = StringIO()
     tbl.write(out, format="ascii.rst", header_rows=["name", "unit", "dtype"])
     assert out.getvalue().splitlines() == lines
+
+
+def test_write_empty_table():
+    """Write and read back a table with no rows"""
+    lines = [
+        "= ==",
+        "a bb",
+        "= ==",
+        "= ==",
+    ]
+    tbl = QTable({"a": np.array([], dtype="i8"), "bb": np.array([], dtype="f8")})
+    out = StringIO()
+    tbl.write(out, format="ascii.rst")
+    assert out.getvalue().splitlines() == lines
+
+    tbl = QTable.read(lines, format="ascii.rst")
+    assert tbl.colnames == ["a", "bb"]
+    assert len(tbl) == 0
