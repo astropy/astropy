@@ -1,0 +1,1 @@
+Added ``codata_parser.py`` and dedicated tests. Also added a folder with CODATA .txt files and updated the corresponding ``codata20XX.py`` files to load the constants from those files (except those calculated from others). Finally, added integration tests to verify that constants exposed by the code remain consistent with the CODATA files.
