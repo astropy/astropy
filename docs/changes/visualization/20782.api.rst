@@ -1,0 +1,5 @@
+Passing unrecognized positions to the ``set_ticks_position``,
+``set_ticklabel_position`` and ``set_axislabel_position`` methods of
+``WCSAxes`` coordinates now raises a ``ValueError``. This was deprecated in
+astropy 7.2, and previously the unrecognized positions were ignored with a
+deprecation warning.
