@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-reading-int-columns`
 * :ref:`whatsnew-8.1-pyodide-wheels`
 * :ref:`whatsnew-8.1-wcs-init`
+* :ref:`whatsnew-8.1-wcsaxes-quantities`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -171,6 +172,38 @@ rather than with the desired field of view:
 >>> image_shape = [80, 40]
 >>> wcs = skycoord_to_celestial_wcs(center, pixel_shape=image_shape,
 ...                                 pixel_angular_size=[-0.005, 0.005] * u.deg)
+
+
+.. _whatsnew-8.1-wcsaxes-quantities:
+
+Plotting quantities on WCSAxes
+==============================
+
+|Quantity| values plotted on :class:`~astropy.visualization.wcsaxes.WCSAxes`
+with a world or celestial frame transform are now converted to the world units
+of the WCS. Previously the unit was dropped and the value was used as if it
+were in the world units, so for example arcseconds were interpreted as degrees.
+Now the following plots a point at the correct position whatever the world
+units of the WCS are::
+
+    import astropy.units as u
+
+    ax = plt.subplot(projection=wcs)
+    ax.plot(100 * u.arcsec, 50 * u.arcsec, "o", transform=ax.get_transform("world"))
+    ax.scatter([10, 20] * u.arcmin, [5, 6] * u.arcmin, transform=ax.get_transform("icrs"))
+
+Values in units that cannot be converted to the world units raise an error,
+and plain numbers are still interpreted in the world units of the WCS. Quantities
+in pixel units (``u.pix``) plotted without a transform are still used as pixel
+coordinates.
+
+Note that plain numbers plotted with a celestial frame transform, such as
+``ax.get_transform("icrs")``, are now also interpreted in the world units of
+the WCS rather than always in degrees, consistent with
+``ax.get_transform("world")``. This only makes a difference for WCS with world
+units other than degrees, for example a WCS created with ``preserve_units=True``
+from a header in arcseconds. Passing quantities gives the correct result in
+all cases.
 
 
 Contributors to the 8.1 release

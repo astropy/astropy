@@ -1,0 +1,15 @@
+|Quantity| values plotted on ``WCSAxes`` with a world or celestial frame
+transform, for example
+``ax.plot(100 * u.arcsec, 50 * u.arcsec, transform=ax.get_transform("world"))``,
+are now converted to the world units of the WCS. Previously the unit was
+ignored and the values were interpreted as if they were in the world units of
+the WCS. Values with incompatible units now raise an error.
+
+In addition, plain numbers plotted with a celestial frame transform, for example
+``ax.get_transform("icrs")``, are now interpreted in the world units of the WCS,
+consistent with ``ax.get_transform("world")``, rather than always in degrees.
+This only changes the result for WCS with world units other than degrees, such
+as WCS created with ``preserve_units=True`` from a header in arcseconds.
+``SphericalCircle`` and ``Quadrangle`` patches are now converted from
+``vertex_unit`` to the world units of the WCS, so they appear in the right place
+for such WCS.
