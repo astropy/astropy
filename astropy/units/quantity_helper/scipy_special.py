@@ -30,6 +30,7 @@ from .helpers import (
 dimensionless_to_dimensionless_sps_ufuncs = (
     "erf", "erfc", "erfcx", "erfi", "erfinv", "erfcinv",
     "gamma", "gammaln", "loggamma", "gammasgn", "psi", "rgamma", "digamma",
+    "digammainv",
     "wofz", "dawsn", "entr", "exprel", "expm1", "log1p", "exp2", "exp10",
     "j0", "j1", "y0", "y1", "i0", "i0e", "i1", "i1e",
     "k0", "k0e", "k1", "k1e",
@@ -64,6 +65,7 @@ two_arg_dimensionless_sps_ufuncs = (
     "hyp0f1",
     "inv_boxcox", "inv_boxcox1p",
     "kl_div",
+    "log_gammainc", "log_gammaincc",
     "mathieu_a", "mathieu_b",
     "modstruve",
     "owens_t",
@@ -171,8 +173,12 @@ angle_dimensionless_to_dimensionless_sps_ufuncs = ("ellipeinc", "ellipkinc")
 # variants mathieu_modcem1/2(m, q, x), mathieu_modsem1/2(m, q, x) all
 # take x in degrees per the SciPy documentation. We accept any angle
 # Quantity for x and convert to degrees.
+# In development versions of scipy, mathieu_cem and mathieu_sem are Python
+# wrappers around the ufuncs _mathieu_cem and _mathieu_sem, so the underscore
+# names are what Quantity.__array_ufunc__ sees there.
 dimless_dimless_angle_to_2out_sps_ufuncs = (
     "mathieu_cem", "mathieu_sem",
+    "_mathieu_cem", "_mathieu_sem",
     "mathieu_modcem1", "mathieu_modcem2",
     "mathieu_modsem1", "mathieu_modsem2",
 )  # fmt: skip
