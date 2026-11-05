@@ -64,6 +64,8 @@ class _WorldUnitConverter(ConversionInterface):
     convert = staticmethod(MplQuantityConverter.convert)
 
 
+# A single instance, since Matplotlib refuses to replace an explicitly set
+# converter with a different one when the WCS is reset
 _WORLD_UNIT_CONVERTER = _WorldUnitConverter()
 
 
@@ -583,6 +585,7 @@ class WCSAxes(Axes):
             axes = (self.xaxis,)
         else:
             axes = (self.xaxis, self.yaxis)
+        # A 1D slice of a celestial WCS has two world coordinates for one axis
         if units is None or len(units) != len(axes):
             return
         for axis, unit in zip(axes, units):
@@ -595,7 +598,8 @@ class WCSAxes(Axes):
 
     def clear(self):
         super().clear()
-        # Axis.clear resets the unit converters
+        # Axis.clear resets the unit converters. Axes.__init__ also calls
+        # clear, before reset_wcs has set the transform.
         if hasattr(self, "_transform_pixel2world"):
             self._set_world_units()
 
