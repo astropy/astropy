@@ -8,6 +8,7 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import Angle
+from astropy.utils.masked import Masked
 
 
 def test_to_string_precision():
@@ -191,6 +192,16 @@ def test_sexagesimal_degrees_round_once(angle, expected):
 def test_to_string_scalar():
     a = Angle(1.113355, unit=u.deg)
     assert isinstance(a.to_string(), str)
+
+
+def test_to_string_masked_keeps_mask():
+    """Angle.to_string on a masked Angle returns the strings as a masked array
+    with the same mask."""
+    angle = Masked(Angle([1.0, 2.0], unit=u.deg), mask=[False, True])
+    result = angle.to_string()
+    assert isinstance(result, Masked)
+    assert result.mask.tolist() == [False, True]
+    assert result.unmasked.tolist() == ["1d00m00s", "2d00m00s"]
 
 
 def test_to_string_radian_with_precision():
