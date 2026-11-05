@@ -56,14 +56,21 @@ class _WCSAxesArtist(Artist):
 class _WorldUnitConverter(ConversionInterface):
     """
     Convert `~astropy.units.Quantity` values to the units of an axis, which
-    `WCSAxes` sets to the world units of the WCS. Other values pass through.
+    `WCSAxes` sets to the world units of the WCS. Pixel quantities and other
+    values pass through.
 
     This reuses the conversion from `~astropy.visualization.quantity_support`,
     but is only set on the axes of a `WCSAxes` instead of being registered
     globally, and does not change the axis labels or ticks.
     """
 
-    convert = staticmethod(MplQuantityConverter.convert)
+    @staticmethod
+    def convert(val, unit, axis):
+        # Pixel coordinates are plotted with the default transform, which does
+        # not use the world units
+        if isinstance(val, u.Quantity) and val.unit == u.pix:
+            return val.value
+        return MplQuantityConverter.convert(val, unit, axis)
 
 
 # A single instance, since Matplotlib refuses to replace an explicitly set
