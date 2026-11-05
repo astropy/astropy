@@ -668,8 +668,10 @@ def test_plot_quantity_with_transform(cunit, frame, unit):
     points = ax.scatter([lon], [lat], transform=transform)
     assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
 
-    # Default patch vertices also follow the world units of the WCS
-    quadrangle = Quadrangle((lon, lat), 0.1 * u.deg, 0.1 * u.deg, transform=transform)
+    # Patch vertices are converted to the world units of the WCS
+    quadrangle = Quadrangle(
+        (lon, lat), 0.1 * u.deg, 0.1 * u.deg, vertex_unit=unit, transform=transform
+    )
     ax.add_patch(quadrangle)
     to_pixel = quadrangle.get_transform() - ax.transData
     assert_allclose(to_pixel.transform(quadrangle.get_xy()[:1]), expected)
