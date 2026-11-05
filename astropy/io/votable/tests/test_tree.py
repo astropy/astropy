@@ -19,8 +19,9 @@ from astropy.io.votable.exceptions import (
     W54,
     W57,
 )
-from astropy.io.votable.table import parse
+from astropy.io.votable.table import parse, parse_single_table
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
+from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -708,3 +709,86 @@ def test_votablefile_write(tmp_path):
 
     # format kwarg should be accepted and ignored for API compatibility
     vot.write(str(out), format="votable")
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_table_longer_than_first_allocation(tabledata_format):
+    """
+    Test that parse on 1000-row table written in each serialization gives back
+    every value and mask.
+
+    Reading starts with room for 512 rows, so this grows the result arrays and
+    then trims them to the number of rows read.
+    """
+    values = np.ma.array(np.arange(1000.0), mask=np.arange(1000) % 7 == 0)
+    buffer = io.BytesIO()
+    Table({"a": values}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["a"]
+
+    assert np.array_equal(column.mask, values.mask)
+    assert np.array_equal(column.filled(-1), values.filled(-1))
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_variable_length_column_longer_than_first_allocation(tabledata_format):
+    """
+    Test that parse on a 1000-row table with a variable-length int column gives
+    back every row's values.
+    """
+    votable = VOTableFile()
+    resource = Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(tree.Field(votable, name="v", datatype="int", arraysize="*"))
+    table.create_arrays(1000)
+    # Fill the column with a different number of values in each row
+    expected = [list(range(i % 5)) for i in range(1000)]
+    for i, values in enumerate(expected):
+        table.array.data["v"][i] = np.ma.array(
+            values, mask=np.zeros(len(values), bool), dtype=np.int32
+        )
+    buffer = io.BytesIO()
+    votable.to_xml(buffer, tabledata_format=tabledata_format)
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["v"]
+
+    assert [list(values) for values in column] == expected
+
+
+def _votable_with_nrows(tabledata_format, nrows):
+    """
+    Return the bytes of a 1000-row VOTable in *tabledata_format* whose TABLE
+    element falsely says it has *nrows* rows.
+    """
+    values = np.ma.array(np.arange(1000.0), mask=np.arange(1000) % 7 == 0)
+    buffer = io.BytesIO()
+    Table({"a": values}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    content = buffer.getvalue().replace(b"<TABLE>", f'<TABLE nrows="{nrows}">'.encode())
+    return content, values
+
+
+@pytest.mark.parametrize("nrows", [1, 1000, 5000])
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_table_with_nrows(tabledata_format, nrows):
+    """
+    Test that parse on a 1000-row table whose TABLE element has an nrows
+    attribute of 1, 1000 or 5000 gives back exactly the 1000 values and masks.
+
+    Reading starts with room for nrows rows, so a too-small value grows the
+    result arrays many times, the correct value never resizes them, and a
+    too-large value only trims them at the end.
+    """
+    content, values = _votable_with_nrows(tabledata_format, nrows)
+
+    column = parse_single_table(io.BytesIO(content)).array["a"]
+
+    assert np.array_equal(column.mask, values.mask)
+    assert np.array_equal(column.filled(-1), values.filled(-1))
