@@ -784,6 +784,57 @@ class TestFileFunctions(FitsTestCase):
             assert len(new_handle) == 6
             assert (new_handle[-1].data == list(range(100))).all()
 
+    def _write_truncated_gzip(self):
+        with open(self.data("test0.fits"), "rb") as f:
+            content = gzip.compress(f.read())[:-100]
+
+        filename = self.temp("truncated.fits.gz")
+        with open(filename, "wb") as f:
+            f.write(content)
+
+        return filename
+
+    def test_fits_truncated_gzip_warns(self):
+        """Reading a truncated gzipped file warns that it could not be read
+        completely, rather than silently ignoring the missing data."""
+        filename = self._write_truncated_gzip()
+
+        with pytest.warns(AstropyUserWarning, match="ended unexpectedly"):
+            with fits.open(filename) as fits_handle:
+                fits_handle.readall()
+
+    def test_fits_update_mode_truncated_gzip_warns(self):
+        """In update mode, the warning is issued as soon as the file is opened,
+        before any changes are made, since the parts of the file that could not
+        be read are lost when it is rewritten."""
+        filename = self._write_truncated_gzip()
+
+        with pytest.warns(
+            AstropyUserWarning, match="ended unexpectedly.*lost if it is saved"
+        ):
+            fits_handle = fits.open(filename, mode="update")
+
+        fits_handle.close()
+
+    @pytest.mark.skipif(not HAS_BZ2, reason="Python built without bz2 module")
+    def test_fits_truncated_bzip2_warns(self):
+        """Truncated bzip2-compressed files also warn."""
+        # bzip2 compresses in blocks of up to 900 kB, so use a file large enough
+        # that the blocks before the truncated one can still be read
+        buf = io.BytesIO()
+        fits.HDUList(
+            [fits.PrimaryHDU(np.arange(250_000.0)), fits.ImageHDU(np.arange(250_000.0))]
+        ).writeto(buf)
+        content = bz2.compress(buf.getvalue())[:-100]
+
+        filename = self.temp("truncated.fits.bz2")
+        with open(filename, "wb") as f:
+            f.write(content)
+
+        with pytest.warns(AstropyUserWarning, match="ended unexpectedly"):
+            with fits.open(filename) as fits_handle:
+                fits_handle.readall()
+
     def test_fits_append_mode_gzip(self):
         """Make sure that attempting to open an existing GZipped FITS file in
         'append' mode raises an error"""
