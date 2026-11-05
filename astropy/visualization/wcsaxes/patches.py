@@ -68,36 +68,34 @@ def _rotate_polygon(lon, lat, lon0, lat0):
 
 class _AngularPolygon(Polygon):
     """
-    A polygon with vertices in ``vertex_unit``, or if ``vertex_unit`` is `None`,
-    in degrees scaled to the angular units of the axes it is added to. For
+    A polygon with vertices in ``vertex_unit``, scaled to the angular units of
+    the axes it is added to if these are set. For
     `~astropy.visualization.wcsaxes.WCSAxes` these are the world units of the
     WCS.
 
     Parameters
     ----------
     vertices : array-like
-        The ``(N, 2)`` polygon vertices, in ``vertex_unit``, or in degrees if
-        ``vertex_unit`` is `None`.
-    vertex_unit : `~astropy.units.Unit` or None
-        The units of the vertices, or `None` to scale them from degrees to the
-        units of the axes.
+        The ``(N, 2)`` polygon vertices, in ``vertex_unit``.
+    vertex_unit : `~astropy.units.Unit`
+        The units of the vertices.
     **kwargs
         Additional keyword arguments are passed to
         `~matplotlib.patches.Polygon`.
     """
 
     def __init__(self, vertices, vertex_unit, **kwargs):
-        self._scale_to_axes_units = vertex_unit is None
+        self._vertex_unit = u.Unit(vertex_unit)
         super().__init__(vertices, **kwargs)
 
     def get_patch_transform(self):
-        if self._scale_to_axes_units and self.axes is not None:
+        if self.axes is not None:
             units = self.axes.xaxis.get_units(), self.axes.yaxis.get_units()
             if all(
                 isinstance(unit, u.UnitBase) and unit.is_equivalent(u.deg)
                 for unit in units
             ):
-                return Affine2D().scale(*(u.deg.to(unit) for unit in units))
+                return Affine2D().scale(*(self._vertex_unit.to(unit) for unit in units))
         return super().get_patch_transform()
 
 
@@ -124,18 +122,17 @@ class SphericalCircle(_AngularPolygon):
         The number of points that make up the circle - increase this to get a
         smoother circle.
     vertex_unit : `~astropy.units.Unit`, optional
-        The units in which the resulting polygon should be defined - this
-        should match the unit that the transformation (e.g. the WCS
-        transformation) expects as input. By default, the polygon is
-        defined in the world units of the
-        `~astropy.visualization.wcsaxes.WCSAxes` it is added to, or in
-        degrees otherwise.
+        The units in which the resulting polygon should be defined. On
+        `~astropy.visualization.wcsaxes.WCSAxes`, the polygon is converted
+        to the world units of the WCS, so this does not need to match them.
+        On other axes, this should match the unit that the transformation
+        expects as input.
     **kwargs
         Additional keyword arguments are passed to
         `~matplotlib.patches.Polygon`.
     """
 
-    def __init__(self, center, radius, resolution=100, vertex_unit=None, **kwargs):
+    def __init__(self, center, radius, resolution=100, vertex_unit=u.degree, **kwargs):
         # Extract longitude/latitude, either from a SkyCoord object, or
         # from a tuple of two quantities or a single 2-element Quantity.
         # The SkyCoord is converted to SphericalRepresentation, if not already.
@@ -160,9 +157,8 @@ class SphericalCircle(_AngularPolygon):
         lon, lat = _rotate_polygon(lon, lat, longitude, latitude)
 
         # Extract new longitude/latitude in the requested units
-        unit = u.deg if vertex_unit is None else vertex_unit
-        lon = lon.to_value(unit)
-        lat = lat.to_value(unit)
+        lon = lon.to_value(vertex_unit)
+        lat = lat.to_value(vertex_unit)
 
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
@@ -195,28 +191,26 @@ class Quadrangle(_AngularPolygon):
         The number of points that make up each side of the quadrangle -
         increase this to get a smoother quadrangle.
     vertex_unit : `~astropy.units.Unit` ['angle'], optional
-        The units in which the resulting polygon should be defined - this
-        should match the unit that the transformation (e.g. the WCS
-        transformation) expects as input. By default, the polygon is
-        defined in the world units of the
-        `~astropy.visualization.wcsaxes.WCSAxes` it is added to, or in
-        degrees otherwise.
+        The units in which the resulting polygon should be defined. On
+        `~astropy.visualization.wcsaxes.WCSAxes`, the polygon is converted
+        to the world units of the WCS, so this does not need to match them.
+        On other axes, this should match the unit that the transformation
+        expects as input.
     **kwargs
         Additional keyword arguments are passed to
         `~matplotlib.patches.Polygon`.
     """
 
     def __init__(
-        self, anchor, width, height, resolution=100, vertex_unit=None, **kwargs
+        self, anchor, width, height, resolution=100, vertex_unit=u.degree, **kwargs
     ):
         # Extract longitude/latitude, either from a tuple of two quantities, or
         # a single 2-element Quantity.
-        unit = u.deg if vertex_unit is None else vertex_unit
-        longitude, latitude = u.Quantity(anchor).to_value(unit)
+        longitude, latitude = u.Quantity(anchor).to_value(vertex_unit)
 
         # Convert the quadrangle dimensions to the appropriate units
-        width = width.to_value(unit)
-        height = height.to_value(unit)
+        width = width.to_value(vertex_unit)
+        height = height.to_value(vertex_unit)
 
         # Create progressions in longitude and latitude
         lon_seq = longitude + np.linspace(0, width, resolution + 1)
