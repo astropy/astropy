@@ -576,3 +576,41 @@ def test_hidden_coordinates_do_not_take_a_spine():
     assert "b" in ax.coords["lat"].get_ticklabel_position()
     assert ax.coords["time"].get_ticklabel_position() == ["#"]
     assert ax.coords["step"].get_ticklabel_position() == ["#"]
+
+
+@pytest.mark.parametrize("format_unit", [u.deg, u.hourangle, u.arcsec])
+def test_grid_contour_non_degree_world_units(format_unit):
+    # Regression test for a bug that caused contour-type grids to be wrong or
+    # to fail for WCS with world units other than degrees.
+    paths = []
+    for cunit in ["deg", "arcsec"]:
+        wcs = WCS(naxis=2, preserve_units=True)
+        wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+        wcs.wcs.cunit = [cunit, cunit]
+        wcs.wcs.crpix = [50.5, 50.5]
+        wcs.wcs.crval = [(10 * u.deg).to_value(cunit), (20 * u.deg).to_value(cunit)]
+        wcs.wcs.cdelt = [
+            (-0.01 * u.deg).to_value(cunit),
+            (0.01 * u.deg).to_value(cunit),
+        ]
+
+        fig = Figure()
+        canvas = FigureCanvasAgg(fig)
+        ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], wcs=wcs)
+        fig.add_axes(ax)
+        ax.set_xlim(-0.5, 99.5)
+        ax.set_ylim(-0.5, 99.5)
+        for coord in ax.coords:
+            coord.set_format_unit(format_unit)
+            coord.grid(grid_type="contours")
+
+        canvas.draw()
+
+        paths.append(
+            [[path.vertices for path in coord._grid.get_paths()] for coord in ax.coords]
+        )
+
+    for paths_deg, paths_arcsec in zip(*paths):
+        assert len(paths_deg) == len(paths_arcsec) > 0
+        for vertices_deg, vertices_arcsec in zip(paths_deg, paths_arcsec):
+            np.testing.assert_allclose(vertices_arcsec, vertices_deg, atol=1e-6)
