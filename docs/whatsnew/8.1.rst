@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-reading-int-columns`
 * :ref:`whatsnew-8.1-pyodide-wheels`
 * :ref:`whatsnew-8.1-wcs-init`
+* :ref:`whatsnew-8.1-scipy-special-quantity`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -172,6 +173,17 @@ rather than with the desired field of view:
 >>> wcs = skycoord_to_celestial_wcs(center, pixel_shape=image_shape,
 ...                                 pixel_angular_size=[-0.005, 0.005] * u.deg)
 
+.. _whatsnew-8.1-scipy-special-quantity:
+
+``scipy.special`` support for `~astropy.units.Quantity`
+=======================================================
+
+Most ufuncs from ``scipy.special`` can now be used directly with
+:class:`~astropy.units.Quantity`. Functions are classified by their physical
+semantics: angle-accepting functions (such as ``cosdg``, ``cosm1`` and
+``ellipkinc``) correctly handle angle quantities, arithmetic-like functions
+(such as ``agm``) preserve units, and the majority enforce dimensionless
+inputs and outputs.
 
 Contributors to the 8.1 release
 ===============================
