@@ -332,6 +332,63 @@ def test_register():
     assert "foo" not in u.get_current_unit_registry().registry
 
 
+def test_enabled_units_context_restored_on_failed_add():
+    """A failed name-clash in `add_enabled_units` must not corrupt the registry.
+
+    Regression test for gh-20790: constructing the context pushed a new
+    registry, but the validation error meant the caller never received the
+    context manager to unwind it. The failed inner activation used to leave
+    a registry active, so the enclosing context popped the wrong level on exit
+    and its custom definition stayed enabled.
+    """
+    bad = u.def_unit("kcal", 1000 * u.J)
+    registry_before = u.get_current_unit_registry()
+    with u.add_enabled_units([bad]):
+        registry_inside = u.get_current_unit_registry()
+        assert registry_inside is not registry_before
+        with pytest.raises(ValueError, match=r"already exists in namespace"):
+            with u.add_enabled_units([u.imperial.kcal]):
+                pass
+        # the failed call left the enclosing context unchanged
+        assert u.get_current_unit_registry() is registry_inside
+        assert u.Unit("kcal").to(u.J) == 1000.0
+    # the enclosing context exits cleanly, restoring the original registry
+    assert u.get_current_unit_registry() is registry_before
+    with pytest.raises(ValueError):
+        u.Unit("kcal")
+
+
+def test_enabled_unit_factories_restore_registry_on_error():
+    """All other context factories must likewise restore the registry on error."""
+    registry_before = u.get_current_unit_registry()
+    failing_calls = [
+        (
+            "set_enabled_units",
+            lambda: u.set_enabled_units([u.m, u.def_unit("m", 3 * u.m)]),
+        ),
+        (
+            "add_enabled_aliases",
+            lambda: u.add_enabled_aliases({"m": u.s}),
+        ),
+        (
+            "set_enabled_aliases",
+            lambda: u.set_enabled_aliases({"m": u.s}),
+        ),
+        (
+            "add_enabled_equivalencies",
+            lambda: u.add_enabled_equivalencies([(u.m, u.s, None, None, None)]),
+        ),
+        (
+            "set_enabled_equivalencies",
+            lambda: u.set_enabled_equivalencies([(u.m, u.s, None, None, None)]),
+        ),
+    ]
+    for name, call in failing_calls:
+        with pytest.raises(ValueError):
+            call()
+        assert u.get_current_unit_registry() is registry_before, name
+
+
 def test_in_units_deprecation():
     with pytest.warns(AstropyDeprecationWarning, match=r"Use to\(\) instead\.$"):
         assert (u.m / u.s).in_units(u.cm / u.s) == 100

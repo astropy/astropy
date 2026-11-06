@@ -1546,7 +1546,13 @@ def set_enabled_units(units: object) -> _UnitContext:
     # get a context with a new registry, using equivalencies of the current one
     context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
     # in this new current registry, enable the units requested
-    get_current_unit_registry().set_enabled_units(units)
+    try:
+        get_current_unit_registry().set_enabled_units(units)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
@@ -1611,7 +1617,13 @@ def add_enabled_units(units: object) -> _UnitContext:
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the further units requested
-    get_current_unit_registry().add_enabled_units(units)
+    try:
+        get_current_unit_registry().add_enabled_units(units)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
@@ -1645,7 +1657,13 @@ def set_enabled_equivalencies(equivalencies):
     # get a context with a new registry, using all units of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the equivalencies requested
-    get_current_unit_registry().set_enabled_equivalencies(equivalencies)
+    try:
+        get_current_unit_registry().set_enabled_equivalencies(equivalencies)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
@@ -1669,7 +1687,13 @@ def add_enabled_equivalencies(equivalencies):
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+    try:
+        get_current_unit_registry().add_enabled_equivalencies(equivalencies)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
@@ -1704,7 +1728,13 @@ def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().set_enabled_aliases(aliases)
+    try:
+        get_current_unit_registry().set_enabled_aliases(aliases)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
@@ -1742,7 +1772,13 @@ def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
     # get a context with a new registry, which is a copy of the current one
     context = _UnitContext(get_current_unit_registry())
     # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().add_enabled_aliases(aliases)
+    try:
+        get_current_unit_registry().add_enabled_aliases(aliases)
+    except BaseException:
+        # undo the registry push, since the caller never receives the
+        # context manager and so cannot unwind it themselves
+        context.__exit__(None, None, None)
+        raise
     return context
 
 
