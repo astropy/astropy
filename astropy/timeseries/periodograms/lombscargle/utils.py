@@ -62,9 +62,15 @@ def convert_normalization(Z, N, from_normalization, to_normalization, chi2_ref=N
     Z = np.asarray(Z)
     from_to = (from_normalization, to_normalization)
 
-    for norm in from_to:
-        if norm not in NORMALIZATIONS:
-            raise ValueError(f"{from_normalization} is not a valid normalization")
+    errors = [
+        ValueError(f"{norm} is not a valid normalization")
+        for norm in from_to
+        if norm not in NORMALIZATIONS
+    ]
+    if len(errors) == 1:
+        raise errors[0]
+    elif errors:
+        raise ExceptionGroup("invalid normalizations", errors)
 
     if from_normalization == to_normalization:
         return Z
