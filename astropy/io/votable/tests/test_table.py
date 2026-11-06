@@ -1033,6 +1033,17 @@ def test_write_refuses_forbidden_xml_chars_in_cell(tmp_path, char):
         t.write(tmp_path / "test.vot", format="votable")
 
 
+def test_write_refuses_forbidden_xml_chars_in_bytes_cell(tmp_path):
+    """
+    Table.write() of a bytes column holding a form feed raises a ValueError.
+    From https://github.com/astropy/astropy/issues/20457
+    """
+    t = Table({"target": [b"NGC\x0c1068"]})
+
+    with pytest.raises(ValueError, match="XML does not permit this character"):
+        t.write(tmp_path / "test.vot", format="votable")
+
+
 @pytest.mark.parametrize("char", ["\t", " ", "\x7f", "\xa0", "\ufffd", "\U0001f600"])
 def test_write_allows_permitted_chars(tmp_path, char):
     # These are legal XML characters and must keep round tripping.  U+007F in
