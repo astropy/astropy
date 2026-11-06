@@ -1113,135 +1113,127 @@ class Card(_Verify):
         return "".join(output)
 
     def _verify(self, option="warn"):
-        errs = []
-        fix_text = f"Fixed {self.keyword!r} card to meet the FITS standard."
+        # Reading self.keyword parses the card's text, which sets self._invalid
+        # and self._hierarch.
+        keyword = self.keyword
 
         # Don't try to verify cards that already don't meet any recognizable
         # standard
         if self._invalid:
-            return _ErrList(errs)
+            return _ErrList([])
 
-        # verify the equal sign position
-        if self.keyword not in self._commentary_keywords and (
-            self._image
-            and self._image[:9].upper() != "HIERARCH "
-            and self._image.find("=") != 8
+        # The layout and keyword case checks look for problems in text written
+        # elsewhere. Keep the text from before _split(), so they skip a card
+        # that had no text.
+        text = self._image
+        raw_keyword, valuecomment = self._split()
+
+        # Each check returns (message, fix) pairs; fix is None when the error
+        # cannot be fixed.
+        errs = []
+        errs += self._verify_layout(text)
+        errs += self._verify_keyword_name(text, raw_keyword)
+        errs += self._verify_value(valuecomment)
+        errs += self._verify_comment(valuecomment)
+
+        fix_text = f"Fixed {keyword!r} card to meet the FITS standard."
+        results = _ErrList()
+        for message, fix in errs:
+            fixable = fix is not None
+            results.append(self.run_option(option, message, fix_text, fix, fixable))
+        self._verified = True
+        return results
+
+    def _verify_layout(self, text):
+        """
+        Check that the first equal sign is at index 8, and that no CONTINUE
+        card has its string right after the keyword.
+        """
+        if not text or self.keyword in self._commentary_keywords:
+            return []
+
+        errs = []
+        if text[:9].upper() != "HIERARCH " and text.find("=") != 8:
+            message = (
+                f"Card {self.keyword!r} is not FITS standard (equal sign not "
+                "at column 8)."
+            )
+            errs.append((message, self._fix_value))
+
+        # Not checked once the value is replaced, because the card is then
+        # rewritten.
+        continue_starts = range(self.length, len(text), self.length)
+        if not self._valuemodified and any(
+            text[start + KEYWORD_LENGTH] == "'" for start in continue_starts
         ):
+            message = (
+                f"Card {self.keyword!r} is not FITS standard (no space "
+                "between CONTINUE and the string)."
+            )
+            errs.append((message, self._fix_value))
+        return errs
+
+    def _verify_keyword_name(self, text, raw_keyword):
+        """
+        Check that the keyword is upper case and uses only characters the
+        standard allows. HIERARCH keywords are not checked.
+        """
+        if (text and text[:8].upper() == "HIERARCH") or self._hierarch:
+            return []
+
+        errs = []
+        # Keywords set from Python are upper-cased, so only text read from a
+        # file can be lower case.
+        if text and raw_keyword != raw_keyword.upper():
             errs.append(
-                {
-                    "err_text": (
-                        f"Card {self.keyword!r} is not FITS standard (equal sign not "
-                        "at column 8)."
-                    ),
-                    "fix_text": fix_text,
-                    "fix": self._fix_value,
-                }
+                (f"Card keyword {raw_keyword!r} is not upper case.", self._fix_keyword)
             )
 
-        # verify that no CONTINUE string starts right after the keyword; not
-        # checked once the value is replaced, because the card is then rewritten
-        if (
-            self._image
-            and self.keyword not in self._commentary_keywords
-            and not self._valuemodified
-        ):
-            continue_starts = range(self.length, len(self._image), self.length)
-            if any(
-                self._image[start + KEYWORD_LENGTH] == "'" for start in continue_starts
-            ):
-                errs.append(
-                    {
-                        "err_text": (
-                            f"Card {self.keyword!r} is not FITS standard (no space "
-                            "between CONTINUE and the string)."
-                        ),
-                        "fix_text": fix_text,
-                        "fix": self._fix_value,
-                    }
-                )
-
-        # verify the key, it is never fixable
-        # always fix silently the case where "=" is before column 9,
-        # since there is no way to communicate back to the _keys.
-        if (self._image and self._image[:8].upper() == "HIERARCH") or self._hierarch:
-            pass
-        else:
-            if self._image:
-                # PyFITS will auto-uppercase any standard keyword, so lowercase
-                # keywords can only occur if they came from the wild
-                keyword = self._split()[0]
-                if keyword != keyword.upper():
-                    # Keyword should be uppercase unless it's a HIERARCH card
-                    errs.append(
-                        {
-                            "err_text": f"Card keyword {keyword!r} is not upper case.",
-                            "fix_text": fix_text,
-                            "fix": self._fix_keyword,
-                        }
-                    )
-
-            keyword = self.keyword
-            if self.field_specifier:
-                keyword = keyword.split(".", 1)[0]
-
-            if not self._keywd_FSC_RE.match(keyword):
-                errs.append(
-                    {"err_text": f"Illegal keyword name {keyword!r}", "fixable": False}
-                )
-
-        # verify the value, it may be fixable
-        keyword, valuecomment = self._split()
-        if self.keyword in self._commentary_keywords:
-            # For commentary keywords all that needs to be ensured is that it
-            # contains only printable ASCII characters
-            if not self._ascii_text_re.match(valuecomment):
-                errs.append(
-                    {
-                        "err_text": (
-                            f"Unprintable string {valuecomment!r}; commentary "
-                            "cards may only contain printable ASCII characters"
-                        ),
-                        "fixable": False,
-                    }
-                )
-        else:
-            if not self._valuemodified:
-                m = self._value_FSC_RE.match(valuecomment)
-                # If the value of a card was replaced before the card was ever
-                # even verified, the new value can be considered valid, so we
-                # don't bother verifying the old value.  See
-                # https://github.com/astropy/astropy/issues/5408
-                if m is None:
-                    errs.append(
-                        {
-                            "err_text": (
-                                f"Card {self.keyword!r} is not FITS standard "
-                                f"(invalid value string: {valuecomment!r})."
-                            ),
-                            "fix_text": fix_text,
-                            "fix": self._fix_value,
-                        }
-                    )
-
-        # verify the comment (string), it is never fixable
-        m = self._value_NFSC_RE.match(valuecomment)
-        if m is not None:
-            comment = m.group("comm")
-            if comment is not None:
-                if not self._ascii_text_re.match(comment):
-                    errs.append(
-                        {
-                            "err_text": (
-                                f"Unprintable string {comment!r}; header comments "
-                                "may only contain printable ASCII characters"
-                            ),
-                            "fixable": False,
-                        }
-                    )
-
-        errs = _ErrList([self.run_option(option, **err) for err in errs])
-        self._verified = True
+        keyword = self.keyword
+        if self.field_specifier:
+            keyword = keyword.split(".", 1)[0]
+        if not self._keywd_FSC_RE.match(keyword):
+            errs.append((f"Illegal keyword name {keyword!r}", None))
         return errs
+
+    def _verify_value(self, valuecomment):
+        """
+        Check that commentary text is printable ASCII, and that other values
+        follow the standard's fixed format.
+        """
+        if self.keyword in self._commentary_keywords:
+            if self._ascii_text_re.match(valuecomment):
+                return []
+            message = (
+                f"Unprintable string {valuecomment!r}; commentary cards may "
+                "only contain printable ASCII characters"
+            )
+            return [(message, None)]
+
+        # A value replaced before the card was first verified counts as valid,
+        # so the old value is not checked; see
+        # https://github.com/astropy/astropy/issues/5408
+        if self._valuemodified or self._value_FSC_RE.match(valuecomment):
+            return []
+        message = (
+            f"Card {self.keyword!r} is not FITS standard (invalid value "
+            f"string: {valuecomment!r})."
+        )
+        return [(message, self._fix_value)]
+
+    def _verify_comment(self, valuecomment):
+        """Check that the comment is printable ASCII."""
+        m = self._value_NFSC_RE.match(valuecomment)
+        if m is None:
+            return []
+        comment = m.group("comm")
+        if comment is None or self._ascii_text_re.match(comment):
+            return []
+        message = (
+            f"Unprintable string {comment!r}; header comments may only "
+            "contain printable ASCII characters"
+        )
+        return [(message, None)]
 
     def _itersubcards(self):
         """
