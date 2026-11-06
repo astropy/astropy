@@ -8,7 +8,7 @@ from math import ceil
 
 from astropy import online_docs_root
 from astropy.io.votable import exceptions
-from astropy.utils.xml.writer import _html_escape, _HTMLWriter
+from astropy.utils.xml.writer import _html_escape, _MarkupWriter
 
 html_header = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html
@@ -129,7 +129,7 @@ def write_result(result):
     path = os.path.join(result.get_dirpath(), "index.html")
 
     with open(path, "w", encoding="utf-8") as fd:
-        w = _HTMLWriter(fd)
+        w = _MarkupWriter(fd)
         with make_html_header(w):
             with w.tag("p"):
                 with w.tag("a", href="vo.xml"):
@@ -251,7 +251,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
         subresults = results[j : j + chunk_size]
         path = os.path.join(root, f"{basename}_{i:02d}.html")
         with open(path, "w", encoding="utf-8") as fd:
-            w = _HTMLWriter(fd)
+            w = _MarkupWriter(fd)
             with make_html_header(w):
                 write_page_links(i)
 
@@ -295,7 +295,7 @@ def add_subset(w, basename, name, subresults, inside=["p"], total=None):  # ruff
 def write_index(subsets, results, root="results"):
     path = os.path.join(root, "index.html")
     with open(path, "w", encoding="utf-8") as fd:
-        w = _HTMLWriter(fd)
+        w = _MarkupWriter(fd)
         with make_html_header(w):
             w.element("h1", "VO Validation results")
 

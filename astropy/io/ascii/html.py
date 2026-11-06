@@ -380,8 +380,8 @@ class HTML(core.BaseReader):
         # Kwargs that get passed on to bleach.clean() if that is available.
         raw_html_clean_kwargs = self.html.get("raw_html_clean_kwargs", {})
 
-        # Use XMLWriter to output HTML to lines
-        w = writer._HTMLWriter(ListWriter(lines))
+        # Write HTML to lines
+        w = writer._MarkupWriter(ListWriter(lines))
 
         with w.tag("html"):
             with w.tag("head"):

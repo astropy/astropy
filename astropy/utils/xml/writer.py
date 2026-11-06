@@ -17,7 +17,7 @@ from ._iterparser import escape_xml_cdata as xml_escape_cdata
 # xml_escape and xml_escape_cdata refuse characters that XML does not allow
 # anywhere in a document.  HTML parsers tolerate them, so astropy's HTML output
 # uses _html_escape and _html_escape_cdata, which escape the same way without
-# that check.  See _HTMLWriter below for the writer equivalent.
+# that check.  See _MarkupWriter below for the writer equivalent.
 
 
 def _validate_xml_chars(text):
@@ -395,14 +395,11 @@ class XMLWriter:
         return d
 
 
-class _HTMLWriter(XMLWriter):
+class _MarkupWriter(XMLWriter):
     """
-    An `XMLWriter` for HTML output.
-
-    It escapes text and attributes the same way, but does not refuse the
-    characters XML does not allow: HTML parsers tolerate them, and astropy's
-    HTML output, such as a table's notebook display or a validation report
-    about a broken file, should not fail on them.
+    Writes elements as escaped, tagged text, like `XMLWriter`, but does not
+    check for characters that XML does not allow.  Used for HTML and for
+    reprs.
     """
 
     _check_chars = False
