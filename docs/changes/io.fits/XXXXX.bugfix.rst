@@ -1,0 +1,1 @@
+Fixed a disagreement between the fast FITS header parser and :class:`~astropy.io.fits.Header` on duplicate keywords: the Cython parser now keeps the first occurrence, matching the documented ``Header`` behaviour. Previously ``fits.open()`` could use later ``NAXIS`` / ``BITPIX`` / ``BSCALE`` values while ``hdu.header`` still exposed the earlier ones.

@@ -50,12 +50,20 @@ def parse_header(fileobj):
             if card_image[8:10] == VALUE_INDICATOR:
                 # ok, found standard keyword
                 keyword = card_image[:8].strip()
-                cards[keyword.upper()] = card_image
+                # Keep the first occurrence so this matches Header, which
+                # documents first-wins for duplicate keywords. Otherwise
+                # fits.open() can interpret data from later cards while
+                # exposing earlier values via hdu.header.
+                key = keyword.upper()
+                if key not in cards:
+                    cards[key] = card_image
             else:
                 sep_idx = card_image.find(VALUE_INDICATOR, 0, 8)
                 if sep_idx > 0:
                     keyword = card_image[:sep_idx]
-                    cards[keyword.upper()] = card_image
+                    key = keyword.upper()
+                    if key not in cards:
+                        cards[key] = card_image
                 elif card_image == END_CARD:
                     found_end = 1
                     break

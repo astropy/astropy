@@ -10,7 +10,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.io.fits.card import _pad
-from astropy.io.fits.header import _pad_length
+from astropy.io.fits.header import _BasicHeader, _pad_length
 from astropy.io.fits.scripts import fitsheader
 from astropy.io.fits.util import encode_ascii
 from astropy.io.fits.verify import VerifyError, VerifyWarning
@@ -2431,6 +2431,56 @@ class TestHeaderFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits")) as hdul:
             assert hdul[0].header["HISTORY"] == history
+
+
+    def test_duplicate_keyword_first_wins_in_fast_parser(self):
+        """Fast Cython parser must match Header first-wins on duplicate keywords.
+
+        Regression for the disagreement where parse_header kept the last card
+        while Header kept the first, so fits.open() could use different NAXIS /
+        BITPIX / BSCALE values than those exposed on hdu.header.
+        """
+        cards = [
+            fits.Card("SIMPLE", True),
+            fits.Card("BITPIX", 16),
+            fits.Card("NAXIS", 1),
+            fits.Card("NAXIS1", 4),
+            fits.Card("NAXIS1", 8),
+        ]
+        raw = "".join(c.image for c in cards) + "END".ljust(80)
+        raw = raw + " " * (-len(raw) % 2880)
+
+        assert fits.Header.fromstring(raw)["NAXIS1"] == 4
+        _, basic = _BasicHeader.fromfile(BytesIO(raw.encode("ascii")))
+        assert basic["NAXIS1"] == 4
+
+    def test_duplicate_keyword_header_matches_used_header(self):
+        """fits.open must use the same duplicate-keyword values as hdu.header."""
+        cards = [
+            fits.Card("SIMPLE", True),
+            fits.Card("BITPIX", 16),
+            fits.Card("NAXIS", 1),
+            fits.Card("NAXIS1", 4),
+            fits.Card("NAXIS1", 8),
+        ]
+        header_bytes = "".join(c.image for c in cards) + "END".ljust(80)
+        header_bytes = header_bytes + " " * (-len(header_bytes) % 2880)
+        data = np.arange(8, dtype=">i2").tobytes()
+        blob = (header_bytes.encode("ascii") + data)
+        blob = blob + b"\0" * (-len(blob) % 2880)
+
+        with fits.open(BytesIO(blob)) as hdul:
+            hdu = hdul[0]
+            assert hdu.header["NAXIS1"] == 4
+            assert hdu.shape == (4,)
+            np.testing.assert_array_equal(hdu.data, np.arange(4))
+
+        with fits.HDUList.fromstring(blob) as hdul:
+            hdu = hdul[0]
+            assert hdu.header["NAXIS1"] == 4
+            assert hdu.shape == (4,)
+            np.testing.assert_array_equal(hdu.data, np.arange(4))
+
 
     def test_invalid_keyword_cards(self):
         """
