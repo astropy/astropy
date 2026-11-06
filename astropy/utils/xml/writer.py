@@ -101,17 +101,19 @@ class XMLWriter:
                     data = textwrap.fill(
                         data, initial_indent=indent, subsequent_indent=indent
                     )
-                    self.write("\n")
-                    self.write(self.xml_escape_cdata(data))
-                    self.write("\n")
-                    self.write(self.get_indentation_spaces())
-                else:
-                    self.write(self.xml_escape_cdata(data))
+                data = self.xml_escape_cdata(data)
             except ValueError as exc:
                 if tag is None and self._tags:
                     tag = self._tags[-1]
                 where = f"in text of element {tag!r}: " if tag else ""
                 raise ValueError(f"{where}{exc}") from exc
+            if wrap:
+                self.write("\n")
+                self.write(data)
+                self.write("\n")
+                self.write(self.get_indentation_spaces())
+            else:
+                self.write(data)
             self._data = []
 
     def start(self, tag, attrib={}, **extra):

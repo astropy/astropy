@@ -193,6 +193,20 @@ def test_writer_rejects_forbidden_chars_without_escaping():
                 w.data("the\x0ctarget")
 
 
+def test_writer_passes_on_errors_from_the_file():
+    """
+    XMLWriter writing text to a file that cannot encode it raises the file's
+    UnicodeEncodeError unchanged.
+    """
+    fh = io.TextIOWrapper(io.BytesIO(), encoding="ascii")
+    w = writer.XMLWriter(fh)
+    w.start("name")
+    w.data("the\u00a0target")
+
+    with pytest.raises(UnicodeEncodeError, match=r"^'ascii' codec can't encode"):
+        w.end()
+
+
 # The HTML escapers do not check characters, but a lone surrogate still
 # cannot be encoded as UTF-8, so leave those out.
 FORBIDDEN_XML_CHARS_ENCODABLE = [
