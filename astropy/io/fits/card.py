@@ -874,7 +874,12 @@ class Card(_Verify):
             return keyword, valuecomment
 
         if self.keyword in self._special_keywords:
-            keyword, valuecomment = image.split(" ", 1)
+            keyword = image[:KEYWORD_LENGTH]
+            valuecomment = image[KEYWORD_LENGTH:]
+            if self.keyword == "CONTINUE":
+                # The standard has spaces in columns 9 and 10 of a CONTINUE
+                # card. "= " there is not standard, but is still read.
+                valuecomment = valuecomment.removeprefix("=")
         else:
             try:
                 delim_index = image.index(self._value_indicator)
@@ -1132,6 +1137,28 @@ class Card(_Verify):
                     "fix": self._fix_value,
                 }
             )
+
+        # verify that no CONTINUE string starts right after the keyword; not
+        # checked once the value is replaced, because the card is then rewritten
+        if (
+            self._image
+            and self.keyword not in self._commentary_keywords
+            and not self._valuemodified
+        ):
+            continue_starts = range(self.length, len(self._image), self.length)
+            if any(
+                self._image[start + KEYWORD_LENGTH] == "'" for start in continue_starts
+            ):
+                errs.append(
+                    {
+                        "err_text": (
+                            f"Card {self.keyword!r} is not FITS standard (no space "
+                            "between CONTINUE and the string)."
+                        ),
+                        "fix_text": fix_text,
+                        "fix": self._fix_value,
+                    }
+                )
 
         # verify the key, it is never fixable
         # always fix silently the case where "=" is before column 9,

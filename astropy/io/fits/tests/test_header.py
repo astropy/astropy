@@ -19,6 +19,14 @@ from astropy.utils.misc import _NOT_OVERWRITING_MSG_MATCH
 
 from .conftest import FitsTestCase
 
+# A long string card from a GOES-16 SUVI file, which has no spaces after
+# CONTINUE (https://github.com/astropy/astropy/issues/11815)
+CONTINUE_WITHOUT_SPACES = (
+    "ORIGIN  = 'DOC/NOAA/NESDIS> U.S. Department of Commerce, National Oceanic and &'"
+    "CONTINUE'Atmospheric Administration, National Environmental Satellite, Data,&'  "
+    "CONTINUE' and Information Services'                                             "
+)
+
 
 def test_shallow_copy():
     """Make sure that operations on a shallow copy do not alter the original.
@@ -658,6 +666,87 @@ class TestHeaderFunctions(FitsTestCase):
             "CONTINUE  '&' / comment &long comment &long comment &long comment &long comment "
             "CONTINUE  '' / &long comment &                                                  "
         )
+
+    def test_continue_card_without_spaces_value(self):
+        """
+        Card.fromstring with CONTINUE cards that have no spaces after the
+        keyword gives the whole string value.
+        """
+        c = fits.Card.fromstring(CONTINUE_WITHOUT_SPACES)
+        assert c.value == (
+            "DOC/NOAA/NESDIS> U.S. Department of Commerce, National Oceanic and "
+            "Atmospheric Administration, National Environmental Satellite, Data, "
+            "and Information Services"
+        )
+
+    def test_continue_card_without_spaces_in_header(self):
+        """
+        Header.fromstring with CONTINUE cards that have no spaces after the
+        keyword gives the whole string value for the keyword.
+        """
+        h = fits.Header.fromstring(CONTINUE_WITHOUT_SPACES)
+        assert h["ORIGIN"] == (
+            "DOC/NOAA/NESDIS> U.S. Department of Commerce, National Oceanic and "
+            "Atmospheric Administration, National Environmental Satellite, Data, "
+            "and Information Services"
+        )
+
+    def test_continue_card_without_spaces_verify(self):
+        """
+        Card.verify("exception") on CONTINUE cards that have no spaces after
+        the keyword raises VerifyError.
+        """
+        c = fits.Card.fromstring(CONTINUE_WITHOUT_SPACES)
+        with pytest.raises(
+            VerifyError, match="no space between CONTINUE and the string"
+        ):
+            c.verify("exception")
+
+    def test_continue_card_without_spaces_fix(self):
+        """
+        Card.verify("silentfix") on CONTINUE cards that have no spaces after
+        the keyword rewrites them with two spaces after CONTINUE.
+        """
+        c = fits.Card.fromstring(CONTINUE_WITHOUT_SPACES)
+        c.verify("silentfix")
+        assert str(c) == (
+            "ORIGIN  = 'DOC/NOAA/NESDIS> U.S. Department of Commerce, National Oceanic and &'"
+            "CONTINUE  'Atmospheric Administration, National Environmental Satellite, &'     "
+            "CONTINUE  'Data, and Information Services'                                      "
+        )
+
+    def test_continue_card_without_spaces_replaced_value(self):
+        """
+        Card.verify("exception") on CONTINUE cards that have no spaces after
+        the keyword, once the value has been replaced, does not raise.
+        """
+        c = fits.Card.fromstring(CONTINUE_WITHOUT_SPACES)
+        c.value = "replaced"
+        c.verify("exception")
+
+    def test_continue_card_with_equal_sign_value(self):
+        """
+        Card.fromstring with a CONTINUE card that has "= " after the keyword
+        gives the whole string value.
+        """
+        c = fits.Card.fromstring(_pad("ABC     = 'aaa&'") + _pad("CONTINUE= 'bbb'"))
+        assert c.value == "aaabbb"
+
+    def test_continue_card_with_equal_sign_verify(self):
+        """
+        Card.verify("exception") on a CONTINUE card that has "= " after the
+        keyword does not raise.
+        """
+        c = fits.Card.fromstring(_pad("ABC     = 'aaa&'") + _pad("CONTINUE= 'bbb'"))
+        c.verify("exception")
+
+    def test_continue_card_with_one_space_verify(self):
+        """
+        Card.verify("exception") on a CONTINUE card that has one space after
+        the keyword does not raise.
+        """
+        c = fits.Card.fromstring(_pad("ABC     = 'aaa&'") + _pad("CONTINUE 'bbb'"))
+        c.verify("exception")
 
     def test_hierarch_card_creation(self):
         # Test automatic upgrade to hierarch card
