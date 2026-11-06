@@ -2676,7 +2676,9 @@ Wcsprm_get_cdelt(
   naxis = self->x.naxis;
 
   if (self->x.altlin & has_cd) {
-    PyErr_WarnEx(NULL, "cdelt will be ignored since cd is present", 1);
+    if (PyErr_WarnEx(NULL, "cdelt will be ignored since cd is present", 1)) {
+      return NULL;
+    }
   }
 
   if (self->unit_scaling != NULL) {
@@ -2706,7 +2708,9 @@ Wcsprm_set_cdelt(
   dims = (npy_int)self->x.naxis;
 
   if (self->x.altlin & has_cd) {
-    PyErr_WarnEx(NULL, "cdelt will be ignored since cd is present", 1);
+    if (PyErr_WarnEx(NULL, "cdelt will be ignored since cd is present", 1)) {
+      return -1;
+    }
   }
 
   note_change(self);
