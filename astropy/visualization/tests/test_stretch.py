@@ -20,10 +20,10 @@ from astropy.visualization.stretch import (
     SquaredStretch,
 )
 
-DATA = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
+DATA = np.array([0.0, 0.25, 0.50, 0.75, 1.00])
 
 RESULTS = {}
-RESULTS[LinearStretch()] = np.array([0.00, 0.25, 0.50, 0.75, 1.00])
+RESULTS[LinearStretch()] = np.array([0.0, 0.25, 0.50, 0.75, 1.00])
 RESULTS[LinearStretch(intercept=0.5) + LinearStretch(slope=0.5)] = np.array(
     [0.5, 0.625, 0.75, 0.875, 1.0]
 )
@@ -155,7 +155,7 @@ def test_sinh_a():
 
 
 def test_histeqstretch_invalid():
-    data = np.array([-np.inf, 0.00, 0.25, 0.50, 0.75, 1.00, np.inf])
+    data = np.array([-np.inf, 0.0, 0.25, 0.50, 0.75, 1.00, np.inf])
     result = np.array([0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0])
     assert_equal(HistEqStretch(data)(data), result)
     assert_equal(InvertedHistEqStretch(data)(data), result)

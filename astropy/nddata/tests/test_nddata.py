@@ -165,7 +165,7 @@ def test_nddata_init_data_maskedarray():
     assert_array_equal(nd.data, marr.data)
     # check that they are both by reference
     marr.mask[10] = ~marr.mask[10]
-    marr.data[11] = 123456789
+    marr.data[11] = 123_456_789
     assert_array_equal(nd.mask, marr.mask)
     assert_array_equal(nd.data, marr.data)
 

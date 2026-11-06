@@ -47,7 +47,9 @@ class TestBasic:
         assert (iers_tab["UT1_UTC"].unit / u.second).is_unity()
         assert (iers_tab["PM_x"].unit / u.arcsecond).is_unity()
         assert (iers_tab["PM_y"].unit / u.arcsecond).is_unity()
-        jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
+        jd1 = np.array(
+            [2.4561085e6, 2.4561085e6, 2.4561085e6, 2.4561095e6, 2.4561095e6]
+        )
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
         ut1_utc = iers_tab.ut1_utc(jd1, jd2)
         assert isinstance(ut1_utc, u.Quantity)
@@ -209,7 +211,9 @@ class TestIERS_A:
         # Ensure we remove any cached table (gh-5131).
         iers.IERS_A.close()
         iers_tab = iers.IERS_A.open()
-        jd1 = np.array([2456108.5, 2456108.5, 2456108.5, 2456109.5, 2456109.5])
+        jd1 = np.array(
+            [2.4561085e6, 2.4561085e6, 2.4561085e6, 2.4561095e6, 2.4561095e6]
+        )
         jd2 = np.array([0.49999421, 0.99997685, 0.99998843, 0.0, 0.5])
         ut1_utc, status = iers_tab.ut1_utc(jd1, jd2, return_status=True)
         assert np.all(status == iers.FROM_IERS_B)
