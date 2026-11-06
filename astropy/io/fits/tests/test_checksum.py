@@ -487,6 +487,54 @@ class TestChecksumFunctions(BaseChecksumTests):
             assert (data2["TIME"][1:] == data["TIME"][1:]).all()
             assert data2["TIME"][0] == 42
 
+    def test_update_mode_preserve_custom_checksum_comment(self):
+        """
+        Regression test for https://github.com/astropy/astropy/issues/20789
+
+        An explicit ``add_checksum(when=...)`` in update mode should survive
+        the automatic checksum update triggered on flush/close.
+        """
+        testfile = self.temp("tmp.fits")
+        hdu = fits.PrimaryHDU(data=np.zeros((2, 2), dtype=np.int32))
+        hdu.add_checksum()
+        hdu.writeto(testfile, overwrite=True)
+
+        custom = "This is a custom `when` comment"
+        with fits.open(testfile, mode="update") as hdul:
+            hdul[0].data[0, 0] = 5
+            hdul[0].add_checksum(when=custom)
+            assert hdul[0].header.comments["CHECKSUM"] == custom
+            assert hdul[0].header.comments["DATASUM"] == custom
+
+        with fits.open(testfile) as hdul:
+            assert hdul[0].header.comments["CHECKSUM"] == custom
+            assert hdul[0].header.comments["DATASUM"] == custom
+            assert hdul[0].verify_checksum() == 1
+            assert hdul[0].verify_datasum() == 1
+
+    def test_update_mode_preserve_distinct_checksum_comments(self):
+        """
+        Distinct DATASUM and CHECKSUM comments should each be preserved
+        across the automatic update on flush/close.
+        """
+        testfile = self.temp("tmp.fits")
+        hdu = fits.PrimaryHDU(data=np.zeros((2, 2), dtype=np.int32))
+        hdu.add_checksum()
+        hdu.writeto(testfile, overwrite=True)
+
+        with fits.open(testfile, mode="update") as hdul:
+            hdul[0].data[0, 0] = 7
+            hdul[0].add_datasum(when="datasum-specific comment")
+            hdul[0].add_checksum(
+                when="checksum-specific comment", override_datasum=True
+            )
+
+        with fits.open(testfile) as hdul:
+            assert hdul[0].header.comments["DATASUM"] == "datasum-specific comment"
+            assert hdul[0].header.comments["CHECKSUM"] == "checksum-specific comment"
+            assert hdul[0].verify_checksum() == 1
+            assert hdul[0].verify_datasum() == 1
+
     def test_overwrite_invalid(self):
         """
         Tests that invalid checksum or datasum are overwritten when the file is

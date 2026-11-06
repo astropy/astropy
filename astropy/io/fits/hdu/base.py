@@ -1370,12 +1370,49 @@ class _ValidHDU(_BaseHDU, _Verify):
                 )
             )
         ):
+            # Preserve any existing custom comments on the checksum/datasum
+            # cards so that an explicit ``add_checksum(when=...)`` (or a custom
+            # comment loaded from the file) is not silently overwritten by the
+            # automatic timestamp comment when the HDU is flushed.  The default
+            # timestamp comments are not preserved, so that automatic updates
+            # still refresh them.
+            def _preserved_comment(keyword):
+                if keyword not in self._header:
+                    return None
+                comment = self._header.comments[keyword]
+                if not comment or comment.startswith(
+                    ("HDU checksum updated ", "data unit checksum updated ")
+                ):
+                    return None
+                return comment
+
             if self._output_checksum == "datasum":
-                self.add_datasum(datasum_keyword=datasum_keyword)
-            elif self._output_checksum:
-                self.add_checksum(
-                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
+                self.add_datasum(
+                    when=_preserved_comment(datasum_keyword),
+                    datasum_keyword=datasum_keyword,
                 )
+            elif self._output_checksum:
+                checksum_when = _preserved_comment(checksum_keyword)
+                datasum_when = _preserved_comment(datasum_keyword)
+                if checksum_when == datasum_when:
+                    self.add_checksum(
+                        when=checksum_when,
+                        checksum_keyword=checksum_keyword,
+                        datasum_keyword=datasum_keyword,
+                    )
+                else:
+                    # The comments differ; update each card with its own
+                    # preserved comment.  ``add_checksum`` with
+                    # ``override_datasum=True`` sets the CHECKSUM card only,
+                    # leaving the DATASUM card (and its comment) from the
+                    # preceding ``add_datasum`` call intact.
+                    self.add_datasum(when=datasum_when, datasum_keyword=datasum_keyword)
+                    self.add_checksum(
+                        when=checksum_when,
+                        override_datasum=True,
+                        checksum_keyword=checksum_keyword,
+                        datasum_keyword=datasum_keyword,
+                    )
 
     def _get_timestamp(self):
         """

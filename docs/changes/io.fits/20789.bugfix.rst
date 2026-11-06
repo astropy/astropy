@@ -1,0 +1,5 @@
+Fixed FITS checksum comments set with ``add_checksum(when=...)`` being
+overwritten with the default timestamp comment when a file opened in update
+mode was flushed.  Automatic checksum updates now preserve existing custom
+``CHECKSUM``/``DATASUM`` comments while still refreshing the default
+timestamp comments.
