@@ -19,7 +19,7 @@ from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, W58, VOWarnin
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
 from astropy.io.votable.xmlutil import check_token
-from astropy.table import Column, Table
+from astropy.table import Column, MaskedColumn, Table
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
@@ -1078,3 +1078,17 @@ def test_forbidden_xml_char_error_matches_on_both_paths():
         from_table(table).to_xml(io.BytesIO(), _debug_python_based_parser=True)
 
     assert str(c_path.value) == str(python_path.value)
+
+
+def test_forbidden_xml_char_error_skips_masked_cells():
+    """
+    to_xml() of a table with a masked int cell ahead of a cell holding a form
+    feed raises a ValueError naming the form feed's cell, without warning.
+    The C writer skips the masked cell, so finding the bad cell must too.
+    """
+    table = Table(
+        {"n": MaskedColumn([1, 2], mask=[True, False]), "target": ["a", "b\x0cc"]}
+    )
+
+    with pytest.raises(ValueError, match=r"in row 1, col 'target'"):
+        from_table(table).to_xml(io.BytesIO(), _debug_python_based_parser=False)

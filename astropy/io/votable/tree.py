@@ -7,10 +7,12 @@ import binascii
 import codecs
 import gzip
 import io
+import itertools
 import json
 import os
 import re
 import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -3391,7 +3393,7 @@ class TableElement(
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
 
-    def _find_unwritable_cell(self, outputs):
+    def _find_unwritable_cell(self, outputs, supports_empty_values):
         """
         Find the first cell that its converter refuses to write.
 
@@ -3399,16 +3401,34 @@ class TableElement(
         ``(row, field)``, or ``(None, None)`` if every cell converts cleanly
         and the failure was something else.
         """
-        array = self.array
-        for row in range(len(array)):
-            array_row = array.data[row]
-            mask_row = array.mask[row]
-            for i, output in enumerate(outputs):
-                try:
-                    output(array_row[i], mask_row[i])
-                except Exception:
+        cells = itertools.product(range(len(self.array)), range(len(outputs)))
+        # The failed write already converted, and warned about, every cell
+        # before the bad one.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for row, i in cells:
+                if not self._cell_converts(
+                    row, i, outputs[i], supports_empty_values[i]
+                ):
                     return row, self.fields[i]
         return None, None
+
+    def _cell_converts(self, row, i, output, supports_empty_values):
+        """
+        Whether the TABLEDATA writer writes cell ``(row, i)`` without error.
+
+        Like the writer, skip the converter for a fully masked cell when the
+        field can be written empty.
+        """
+        value = self.array.data[row][i]
+        masked = self.array.mask[row][i]
+        if supports_empty_values and np.all(masked):
+            return True
+        try:
+            output(value, masked)
+        except Exception:
+            return False
+        return True
 
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
@@ -3435,7 +3455,9 @@ class TableElement(
                 except (ValueError, TypeError, AttributeError) as e:
                     # The C writer cannot say which cell it failed at writing, so find
                     # the offending cell here to give the Exception a more useful message.
-                    row, field = self._find_unwritable_cell(outputs)
+                    row, field = self._find_unwritable_cell(
+                        outputs, supports_empty_values
+                    )
                     # ValueError can also come from writing to a closed file, so if no
                     # cell fails, just raise.
                     if field is None:
