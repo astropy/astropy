@@ -221,38 +221,38 @@ def test_escape_html_escapes_like_escape_xml():
     assert writer._html_escape_cdata(text) == writer.xml_escape_cdata(text)
 
 
-def test_html_writer_keeps_xml_forbidden_chars_in_text():
+def test_markup_writer_keeps_xml_forbidden_chars_in_text():
     """
-    _HTMLWriter writing a form feed in element text writes it unchanged.
+    _MarkupWriter writing a form feed in element text writes it unchanged.
     """
     fh = io.StringIO()
-    w = writer._HTMLWriter(fh)
+    w = writer._MarkupWriter(fh)
     with w.tag("td"):
         w.data("the\x0ctarget")
 
     assert fh.getvalue() == "<td>\nthe\x0ctarget</td>\n"
 
 
-def test_html_writer_keeps_xml_forbidden_chars_in_attribute():
+def test_markup_writer_keeps_xml_forbidden_chars_in_attribute():
     """
-    _HTMLWriter writing a form feed in an attribute value writes it
+    _MarkupWriter writing a form feed in an attribute value writes it
     unchanged.
     """
     fh = io.StringIO()
-    w = writer._HTMLWriter(fh)
+    w = writer._MarkupWriter(fh)
     w.start("td", {"title": "the\x0ctarget"})
     w.end()
 
     assert fh.getvalue() == '<td title="the\x0ctarget"/>\n'
 
 
-def test_html_writer_keeps_xml_forbidden_chars_without_escaping():
+def test_markup_writer_keeps_xml_forbidden_chars_without_escaping():
     """
-    _HTMLWriter writing a form feed in element text under
+    _MarkupWriter writing a form feed in element text under
     xml_cleaning_method("none") writes it unchanged.
     """
     fh = io.StringIO()
-    w = writer._HTMLWriter(fh)
+    w = writer._MarkupWriter(fh)
     with w.xml_cleaning_method("none"):
         with w.tag("script"):
             w.data("the\x0ctarget")

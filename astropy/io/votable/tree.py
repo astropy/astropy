@@ -25,7 +25,7 @@ from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
-from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.xml.writer import XMLWriter, _MarkupWriter
 
 from . import converters, util, xmlutil
 from . import ucd as ucd_mod
@@ -584,7 +584,7 @@ class SimpleElement(Element):
 
     def __repr__(self):
         buff = io.StringIO()
-        SimpleElement.to_xml(self, XMLWriter(buff))
+        SimpleElement.to_xml(self, _MarkupWriter(buff))
         return buff.getvalue().strip()
 
     def parse(self, iterator, config):
@@ -993,7 +993,7 @@ class Values(Element, _IDProperty):
 
     def __repr__(self):
         buff = io.StringIO()
-        self.to_xml(XMLWriter(buff))
+        self.to_xml(_MarkupWriter(buff))
         return buff.getvalue().strip()
 
     @property
@@ -3916,7 +3916,7 @@ class Resource(
 
     def __repr__(self):
         buff = io.StringIO()
-        w = XMLWriter(buff)
+        w = _MarkupWriter(buff)
         w.element(self._element_name, attrib=w.object_attrs(self, self._attr_list))
         return buff.getvalue().strip()
 

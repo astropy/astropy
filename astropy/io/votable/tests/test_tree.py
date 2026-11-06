@@ -708,3 +708,31 @@ def test_votablefile_write(tmp_path):
 
     # format kwarg should be accepted and ignored for API compatibility
     vot.write(str(out), format="votable")
+
+
+def test_field_repr_keeps_xml_forbidden_chars():
+    """
+    repr() of a Field whose name holds a form feed shows the form feed
+    unchanged.
+    """
+    field = tree.Field(
+        VOTableFile(), ID="target", name="NGC\x0c1068", datatype="char", arraysize="*"
+    )
+
+    assert repr(field) == (
+        '<FIELD ID="target" arraysize="*" datatype="char" name="NGC\x0c1068"/>'
+    )
+
+
+def test_values_repr_keeps_xml_forbidden_chars():
+    """
+    repr() of a Values whose ref holds a form feed shows the form feed
+    unchanged.
+    """
+    votable = VOTableFile()
+    field = tree.Field(
+        votable, ID="target", name="target", datatype="char", arraysize="*"
+    )
+    values = tree.Values(votable, field, ref="NGC\x0c1068")
+
+    assert repr(values) == '<VALUES ref="NGC\x0c1068"/>'
