@@ -1,0 +1,2 @@
+Fixed an out-of-bounds memory read when an empty string is passed as the
+WCS ``key``. Such a key still raises ``ValueError``.
