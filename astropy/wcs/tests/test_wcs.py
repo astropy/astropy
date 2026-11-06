@@ -2581,7 +2581,6 @@ RADESYS = 'ICRS'               / Equatorial coordinate system
         )
 
     def test_safe_set_cdelt_crval(self):
-
         simple_wcs = wcs.WCS(naxis=2, preserve_units=True)
         simple_wcs.wcs.cunit = "arcsec", "arcsec"
         simple_wcs.wcs.set()
