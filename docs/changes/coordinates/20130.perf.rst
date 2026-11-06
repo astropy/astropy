@@ -1,0 +1,6 @@
+``Angle.to_string`` (and hence ``Longitude``, ``Latitude`` and
+``SkyCoord.to_string``) now builds sexagesimal strings with array operations
+instead of a Python loop over the elements. This makes it roughly ten times
+faster for large arrays, and ``SkyCoord.to_string`` faster still since it no
+longer formats the two angles one element at a time. This speeds up printing
+coordinates and writing them to a text table.

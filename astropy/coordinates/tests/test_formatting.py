@@ -5,9 +5,14 @@ test_sky_coord
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
+from astropy.coordinates.angles import formats
+from astropy.coordinates.angles.core import _VECTORIZE_MIN_SIZE
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
+from astropy.utils.masked import Masked
 
 
 def test_to_string_precision():
@@ -216,3 +221,175 @@ def test_to_string_fields_colon():
     assert a.to_string(fields=2, sep=":") == "1:07"
     assert a.to_string(fields=3, sep=":") == "1:06:48.078"
     assert a.to_string(fields=1, sep=":") == "1"
+
+
+# A spread of angles that exercises the sign, the carrying between fields, the
+# rounding and the non-finite handling of the vectorized formatter.  Kept well
+# above the size threshold so that ``to_string`` takes the fast array path.
+TO_STRING_ANGLES = np.array(
+    [
+        0.0,
+        -0.0,
+        5.25,
+        -5.25,
+        12.3456789,
+        -12.3456789,
+        59.9999999,
+        359.9999999,
+        90.0,
+        -90.0,
+        123.4567,
+        0.5 / 3600,
+        1e-9,
+        720.0,
+        np.nan,
+        np.inf,
+        -np.inf,
+    ]
+)
+
+# Representative keyword combinations covering every option that changes the
+# output: separators, padding, number of fields, precision, sign and format.
+TO_STRING_KWARGS = [
+    {},
+    {"sep": ":"},
+    {"sep": ("-", ":")},
+    {"sep": ""},
+    {"pad": True},
+    {"fields": 1},
+    {"fields": 2},
+    {"precision": 0},
+    {"precision": 8},
+    {"alwayssign": True},
+    {"format": "latex"},
+    {"format": "latex_inline"},
+    {"format": "unicode"},
+    {"precision": 2, "pad": True, "alwayssign": True, "sep": ":"},
+]
+
+
+@pytest.mark.parametrize("unit", [u.degree, u.hourangle])
+@pytest.mark.parametrize("kwargs", TO_STRING_KWARGS)
+def test_to_string_vectorized_matches_per_element(monkeypatch, unit, kwargs):
+    """The fast array formatting of ``to_string`` matches the per-element path.
+
+    The same call is run twice: once normally, and once with the vectorized
+    helper disabled so it falls back to looping over the elements.  The two
+    results must be identical.
+    """
+    angle = Angle(TO_STRING_ANGLES, unit=unit)
+    fast = np.asarray(angle.to_string(**kwargs))
+
+    monkeypatch.setattr(
+        formats, "_decimal_to_sexagesimal_string_array", lambda *args, **kw: None
+    )
+    per_element = np.asarray(angle.to_string(**kwargs))
+
+    assert_array_equal(fast, per_element)
+
+
+@pytest.mark.skipif(NUMPY_LT_2_1, reason="vectorized formatter requires NumPy >= 2.1")
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {},
+        {"sep": ("d", "m", "s")},
+        {"sep": ("-", ":"), "pad": True},
+        {"fields": 1},
+        {"fields": 2, "precision": 0},
+        {"precision": 5},
+        {"sep": (), "precision": 2},
+    ],
+)
+def test_decimal_to_sexagesimal_string_array(kwargs):
+    """The array formatter matches ``_decimal_to_sexagesimal_string`` per value.
+
+    The broad option coverage lives in
+    ``test_to_string_vectorized_matches_per_element``; this just checks the
+    helper directly for a few representative cases.
+    """
+    values = np.array(
+        [0.0, -0.0, 5.25, -5.25, 59.9999999, 12.3456789, 123.456, np.inf, -np.inf]
+    )
+    got = formats._decimal_to_sexagesimal_string_array(values, **kwargs)
+    ref = np.array(
+        [formats._decimal_to_sexagesimal_string(v, **kwargs) for v in values]
+    )
+    assert_array_equal(got, ref)
+    # The per-element formatter cannot take NaN; the array one writes it.
+    nan = formats._decimal_to_sexagesimal_string_array(
+        np.full(len(values), np.nan), **kwargs
+    )
+    assert_array_equal(nan, "nan")
+
+
+@pytest.mark.skipif(NUMPY_LT_2_1, reason="vectorized formatter requires NumPy >= 2.1")
+@pytest.mark.parametrize(
+    "value, vectorized", [(1e17, True), (1e18, False), (1e19, False)]
+)
+def test_to_string_array_falls_back_for_huge_degrees(value, vectorized):
+    """Degrees that do not fit the int64 buffer defer to the per-element path."""
+    values = np.full(_VECTORIZE_MIN_SIZE, value)
+    got = formats._decimal_to_sexagesimal_string_array(values)
+    assert (got is not None) is vectorized
+    # Either way ``to_string`` gives the per-element result.
+    expected = [
+        formats._decimal_to_sexagesimal_string(v, sep=("d", "m", "s")) for v in values
+    ]
+    assert_array_equal(
+        np.asarray(Angle(values, u.degree).to_string(sep="dms")), expected
+    )
+
+
+@pytest.mark.skipif(NUMPY_LT_2_1, reason="vectorized formatter requires NumPy >= 2.1")
+@pytest.mark.parametrize("sep", [("{h:d}", "m", "s"), (1, 2, 3)])
+def test_to_string_array_falls_back_for_unusable_separator(sep):
+    """A separator the template cannot take defers to the loop.
+
+    One that looks like a replacement field would be taken for a field of its
+    own, and one that is not a string cannot be literal text at all.
+    """
+    values = np.linspace(0, 10, _VECTORIZE_MIN_SIZE)
+    assert formats._decimal_to_sexagesimal_string_array(values, sep=sep) is None
+    expected = [formats._decimal_to_sexagesimal_string(v, sep=sep) for v in values]
+    assert_array_equal(np.asarray(Angle(values, u.degree).to_string(sep=sep)), expected)
+
+
+@pytest.mark.parametrize(
+    "angle, kwargs, expected",
+    [
+        (357.9911537682319, {}, "357d59m28.15356563s"),
+        (-257.03849932971804, {}, "-257d02m18.59758698s"),
+        (-187.475, {"fields": 2}, "-187d28m"),
+        (0.03125, {"precision": 0}, "0d01m52s"),
+        (-247.51375, {"precision": 0}, "-247d30m49s"),
+    ],
+)
+def test_to_string_rounds_the_last_field(angle, kwargs, expected):
+    """The last field is rounded as the exact value of the float requires.
+
+    Decomposing the whole angle at once instead, as ``erfa.d2tf`` does, rounds
+    at a magnitude where the float spacing is a sizeable fraction of the last
+    digit and gives the neighbouring string for these values.
+    """
+    assert Angle(angle, u.degree).to_string(**kwargs) == expected
+    values = np.full(_VECTORIZE_MIN_SIZE, angle)
+    assert_array_equal(Angle(values, u.degree).to_string(**kwargs), expected)
+
+
+def test_to_string_masked():
+    """The mask survives the vectorized path, with the data formatted as usual."""
+    values = np.linspace(0, 100, 3 * _VECTORIZE_MIN_SIZE)
+    mask = np.zeros(values.shape, bool)
+    mask[::3] = True
+    result = Angle(Masked(values, mask=mask), u.degree).to_string()
+    assert_array_equal(result.mask, mask)
+    assert_array_equal(
+        result.unmasked, [Angle(v, u.degree).to_string() for v in values]
+    )
+
+
+def test_to_string_array_falls_back_on_old_numpy(monkeypatch):
+    """The vectorized helper defers to the per-element path on NumPy < 2.1."""
+    monkeypatch.setattr(formats, "NUMPY_LT_2_1", True)
+    assert formats._decimal_to_sexagesimal_string_array(np.arange(10.0)) is None
