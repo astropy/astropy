@@ -7,10 +7,12 @@ import binascii
 import codecs
 import gzip
 import io
+import itertools
 import json
 import os
 import re
 import urllib.request
+import warnings
 
 # THIRD-PARTY
 import numpy as np
@@ -23,7 +25,7 @@ from astropy.utils import deprecated
 from astropy.utils.collections import HomogeneousList
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.xml import iterparser
-from astropy.utils.xml.writer import XMLWriter
+from astropy.utils.xml.writer import XMLWriter, _MarkupWriter
 
 from . import converters, util, xmlutil
 from . import ucd as ucd_mod
@@ -582,7 +584,7 @@ class SimpleElement(Element):
 
     def __repr__(self):
         buff = io.StringIO()
-        SimpleElement.to_xml(self, XMLWriter(buff))
+        SimpleElement.to_xml(self, _MarkupWriter(buff))
         return buff.getvalue().strip()
 
     def parse(self, iterator, config):
@@ -991,7 +993,7 @@ class Values(Element, _IDProperty):
 
     def __repr__(self):
         buff = io.StringIO()
-        self.to_xml(XMLWriter(buff))
+        self.to_xml(_MarkupWriter(buff))
         return buff.getvalue().strip()
 
     @property
@@ -3394,6 +3396,43 @@ class TableElement(
                 for element in self._infos:
                     element.to_xml(w, **kwargs)
 
+    def _find_unwritable_cell(self, outputs, supports_empty_values):
+        """
+        Find the first cell that its converter refuses to write.
+
+        Called only after a write has already failed, to say where.  Returns
+        ``(row, field)``, or ``(None, None)`` if every cell converts cleanly
+        and the failure was something else.
+        """
+        cells = itertools.product(range(len(self.array)), range(len(outputs)))
+        # The failed write already converted, and warned about, every cell
+        # before the bad one.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            for row, i in cells:
+                if not self._cell_converts(
+                    row, i, outputs[i], supports_empty_values[i]
+                ):
+                    return row, self.fields[i]
+        return None, None
+
+    def _cell_converts(self, row, i, output, supports_empty_values):
+        """
+        Whether the TABLEDATA writer writes cell ``(row, i)`` without error.
+
+        Like the writer, skip the converter for a fully masked cell when the
+        field can be written empty.
+        """
+        value = self.array.data[row][i]
+        masked = self.array.mask[row][i]
+        if supports_empty_values and np.all(masked):
+            return True
+        try:
+            output(value, masked)
+        except Exception:
+            return False
+        return True
+
     def _write_tabledata(self, w, **kwargs):
         fields = self.fields
         array = self.array
@@ -3404,17 +3443,29 @@ class TableElement(
                 supports_empty_values = [
                     field.converter.supports_empty_values(kwargs) for field in fields
                 ]
-                fields = [field.converter.output for field in fields]
+                outputs = [field.converter.output for field in fields]
                 indent = len(w._tags) - 1
-                tablewriter.write_tabledata(
-                    w.write,
-                    array.data,
-                    array.mask,
-                    fields,
-                    supports_empty_values,
-                    indent,
-                    1 << 8,
-                )
+                try:
+                    tablewriter.write_tabledata(
+                        w.write,
+                        array.data,
+                        array.mask,
+                        outputs,
+                        supports_empty_values,
+                        indent,
+                        1 << 8,
+                    )
+                except (ValueError, TypeError, AttributeError) as e:
+                    # The C writer cannot say which cell it failed at writing, so find
+                    # the offending cell here to give the Exception a more useful message.
+                    row, field = self._find_unwritable_cell(
+                        outputs, supports_empty_values
+                    )
+                    # ValueError can also come from writing to a closed file, so if no
+                    # cell fails, just raise.
+                    if field is None:
+                        raise
+                    vo_reraise(e, additional=f"(in row {row:d}, col '{field.ID}')")
             else:
                 write = w.write
                 indent_spaces = w.get_indentation_spaces()
@@ -3868,7 +3919,7 @@ class Resource(
 
     def __repr__(self):
         buff = io.StringIO()
-        w = XMLWriter(buff)
+        w = _MarkupWriter(buff)
         w.element(self._element_name, attrib=w.object_attrs(self, self._attr_list))
         return buff.getvalue().strip()
 
