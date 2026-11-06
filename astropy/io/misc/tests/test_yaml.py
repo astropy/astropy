@@ -380,13 +380,10 @@ def test_yaml_load_of_object_arrays_fail():
         )
 
 
-# These test how astropy uses the check, not that numpy gets ``hasobject`` right, so
-# spellings of object dtypes are not enumerated. Each constructor gets a plain object
-# dtype, and a nested structured one that a check of only ``dtype.kind`` or of only the
-# top-level fields would miss. Each buffer holds a non-null invalid pointer, so
-# constructing and accessing any of these as an object array would crash the interpreter
-# instead of failing the test.
-OBJECT_DTYPE_YAML = [
+# A plain and a nested structured object dtype for each of the ndarray and void
+# constructors. Each buffer holds an invalid pointer, so if a guard is missing, these
+# can crash the interpreter instead of failing the test.
+BAD_DTYPE_YAML = [
     "!numpy.void {dtype: O, buffer: QUFBQUFBQUE=}",
     "!numpy.void {dtype: [!!python/tuple [a, [!!python/tuple [b, O]]]], buffer: QUFBQUFBQUE=}",
     "!numpy.ndarray {dtype: O, shape: [1], buffer: QUFBQUFBQUE=, order: C}",
@@ -397,7 +394,7 @@ OBJECT_DTYPE_YAML = [
 ]
 
 
-@pytest.mark.parametrize("text", OBJECT_DTYPE_YAML)
+@pytest.mark.parametrize("text", BAD_DTYPE_YAML)
 def test_yaml_load_refuses_object_dtype(text):
     """Object arrays must not be built from a buffer supplied by the YAML."""
     with pytest.raises(TypeError, match="cannot load numpy array with object dtype"):
