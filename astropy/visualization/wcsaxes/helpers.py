@@ -26,6 +26,15 @@ CORNERS = {
 }
 
 
+def _degrees_per_pixel(wcs):
+    # The pixel scales are in the world units of the WCS, which are not
+    # necessarily degrees, for example with preserve_units=True
+    scales = proj_plane_pixel_scales(wcs) * [
+        u.Unit(unit or "deg").to(u.deg) for unit in wcs.world_axis_units
+    ]
+    return np.sqrt(scales[0] * scales[1])
+
+
 def add_beam(  # ruff: ignore[PLR0917]
     ax,
     header=None,
@@ -100,10 +109,7 @@ def add_beam(  # ruff: ignore[PLR0917]
         angle = angle.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
-        sx = pix_scale[0]
-        sy = pix_scale[1]
-        degrees_per_pixel = np.sqrt(sx * sy)
+        degrees_per_pixel = _degrees_per_pixel(ax.wcs)
     else:
         raise ValueError("Cannot show beam when WCS is not celestial")
 
@@ -172,10 +178,7 @@ def add_scalebar(  # ruff: ignore[PLR0917]
         length = length.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
-        sx = pix_scale[0]
-        sy = pix_scale[1]
-        degrees_per_pixel = np.sqrt(sx * sy)
+        degrees_per_pixel = _degrees_per_pixel(ax.wcs)
     else:
         raise ValueError("Cannot show scalebar when WCS is not celestial")
 
