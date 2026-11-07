@@ -1,0 +1,1 @@
+Fixed a bug where nested add_enabled_units leaves a namespace in a dirty state when inner scope raises an exception, e.g., from conflicting unit names.
