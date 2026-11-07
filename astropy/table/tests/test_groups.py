@@ -24,6 +24,7 @@ from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
 from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked
 
 
 def sort_eq(list1, list2):
@@ -910,10 +911,11 @@ def get_edge_values(dtype):
         return [False, True]
     if dtype.kind == "f":
         finfo = np.finfo(dtype)
-        # Include the nearest neighbors of +/-0 and of +/-inf
+        # Include the nearest neighbors of +/-0 and of +/-inf, and NaN with the sign
+        # bit set (-np.nan), which numpy sorts to the end like any other NaN.
         # fmt: off
         return [
-            -np.inf, -finfo.max, -1.5, -finfo.smallest_subnormal, -0.0,
+            -np.nan, -np.inf, -finfo.max, -1.5, -finfo.smallest_subnormal, -0.0,
             0.0, finfo.smallest_subnormal, finfo.tiny, 2.5, finfo.max, np.inf, np.nan,
         ]
         # fmt: on
@@ -946,21 +948,25 @@ def test_radix_argsort_matches_numpy(dtype):
     rng = np.random.default_rng(0)
     if dtype.kind in "iu":
         info = np.iinfo(dtype)
-        ints = rng.integers(
+        wide_range = rng.integers(
             info.min, info.max, size=2000, dtype=dtype.newbyteorder("="), endpoint=True
         )
     else:
-        # Fractional values in the float16 range (which needs several radix passes)
-        ints = rng.integers(-(2**40), 2**40, size=2000) / 2**26
+        # Mixed-sign fractional values that fit in float16 (max 65504). Note that
+        # any float data generally needs all 4 radix passes since the exponent
+        # bits vary.
+        wide_range = rng.standard_normal(2000) * 1000
     for vals in (
-        rng.integers(0, 2, size=2000),  # one radix pass
-        rng.integers(0, 200, size=2000),  # one radix pass
-        ints,  # several radix passes
+        rng.integers(0, 2, size=2000),  # one radix pass for ints
+        rng.integers(0, 200, size=2000),  # one radix pass for ints
+        wide_range,  # several radix passes
         rng.choice(np.array(get_edge_values(dtype), dtype=dtype), size=2000),
     ):
         a = vals.astype(dtype)
         if dtype.kind == "f":
-            a[::7] *= -1  # include negative zero and NaN
+            # Include negative zero and NaN. Use unary minus since multiplying NaN by
+            # -1 does not reliably set its sign bit.
+            a[::7] = -a[::7]
         idx = groups._radix_argsort([a])
         assert np.array_equal(idx, np.argsort(a, kind="stable"))
 
@@ -984,20 +990,24 @@ def test_radix_argsort_float_hypothesis(a):
     [
         np.array(["a", "b"] * 600),
         np.ones(1200, dtype=np.complex128),
-        np.ones(1200, dtype=np.longdouble),
+        pytest.param(
+            np.ones(1200, dtype=np.longdouble),
+            marks=pytest.mark.skipif(
+                np.dtype(np.longdouble).itemsize <= 8,
+                reason="longdouble is the same as float64 on this platform",
+            ),
+        ),
         np.ones((1200, 2)),
         np.arange(1200).astype("datetime64[s]"),
         np.ma.MaskedArray(np.arange(1200), mask=[True] + [False] * 1199),
+        Masked(np.arange(1200) * u.m, mask=[True] + [False] * 1199),
         coordinates.SkyCoord(np.arange(1200), np.zeros(1200), unit="deg"),
     ],
 )
 def test_radix_sortable_arrays_unsupported(col):
     """Keys that the radix sort cannot handle fall back to the generic sort."""
-    if np.dtype(np.longdouble).itemsize <= 8 and getattr(col, "dtype", None) == (
-        np.longdouble
-    ):
-        pytest.skip("longdouble is the same as float64 on this platform")
-    keys = Table([col], names=["a"])
+    # QTable so that a masked Quantity stays a Masked mixin
+    keys = QTable([col], names=["a"])
     assert groups._get_radix_sortable_arrays(keys) is None
 
 
@@ -1012,7 +1022,20 @@ def test_group_by_radix_matches_generic_sort(monkeypatch):
     t["bool"] = rng.choice([True, False], size=n)
     t["quantity"] = rng.integers(0, 3, size=n) * u.m
     t["time"] = Time("2026-01-01") + rng.integers(0, 4, size=n) * u.day
-    t["masked"] = MaskedColumn(rng.integers(0, 3, size=n))  # no masked values
+    # Masked columns with no masked values, which use the radix sort on the
+    # unmasked data: np.ma based MaskedColumn, and astropy Masked for a Quantity
+    # and for the jd1/jd2 of a Time that has had a masked value set and cleared.
+    t["masked"] = MaskedColumn(rng.integers(0, 3, size=n))
+    t["masked_quantity"] = Masked(
+        rng.integers(0, 3, size=n) * u.m, mask=np.zeros(n, dtype=bool)
+    )
+    t["masked_time"] = t["time"].copy()
+    t["masked_time"][0] = np.ma.masked
+    t["masked_time"][0] = t["time"][0]
+    assert isinstance(t["masked_quantity"], Masked)
+    assert t["masked_time"].masked
+    for name in ("masked", "masked_quantity", "masked_time"):
+        assert groups._get_radix_sortable_arrays(t[[name]]) is not None
     t["str"] = rng.choice(["x", "y"], size=n)
     t["order"] = np.arange(n)
 
@@ -1022,6 +1045,8 @@ def test_group_by_radix_matches_generic_sort(monkeypatch):
         ["bool", "int"],
         ["quantity", "time"],
         ["masked", "int"],
+        ["masked_quantity", "int"],
+        ["masked_time"],
         ["str", "int"],
     ]
     keys_array = t["int", "bool"].as_array()
