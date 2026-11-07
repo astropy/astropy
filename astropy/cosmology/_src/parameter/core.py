@@ -3,6 +3,7 @@
 __all__ = ("MISSING", "Parameter")
 
 import copy
+import sys
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
@@ -11,6 +12,9 @@ from typing import TYPE_CHECKING, Any, Union
 import astropy.units as u
 
 from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+
+if sys.version_info < (3, 13):
+    __doctest_skip__ = ["Parameter.__replace__"]
 
 if TYPE_CHECKING:
     import astropy.cosmology
@@ -283,7 +287,8 @@ class Parameter:
         Parameter(derived=False, unit=None, equivalencies=[],
                   fvalidate='default', doc=None)
 
-        >>> p.__replace__(unit="km")
+        >>> import copy
+        >>> copy.replace(p, unit="km")
         Parameter(derived=False, unit=Unit("km"), equivalencies=[],
                   fvalidate='default', doc=None)
         """
@@ -300,6 +305,13 @@ class Parameter:
         Equivalent to ``Parameter.__replace__``. This
         will be deprecated in favor of :func:`copy.replace` once astropy's
         minimum supported Python is 3.13.
+
+        Examples
+        --------
+        >>> p = Parameter()
+        >>> p.clone(unit="km")
+        Parameter(derived=False, unit=Unit("km"), equivalencies=[],
+                  fvalidate='default', doc=None)
         """
         return self.__replace__(**kw)
 
