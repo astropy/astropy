@@ -246,6 +246,8 @@ Fixable Cards:
     >>> print(c)
     FIX6    = '2 10    '
 
+7. ``CONTINUE`` cards with no space between the keyword and the string.
+
 Unfixable Cards:
 
 1. Illegal characters in keyword name.
