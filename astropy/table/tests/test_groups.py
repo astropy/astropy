@@ -1138,3 +1138,47 @@ def test_group_by_empty(engine):
 
     cg = t["b"].group_by(np.array([], dtype=int))
     assert len(cg.groups.indices) == 0
+
+    # Grouping by an external keys table must not modify that table
+    keys = Table({"a": np.array([], dtype=int)})
+    tg = t.group_by(keys)
+    assert tg.groups.keys.meta["grouped_by_table_cols"] is False
+    assert keys.meta == {}
+
+
+@pytest.mark.parametrize("n", [100, 2000])
+def test_group_by_noncanonical_bool(n):
+    """A bool buffer can hold any nonzero byte for True; all must be one group.
+
+    Covers both the small-table (np.lexsort) and the radix sort paths.
+    """
+    flag = np.resize(np.array([1, 255, 1, 255], dtype=np.uint8), n).view(bool)
+    secondary = np.resize([0, 0, 1, 1], n)
+    assert np.all(flag)
+    expected = [0, n // 2, n]
+
+    keys = np.empty(n, dtype=[("flag", "?"), ("secondary", "i4")])
+    keys["flag"] = flag
+    keys["secondary"] = secondary
+    t = Table({"value": np.ones(n)})
+    assert t.group_by(keys).groups.indices.tolist() == expected
+
+    t = Table({"flag": flag, "secondary": secondary, "value": np.ones(n)})
+    tg = t.group_by(["flag", "secondary"])
+    assert tg.groups.indices.tolist() == expected
+    assert tg.groups.aggregate(np.sum)["value"].tolist() == [n / 2, n / 2]
+
+    # All values are logically equal so a stable sort keeps the original order.
+    # (np.argsort itself sorts bools by the raw byte, so is not the reference here.)
+    assert np.array_equal(groups._radix_argsort([flag]), np.arange(n))
+
+
+def test_group_by_nested_structured_masked_keys():
+    """A nested structured masked key has a structured mask; it must fall back."""
+    keys = np.zeros(4, dtype=[("nested", [("a", "i8"), ("b", "i8")])])
+    keys["nested"]["a"] = [2, 1, 2, 1]
+    keys = np.ma.array(keys)
+    assert groups._get_radix_sortable_arrays(keys) is None
+    tg = Table({"row": np.arange(4)}).group_by(keys)
+    assert tg["row"].tolist() == [1, 3, 0, 2]
+    assert tg.groups.indices.tolist() == [0, 2, 4]

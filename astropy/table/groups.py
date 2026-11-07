@@ -51,16 +51,24 @@ def _get_radix_sortable_arrays(keys: Table | npt.NDArray) -> list[npt.NDArray] |
 
     out = []
     for arr in arrays:
-        if (mask := getattr(arr, "mask", None)) is not None:
-            if np.any(mask):
-                return None
-            arr = arr.unmasked if isinstance(arr, Masked) else np.ma.getdata(arr)
-        arr = np.asarray(arr)
+        # Check the dtype before the mask, since e.g. a nested structured field has
+        # a structured mask that np.any() cannot reduce.
         dtype = arr.dtype
         if arr.ndim != 1 or not (
             dtype.kind in "biu" or (dtype.kind == "f" and dtype.itemsize <= 8)
         ):
             return None
+        if (mask := getattr(arr, "mask", None)) is not None:
+            if np.any(mask):
+                return None
+            arr = arr.unmasked if isinstance(arr, Masked) else np.ma.getdata(arr)
+        arr = np.asarray(arr)
+        if dtype.kind == "b":
+            # A bool buffer can hold any nonzero byte (e.g. 255) for True. Casting
+            # normalizes these to 1. Without that, the sort (np.lexsort as well as
+            # the radix sort) orders True values by their raw byte, which separates
+            # equal keys and splits groups when there is a secondary key.
+            arr = arr.astype(np.uint8)
         out.append(arr)
 
     return out
@@ -77,7 +85,8 @@ def _to_radix_uint(arr: npt.NDArray) -> tuple[npt.NDArray, int]:
     """
     kind = arr.dtype.kind
     if kind == "b":
-        arr = arr.view(np.uint8)
+        # Cast rather than view to normalize any nonzero byte for True to 1.
+        arr = arr.astype(np.uint8)
     elif kind == "f":
         # Adding 0.0 makes a contiguous native float64 copy and turns -0.0 into 0.0.
         arr_f8 = np.add(arr, 0.0, dtype=np.float64)
