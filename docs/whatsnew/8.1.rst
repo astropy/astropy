@@ -69,7 +69,7 @@ case of a single join column.
 Faster Table grouping
 =====================
 
-:meth:`~astropy.table.Table.group_by` and :meth:`~astropy.table.Column.group_by`
+:meth:`~astropy.table.Table.group_by` and ``Column.group_by()``
 are faster when all of the key columns are numeric: integer, boolean, float,
 |Quantity| or |Time|. The improvement is largest for a |Time| key column, which
 is now up to 300x faster. For large tables with integer key columns, grouping is
