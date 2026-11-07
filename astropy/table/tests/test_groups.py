@@ -1051,6 +1051,20 @@ def test_group_by_radix_matches_generic_sort(monkeypatch):
     ]
     keys_array = t["int", "bool"].as_array()
 
+    def get_group_indices(keys_sorted):
+        """Group boundaries from each key column's own ``!=`` comparison.
+
+        This is independent of ``get_sortable_arrays()``, which is what the code
+        under test uses to find the boundaries.
+        """
+        cols = (
+            keys_sorted.itercols() if isinstance(keys_sorted, Table) else [keys_sorted]
+        )
+        diffs = np.zeros(len(keys_sorted) - 1, dtype=bool)
+        for col in cols:
+            diffs |= np.asarray(col[1:] != col[:-1])
+        return np.flatnonzero(np.concatenate(([True], diffs, [True])))
+
     for keys in [*key_sets, keys_array, t["time", "int"]]:
         tg_radix = t.group_by(keys)
         with monkeypatch.context() as m:
@@ -1059,26 +1073,35 @@ def test_group_by_radix_matches_generic_sort(monkeypatch):
         assert np.all(tg_radix.groups.indices == tg_generic.groups.indices)
         assert np.all(tg_radix["order"] == tg_generic["order"])
 
+        # "order" is arange(n) so the grouped "order" column is the sort permutation
+        keys_sorted = (t[keys] if isinstance(keys, list) else keys)[
+            np.asarray(tg_radix["order"])
+        ]
+        assert np.all(tg_radix.groups.indices == get_group_indices(keys_sorted))
+
     cg_radix = t["order"].group_by(keys_array)
     with monkeypatch.context() as m:
         m.setattr(groups, "_RADIX_SORT_MIN_LENGTH", n + 1)
         cg_generic = t["order"].group_by(keys_array)
     assert np.all(cg_radix.groups.indices == cg_generic.groups.indices)
     assert np.all(cg_radix == cg_generic)
+    assert np.all(
+        cg_radix.groups.indices == get_group_indices(keys_array[np.asarray(cg_radix)])
+    )
 
 
-@pytest.mark.parametrize(
-    "engine",
-    [
-        SortedArray,
-        pytest.param(
-            SCEngine,
-            marks=pytest.mark.skipif(
-                not HAS_SORTEDCONTAINERS, reason="requires sortedcontainers"
-            ),
+INDEX_ENGINES = [
+    SortedArray,
+    pytest.param(
+        SCEngine,
+        marks=pytest.mark.skipif(
+            not HAS_SORTEDCONTAINERS, reason="requires sortedcontainers"
         ),
-    ],
-)
+    ),
+]
+
+
+@pytest.mark.parametrize("engine", INDEX_ENGINES)
 def test_group_by_with_index(engine):
     """Grouping using the sort order from a table index gives the same result."""
     rng = np.random.default_rng(0)
@@ -1094,3 +1117,24 @@ def test_group_by_with_index(engine):
     assert np.all(tg_index.groups.keys == tg.groups.keys)
     for grp_index, grp in zip(tg_index.groups, tg.groups):
         assert np.all(np.sort(grp_index["order"]) == grp["order"])
+
+
+@pytest.mark.parametrize("engine", [None, *INDEX_ENGINES])
+def test_group_by_empty(engine):
+    """Grouping a zero-length table (with or without an index) or column."""
+    t = Table({"a": np.array([], dtype=int), "b": np.array([], dtype=float)})
+    if engine is not None:
+        t.add_index("a", engine=engine)
+    tg = t.group_by("a")
+    assert len(tg) == 0
+    assert len(tg.groups.indices) == 0
+    assert len(tg.groups.keys) == 0
+    assert tg.groups.keys.colnames == ["a"]
+
+    cg = t["b"].group_by(t["a"])
+    assert len(cg) == 0
+    assert len(cg.groups.indices) == 0
+    assert len(cg.groups.keys) == 0
+
+    cg = t["b"].group_by(np.array([], dtype=int))
+    assert len(cg.groups.indices) == 0

@@ -80,7 +80,7 @@ def _to_radix_uint(arr: npt.NDArray) -> tuple[npt.NDArray, int]:
         arr = arr.view(np.uint8)
     elif kind == "f":
         # Adding 0.0 makes a contiguous native float64 copy and turns -0.0 into 0.0.
-        arr_f8 = arr.astype(np.float64) + 0.0
+        arr_f8 = np.add(arr, 0.0, dtype=np.float64)
         bits = arr_f8.view(np.int64)
         arr = (bits ^ ((bits >> 63) | np.iinfo(np.int64).min)).view(np.uint64)
         arr[np.isnan(arr_f8)] = np.iinfo(np.uint64).max
@@ -145,24 +145,31 @@ def _get_group_sort(
     from .serialize import represent_mixins_as_columns
     from .table import Table
 
+    if len(keys) == 0:
+        return np.array([], dtype=np.intp), np.array([], dtype=np.intp)
+
     arrays = _get_radix_sortable_arrays(keys)
 
     if idx_sort is None:
-        if arrays is not None and len(keys) >= _RADIX_SORT_MIN_LENGTH:
-            idx_sort = _radix_argsort(arrays)
-        else:
+        if arrays is None:
             # TODO: don't use represent_mixins_as_columns here, but instead ensure that
             # keys_sort.argsort(kind="stable") works for all columns (including mixins).
             keys_sort = (
                 represent_mixins_as_columns(keys) if isinstance(keys, Table) else keys
             )
             idx_sort = keys_sort.argsort(kind="stable")
+        elif len(keys) >= _RADIX_SORT_MIN_LENGTH:
+            idx_sort = _radix_argsort(arrays)
+        else:
+            # np.lexsort is stable and treats its last argument as the primary key,
+            # while the sortable arrays are ordered from most to least significant.
+            idx_sort = np.lexsort(arrays[::-1])
 
     # Find the group boundaries. Comparing the plain sortable arrays is much faster
     # than comparing rows of ``keys``, which for a Table goes through a structured
     # array (and an object array of scalars for mixin columns like Time).
     if arrays is not None:
-        diffs = np.zeros(len(keys) - 1 if len(keys) else 0, dtype=bool)
+        diffs = np.zeros(len(keys) - 1, dtype=bool)
         for arr in arrays:
             arr_sorted = arr[idx_sort]
             diffs |= arr_sorted[1:] != arr_sorted[:-1]
@@ -239,17 +246,18 @@ def _table_group_by(
 
     # Get the argsort index `idx_sort` and group boundaries `indices`, taking
     # advantage of index internal sort if possible.
-    idx_sort = None if table_index is None else np.asarray(table_index.sorted_data())
+    # Some index engines return sorted_data() as a list, so convert to an int array.
+    idx_sort = (
+        None
+        if table_index is None
+        else np.asarray(table_index.sorted_data(), dtype=np.intp)
+    )
     idx_sort, indices = _get_group_sort(table_keys, idx_sort)
 
     # Make a new table and set the _groups to the appropriate TableGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
     out = table.__class__(table[idx_sort])
-    if len(table) == 0:
-        out_keys = table_keys
-        indices = np.array([], dtype=int)
-    else:
-        out_keys = table_keys[idx_sort[indices[:-1]]]
+    out_keys = table_keys[idx_sort[indices[:-1]]]
     if isinstance(out_keys, Table):
         out_keys.meta["grouped_by_table_cols"] = grouped_by_table_cols
     out._groups = TableGroups(out, indices=indices, keys=out_keys)
@@ -278,12 +286,12 @@ def column_group_by(column: ColumnLike, keys: Table | npt.NDArray) -> ColumnLike
             f"column length {len(column)}"
         )
 
-    try:
-        idx_sort, indices = _get_group_sort(keys)
-    except AttributeError:
+    if not hasattr(keys, "argsort"):
         raise TypeError(
             f"keys input ({keys.__class__.__name__}) must have an `argsort` method"
         )
+
+    idx_sort, indices = _get_group_sort(keys)
 
     # Make a new column and set the _groups to the appropriate ColumnGroups object.
     # Take the subset of the original keys at the indices values (group boundaries).
