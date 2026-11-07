@@ -1,0 +1,7 @@
+Loading a numpy array or void scalar with an object dtype from YAML now always raises
+a ``TypeError``. Previously only the exact spelling ``dtype: object`` was refused, so
+others such as ``O``, or a structured dtype with an object field, built an array from
+pointers in the YAML buffer. Accessing that array could crash the interpreter, and
+this could be triggered by the metadata of an ECSV file. Dumping a numpy void scalar
+that contains objects to YAML now also raises a ``TypeError`` instead of writing out
+memory addresses.
