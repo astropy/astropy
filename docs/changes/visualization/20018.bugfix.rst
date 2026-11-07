@@ -1,0 +1,1 @@
+Minor ticks are no longer dropped when major tick values are specified explicitly with ``set_ticks(values=...)``; they are now placed by subdividing the intervals between consecutive values.
