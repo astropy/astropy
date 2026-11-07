@@ -324,12 +324,25 @@ def test_cds_power():
     assert unit.scale == 1e22
 
 
-def test_register():
+def test_register_simple():
     foo = u.def_unit("foo", u.m**3, namespace=locals())
     assert "foo" in locals()
     with u.add_enabled_units(foo):
         assert "foo" in u.get_current_unit_registry().registry
     assert "foo" not in u.get_current_unit_registry().registry
+
+
+def test_register_nested_conflict():
+    """https://github.com/astropy/astropy/issues/20790"""
+    kcal = u.def_unit("kcal", 1000 * u.J, namespace=locals())
+    assert "kcal" in locals()
+    with u.add_enabled_units(kcal):
+        with (
+            pytest.raises(ValueError, match=".* already exists"),
+            u.add_enabled_units(u.imperial.kcal),
+        ):
+            pass
+    assert "kcal" not in u.get_current_unit_registry().registry
 
 
 def test_in_units_deprecation():
