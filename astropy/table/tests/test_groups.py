@@ -909,7 +909,14 @@ def get_edge_values(dtype):
     if dtype.kind == "b":
         return [False, True]
     if dtype.kind == "f":
-        return [-np.inf, -1.5, -0.0, 0.0, np.finfo(dtype).tiny, 2.5, np.inf, np.nan]
+        finfo = np.finfo(dtype)
+        # Include the nearest neighbors of +/-0 and of +/-inf
+        # fmt: off
+        return [
+            -np.inf, -finfo.max, -1.5, -finfo.smallest_subnormal, -0.0,
+            0.0, finfo.smallest_subnormal, finfo.tiny, 2.5, finfo.max, np.inf, np.nan,
+        ]
+        # fmt: on
     info = np.iinfo(dtype)
     return [info.min, info.min + 1, 0, 1, info.max - 1, info.max]
 
