@@ -1,0 +1,2 @@
+From now on, trying to dump a numpy object array to YAML (e.g. as metadata from a Table) or loading it will raise a TypeError.
+This will avoid more worrisome behavior such as segmentation faults.
