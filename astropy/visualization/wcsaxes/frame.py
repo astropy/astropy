@@ -284,7 +284,7 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
     def _validate_positions(self, positions):
         """
         Given a string with single character positions or an iterable with
-        single or multi-character positions, emit a warning for any
+        single or multi-character positions, raise an error for any
         unrecognized positions and return a list of valid positions.
 
         Parameters
@@ -306,18 +306,16 @@ class BaseFrame(OrderedDict, metaclass=abc.ABCMeta):
         if invalid_positions:
             if isinstance(positions, str) and positions in self:
                 hint = (
-                    f"It looks like '{positions}' matches the name of a single "
+                    f" It looks like '{positions}' matches the name of a single "
                     f"axis. If you are trying to specify a multi-character axis "
                     f"name, use a list or a tuple, e.g. ('{positions}',)."
                 )
             else:
                 hint = ""
 
-            warnings.warn(
-                f"Ignoring unrecognized position(s): {invalid_positions}, should "
-                f"be one of {'/'.join(self.keys())}. In future this will "
-                f"raise an error. {hint}",
-                AstropyDeprecationWarning,
+            raise ValueError(
+                f"Unrecognized position(s): {invalid_positions}, should "
+                f"be one of {'/'.join(self.keys())}.{hint}"
             )
 
         return valid_positions
