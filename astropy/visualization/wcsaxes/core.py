@@ -11,6 +11,7 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils.compat.optional_deps import HAS_PIL
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
@@ -942,7 +943,8 @@ class WCSAxes(Axes):
 
         return Bbox.union(bb)
 
-    def grid(self, b=None, axis="both", *, which="major", **kwargs):
+    @deprecated_renamed_argument("b", "visible", since="8.1")
+    def grid(self, visible=None, axis="both", *, which="major", **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -953,7 +955,7 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        b : bool
+        visible : bool
             Whether to show the gridlines.
         axis : 'both', 'x', 'y'
             Which axis to turn the gridlines on/off for.
@@ -972,11 +974,11 @@ class WCSAxes(Axes):
             )
 
         if axis == "both":
-            self.coords.grid(draw_grid=b, **kwargs)
+            self.coords.grid(draw_grid=visible, **kwargs)
         elif axis == "x":
-            self.coords[0].grid(draw_grid=b, **kwargs)
+            self.coords[0].grid(draw_grid=visible, **kwargs)
         elif axis == "y":
-            self.coords[1].grid(draw_grid=b, **kwargs)
+            self.coords[1].grid(draw_grid=visible, **kwargs)
         else:
             raise ValueError("axis should be one of x/y/both")
 

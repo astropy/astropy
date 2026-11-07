@@ -1,0 +1,4 @@
+The ``b`` argument of ``WCSAxes.grid`` has been renamed to ``visible`` to match
+:meth:`matplotlib.axes.Axes.grid`, and passing ``b`` is deprecated. In addition,
+passing ``visible`` to ``CoordinateHelper.grid`` now shows or hides the grid
+instead of being silently overridden by ``draw_grid``.
