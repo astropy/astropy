@@ -149,6 +149,13 @@ parameter and change any constructor argument. For example, see
 
         Ode0: Parameter = FLRW.parameters["Ode0"].clone(derived=True)
 
+.. note::
+
+    `~astropy.cosmology.Parameter` supports :func:`copy.replace`, which will
+    replace :meth:`~astropy.cosmology.Parameter.clone` once Python 3.13 is the
+    minimum supported version. On Python 3.13+ you can already use
+    ``copy.replace(param, derived=True)``.
+
 Mixins
 ------
 
