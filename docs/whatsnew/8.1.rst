@@ -14,6 +14,7 @@ In particular, this release includes:
 
 * :ref:`whatsnew-8.1-time-string-formats`
 * :ref:`whatsnew-8.1-faster-table-joins`
+* :ref:`whatsnew-8.1-faster-table-grouping`
 * :ref:`whatsnew-8.1-quantity-int-config`
 * :ref:`whatsnew-8.1-qtable-int-columns`
 * :ref:`whatsnew-8.1-reading-int-columns`
@@ -63,6 +64,19 @@ if it is available and otherwise falls back to the built-in astropy join impleme
 
 In addition, the built-in astropy join was sped up by a factor of ~2x for the common
 case of a single join column.
+
+.. _whatsnew-8.1-faster-table-grouping:
+
+Faster Table grouping
+=====================
+
+:meth:`~astropy.table.Table.group_by` and ``Column.group_by()``
+are faster when all of the key columns are numeric: integer, boolean, float,
+|Quantity| or |Time|. The improvement is largest for a |Time| key column, which
+is now up to 300x faster. For large tables with integer key columns, grouping is
+3-4x faster, while float keys gain about 1.5-2x. Grouping by string columns is unchanged.
+
+The grouped table, the group indices and the group keys are the same as before.
 
 .. _whatsnew-8.1-quantity-int-config:
 
