@@ -1382,9 +1382,13 @@ class _ValidHDU(_BaseHDU, _Verify):
         Return the current timestamp in ISO 8601 format, with microseconds
         stripped off.
 
-        Ex.: 2007-05-30T19:05:11+00:00
+        Ex.: 2007-05-30T19:05:11Z
         """
-        return datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds")
+        return (
+            datetime.datetime.now(datetime.UTC)
+            .isoformat(timespec="seconds")
+            .replace("+00:00", "Z")
+        )
 
     def _calculate_datasum(self):
         """
