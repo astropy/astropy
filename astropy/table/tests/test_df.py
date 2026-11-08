@@ -848,18 +848,19 @@ def test_from_dataframe_string_missing_values(
 @pytest.mark.parametrize("method", DATAFRAME_METHODS)
 @pytest.mark.parametrize("cls", [Table, table.QTable])
 @pytest.mark.parametrize(
-    "values,dtype",
+    "values,dtype,expected_dtype",
     [
-        ([None, None], object),
-        ([np.nan, np.nan], object),
-        (["pd.NA", "pd.NA"], object),
-        ([None, None], "string"),
-        ([None, None], "string[pyarrow]"),
+        ([None, None], object, object),
+        ([np.nan, np.nan], object, object),
+        (["pd.NA", "pd.NA"], object, object),
+        ([None, None], "string", "U1"),
+        ([None, None], "string[pyarrow]", "U1"),
     ],
     ids=["object-None", "object-nan", "object-pd.NA", "string", "string[pyarrow]"],
 )
-def test_from_dataframe_string_all_missing(method, cls, values, dtype):
-    """An all-missing object or string column is a fully masked bytes column.
+def test_from_dataframe_string_all_missing(method, cls, values, dtype, expected_dtype):
+    """An all-missing column is fully masked and keeps the dataframe's type: a
+    pandas string dtype gives ``str``, an ``object`` column stays ``object``.
 
     Previously the result depended on the method and on the missing value (#20663).
     """
@@ -870,8 +871,31 @@ def test_from_dataframe_string_all_missing(method, cls, values, dtype):
     df = pd.DataFrame({"s": pd.Series(_pandas_missing(values), dtype=dtype)})
     col = getattr(cls, method)(df)["s"]
     assert isinstance(col, MaskedColumn)
-    assert col.dtype == np.dtype("S1")
+    assert col.dtype == np.dtype(expected_dtype)
     assert np.all(col.mask)
+
+
+@pytest.mark.skipif(not HAS_NARWHALS or not HAS_POLARS, reason="requires polars")
+@pytest.mark.parametrize(
+    "dtype,values,expected_dtype",
+    [
+        ("String", ["a", None], "U1"),
+        ("String", [None, None], "U1"),
+        ("Binary", [b"a", None], "S1"),
+        ("Binary", [None, None], "S1"),
+    ],
+)
+def test_from_df_polars_string_missing_values(dtype, values, expected_dtype):
+    """Polars nulls in String and Binary columns are masked, and an all-null
+    column takes its dtype from the polars dtype (#20663).
+    """
+    import polars as pl
+
+    df = pl.DataFrame({"s": pl.Series(values, dtype=getattr(pl, dtype))})
+    col = Table.from_df(df)["s"]
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype == np.dtype(expected_dtype)
+    assert col.mask.tolist() == [v is None for v in values]
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")

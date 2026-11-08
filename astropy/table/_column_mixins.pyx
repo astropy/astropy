@@ -132,7 +132,7 @@ def _get_string_dtype(value):
     return "S" if all_bytes else None
 
 
-def _get_string_fill_value(data, mask):
+def _get_string_fill_value(data, mask, default=None):
     """
     Choose a placeholder for missing values in a string-like object column.
 
@@ -146,13 +146,18 @@ def _get_string_fill_value(data, mask):
     mask : ndarray
         Boolean array that is True where a value is missing.  Masked values are
         skipped, whatever they are (e.g., None, NaN, ``pd.NA`` or ``pd.NaT``).
+    default : str, bytes or None, optional
+        Placeholder to use when every value is masked, so the caller can pass
+        ``""`` or ``b""`` for a column whose dataframe dtype is text or binary.
+        Default is None, which leaves the column as objects.
 
     Returns
     -------
     fill : str, bytes or None
-        ``""`` or ``b""`` matching the first string (``b""`` if there are no
+        ``""`` or ``b""`` matching the first string (``default`` if there are no
         unmasked values), or None if any unmasked value is not a string, or if
-        text is mixed with bytes that are not ASCII.
+        text is mixed with bytes that are not ASCII.  None means the column
+        should stay as objects.
     """
     cdef object fill = None
     cdef bint has_text = False
@@ -173,4 +178,4 @@ def _get_string_fill_value(data, mask):
     # objects instead of raising UnicodeDecodeError.
     if has_text and non_ascii_bytes:
         return None
-    return b"" if fill is None else fill
+    return default if fill is None else fill
