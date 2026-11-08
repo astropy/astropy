@@ -1,0 +1,5 @@
+Fixed ``Table.from_df`` raising ``TypeError`` for string-like columns containing
+``pd.NA`` or ``pd.NaT``. ``Table.from_df`` and ``Table.from_pandas`` now mask
+every missing value pandas reports (None, NaN, ``pd.NA``, ``pd.NaT``) and convert
+a column of otherwise ``str`` or ``bytes`` values to a native string
+``MaskedColumn``. Previously ``from_pandas`` did this only for ``np.nan``.

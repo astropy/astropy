@@ -31,7 +31,6 @@ import sys
 import numpy as np
 cimport numpy as np
 from cpython.ref cimport PyTypeObject
-from libc.math cimport isnan
 
 np.import_array()
 
@@ -133,7 +132,7 @@ def _get_string_dtype(value):
     return "S" if all_bytes else None
 
 
-def _get_string_fill_value(data, *, bint legacy_pandas=False):
+def _get_string_fill_value(data, mask):
     """
     Choose a placeholder for missing values in a string-like object column.
 
@@ -144,27 +143,34 @@ def _get_string_fill_value(data, *, bint legacy_pandas=False):
     ----------
     data : ndarray
         Object array of column values.
-    legacy_pandas : bool, optional
-        If True, only the ``np.nan`` object counts as missing (``from_pandas``).
-        If False, None and any NaN count as missing (``from_df``).  Default is
-        False.
+    mask : ndarray
+        Boolean array that is True where a value is missing.  Masked values are
+        skipped, whatever they are (e.g., None, NaN, ``pd.NA`` or ``pd.NaT``).
 
     Returns
     -------
     fill : str, bytes or None
         ``""`` or ``b""`` matching the first string (``b""`` if there are no
-        strings), or None if any value is neither a string nor missing.
+        unmasked values), or None if any unmasked value is not a string, or if
+        text is mixed with bytes that are not ASCII.
     """
     cdef object fill = None
-    cdef object nan = np.nan
+    cdef bint has_text = False
+    cdef bint non_ascii_bytes = False
 
-    for value in data:
-        if isinstance(value, (str, bytes)):
-            if fill is None:
-                fill = "" if isinstance(value, str) else b""
-        elif legacy_pandas:
-            if value is not nan:
-                return None
-        elif value is not None and not isnan(value):
+    for value, missing in zip(data, mask):
+        if missing:
+            continue
+        if isinstance(value, str):
+            has_text = True
+        elif isinstance(value, bytes):
+            non_ascii_bytes = non_ascii_bytes or not value.isascii()
+        else:
             return None
+        if fill is None:
+            fill = "" if has_text else b""
+    # NumPy decodes bytes mixed with text as ASCII, so keep such a column as
+    # objects instead of raising UnicodeDecodeError.
+    if has_text and non_ascii_bytes:
+        return None
     return b"" if fill is None else fill

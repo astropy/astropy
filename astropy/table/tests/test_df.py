@@ -770,3 +770,133 @@ def test_pandas_conversion_multidim_columns(use_legacy_pandas_api):
     assert df["g"][1] == [3, None]
     assert df["h"][0] == [None, 2.0]
     assert df["h"][1] == [3.0, None]
+
+
+# ``from_df`` needs narwhals; ``from_pandas`` does not.
+DATAFRAME_METHODS = [
+    pytest.param(
+        "from_df",
+        marks=pytest.mark.skipif(not HAS_NARWHALS, reason="requires narwhals"),
+    ),
+    "from_pandas",
+]
+
+
+# pandas is imported lazily, so ``pd.NA`` and ``pd.NaT`` are written as the
+# strings "pd.NA" and "pd.NaT" in the parametrize lists and mapped back in the tests.
+def _pandas_missing(values):
+    import pandas as pd
+
+    missing = {"pd.NA": pd.NA, "pd.NaT": pd.NaT}
+    return [missing.get(v, v) if isinstance(v, str) else v for v in values]
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.parametrize("method", DATAFRAME_METHODS)
+@pytest.mark.parametrize("cls", [Table, table.QTable])
+@pytest.mark.parametrize(
+    "values,dtype,expected_dtype",
+    [
+        (["a", None], "string", "U1"),
+        (["a", None], "string[pyarrow]", "U1"),
+        (["a", "pd.NA"], object, "U1"),
+        (["a", None], object, "U1"),
+        (["a", np.nan], object, "U1"),
+        (["a", "pd.NaT"], object, "U1"),
+        ([b"a", "pd.NA"], object, "S1"),
+        ([b"a", None], object, "S1"),
+        (["a", b"b", None], object, "U1"),
+    ],
+    ids=[
+        "string-None",
+        "string[pyarrow]-None",
+        "object-pd.NA",
+        "object-None",
+        "object-nan",
+        "object-pd.NaT",
+        "bytes-pd.NA",
+        "bytes-None",
+        "str+bytes-None",
+    ],
+)
+def test_from_dataframe_string_missing_values(
+    method, cls, values, dtype, expected_dtype
+):
+    """Missing values in string-like columns are masked, whatever they are (#20663).
+
+    Previously ``from_df`` raised ``TypeError`` for ``pd.NA`` and ``pd.NaT``, and
+    ``from_pandas`` kept an ``object`` column unless the missing value was
+    ``np.nan``.
+    """
+    import pandas as pd
+
+    if dtype == "string[pyarrow]" and not HAS_PYARROW:
+        pytest.skip("requires pyarrow")
+    values = _pandas_missing(values)
+    df = pd.DataFrame({"s": pd.Series(values, dtype=dtype)})
+
+    t = getattr(cls, method)(df)
+    col = t["s"]
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype == np.dtype(expected_dtype)
+    assert col.mask.tolist() == [False] * (len(values) - 1) + [True]
+    expected = ["a", "b"] if expected_dtype == "U1" else [b"a"]
+    assert np.asarray(col)[:-1].tolist() == expected[: len(values) - 1]
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.parametrize("method", DATAFRAME_METHODS)
+@pytest.mark.parametrize("cls", [Table, table.QTable])
+@pytest.mark.parametrize(
+    "values,dtype",
+    [
+        ([None, None], object),
+        ([np.nan, np.nan], object),
+        (["pd.NA", "pd.NA"], object),
+        ([None, None], "string"),
+        ([None, None], "string[pyarrow]"),
+    ],
+    ids=["object-None", "object-nan", "object-pd.NA", "string", "string[pyarrow]"],
+)
+def test_from_dataframe_string_all_missing(method, cls, values, dtype):
+    """An all-missing object or string column is a fully masked bytes column.
+
+    Previously the result depended on the method and on the missing value (#20663).
+    """
+    import pandas as pd
+
+    if dtype == "string[pyarrow]" and not HAS_PYARROW:
+        pytest.skip("requires pyarrow")
+    df = pd.DataFrame({"s": pd.Series(_pandas_missing(values), dtype=dtype)})
+    col = getattr(cls, method)(df)["s"]
+    assert isinstance(col, MaskedColumn)
+    assert col.dtype == np.dtype("S1")
+    assert np.all(col.mask)
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason="requires pandas")
+@pytest.mark.parametrize("method", DATAFRAME_METHODS)
+@pytest.mark.parametrize(
+    "values",
+    [
+        ["a", {"x": 1}],
+        ["a", {"x": 1}, None],
+        ["a", [1, 2], None],
+        ["a", b"\xff"],
+        ["a", b"\xff", None],
+    ],
+)
+def test_from_dataframe_object_column_kept(method, values):
+    """Object columns that are not all strings, or that mix text with non-ASCII
+    bytes, stay ``object`` instead of raising (#20663).
+    """
+    import pandas as pd
+
+    df = pd.DataFrame({"s": pd.Series(values, dtype=object)})
+    col = getattr(Table, method)(df)["s"]
+    assert col.dtype == np.dtype(object)
+    n_missing = values.count(None)
+    assert isinstance(col, MaskedColumn) == bool(n_missing)
+    assert col.tolist()[: len(values) - n_missing] == values[: len(values) - n_missing]
+    if n_missing:
+        assert col.mask.tolist() == [False] * (len(values) - 1) + [True]
