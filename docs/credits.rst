@@ -109,6 +109,7 @@ Core Package Contributors
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
+* cgarling
 * Charalampos Stratakis
 * Chiara Marmo
 * Chris Beaumont
@@ -235,6 +236,7 @@ Core Package Contributors
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
 * Henrike F\.
+* Henrique Carvalho
 * Henry Schreiner
 * Himanshu Pathak
 * homeboy445
