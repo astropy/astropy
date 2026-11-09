@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 # pylint: disable=invalid-name, pointless-statement
 
+import operator as op
 import pickle
 
 import numpy as np
@@ -790,15 +791,10 @@ def test_replace_submodel():
     assert m2.inverse(2, 8) == (1, 2)
 
 
-@pytest.mark.parametrize(
-    "expr",
-    [
-        lambda m1, m2: m1 + m2,
-        lambda m1, m2: m1 - m2,
-        lambda m1, m2: m1 * m2,
-        lambda m1, m2: m1 / m2,
-    ],
-)
+BASE_ALGEBRAIC_OPERATORS = [op.add, op.sub, op.mul, op.truediv]
+
+
+@pytest.mark.parametrize("expr", BASE_ALGEBRAIC_OPERATORS)
 def test_compound_evaluate(expr):
     """
     Tests that compound evaluate function produces the same
@@ -856,15 +852,7 @@ def test_compound_evaluate_double_shift():
     )
 
 
-@pytest.mark.parametrize(
-    "expr",
-    [
-        lambda m1, m2: m1 + m2,
-        lambda m1, m2: m1 - m2,
-        lambda m1, m2: m1 * m2,
-        lambda m1, m2: m1 / m2,
-    ],
-)
+@pytest.mark.parametrize("expr", BASE_ALGEBRAIC_OPERATORS)
 def test_compound_evaluate_named_param(expr):
     """
     Tests that compound evaluate function produces the same

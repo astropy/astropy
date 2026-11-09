@@ -405,16 +405,25 @@ class RoundtripBase:
         assert_allclose(a.decompose().scale, ud.scale, rtol=1e-5)
 
 
+def unique_units(namespace, /):
+    # produce a deterministically ordered list of unique unit instances
+    # without depending on an unreliable comparison operator
+    it = filter(
+        lambda _: isinstance(_, UnitBase) and not isinstance(_, PrefixUnit), namespace
+    )
+    units = [next(it)]
+    for unit in it:
+        if unit not in units:
+            units.append(unit)
+    return units
+
+
 class TestRoundtripGeneric(RoundtripBase):
     format_ = u_format.Generic
 
     @pytest.mark.parametrize(
         "unit",
-        [
-            unit
-            for unit in u.__dict__.values()
-            if (isinstance(unit, UnitBase) and not isinstance(unit, PrefixUnit))
-        ],
+        unique_units(u.__dict__.values()),
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -435,7 +444,7 @@ class TestRoundtripVOUnit(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.VOUnit._units.values() if not isinstance(u, PrefixUnit)],
+        unique_units(u_format.VOUnit._units.values()),
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -449,7 +458,7 @@ class TestRoundtripFITS(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.FITS._units.values() if not isinstance(u, PrefixUnit)],
+        unique_units(u_format.FITS._units.values()),
         ids=str,
     )
     def test_roundtrip(self, unit):
@@ -461,7 +470,7 @@ class TestRoundtripCDS(RoundtripBase):
 
     @pytest.mark.parametrize(
         "unit",
-        [u for u in u_format.CDS._units.values() if not isinstance(u, PrefixUnit)],
+        unique_units(u_format.CDS._units.values()),
         ids=str,
     )
     def test_roundtrip(self, unit):

@@ -214,7 +214,7 @@ def test_search_around_sky(
             [0, 1, 2, 3],
             [3, 2, 1, 1.9] * u.deg,
             [0.0523539, 0.03490481, 0.01745307, 0.16579868] * u.kpc,
-            id="1_kpc",
+            id="1_1_kpc",
         ),
         pytest.param(
             [1, 0.05] * u.kpc,
@@ -222,7 +222,7 @@ def test_search_around_sky(
             [0, 1, 2],
             [3, 2, 1] * u.deg,
             [0.0523539, 0.03490481, 0.01745307] * u.kpc,
-            id="1_kpc",
+            id="1_0.05_kpc",
         ),
         pytest.param(
             0.05 * u.kpc,

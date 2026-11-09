@@ -1225,7 +1225,6 @@ num_keys = [
     "bepoch",
     "tstart",
     "tstop",
-    "xposure",
     "timsyer",
     "timrder",
     "timedel",

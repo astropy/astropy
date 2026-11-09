@@ -54,7 +54,15 @@ def test_numpy_types(c):
     assert c == cy
 
 
-@pytest.mark.parametrize("c", [float("inf"), float("-inf"), np.inf, -np.inf])
+@pytest.mark.parametrize(
+    "c",
+    [
+        pytest.param(float("inf"), id="float('inf')"),
+        pytest.param(float("-inf"), id="float('-inf')"),
+        pytest.param(np.inf, id="np.inf"),
+        pytest.param(-np.inf, id="-np.inf"),
+    ],
+)
 def test_astropydumper_represent_float_override(c):
     # AstropyDumper overrides SafeDumper.represent_float, which has multiple
     # branches, not all of which are intended to deviate.

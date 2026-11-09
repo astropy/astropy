@@ -1177,7 +1177,7 @@ class TestQuantityDisplay:
                 None,
                 "latex",
                 r"$1200 \; \mathrm{m}$",
-                id="complex_number_latex_default",
+                id="float_number_latex_default",
             ),
             pytest.param(
                 u.Quantity(2.5 - 1.2j),

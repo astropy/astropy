@@ -21,7 +21,6 @@ from astropy.utils.exceptions import AstropyUserWarning
 fitters = [
     fitting.LevMarLSQFitter,
     fitting.TRFLSQFitter,
-    fitting.LevMarLSQFitter,
     fitting.DogBoxLSQFitter,
 ]
 

@@ -60,7 +60,13 @@ IMAGER = IMAGER + rng.normal(0, 2, SHAPE)
 IMAGEG = IMAGEG + rng.normal(0, 2, SHAPE)
 IMAGEB = IMAGEB + rng.normal(0, 2, SHAPE)
 
-INCORRECT_OUTPUT_TYPES = [bool, str, np.int64, np.cdouble, "str"]
+INCORRECT_OUTPUT_TYPES = [
+    bool,
+    str,
+    np.int64,
+    np.cdouble,
+    pytest.param("str", id="str('str')"),
+]
 
 
 def _display_rgb(rgb, title=None):
@@ -359,7 +365,7 @@ def test_incorrect_interval_length():
         )
 
 
-@pytest.mark.parametrize(("out_format"), INCORRECT_OUTPUT_TYPES)
+@pytest.mark.parametrize("out_format", INCORRECT_OUTPUT_TYPES)
 def test_invalid_output_dtype(out_format):
     """Test incorrect output image format"""
     interval = []

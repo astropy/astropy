@@ -275,6 +275,7 @@ addopts = [
     "--doctest-rst",
     "--strict-config",
     "--strict-markers",
+    "--strict-parametrization-ids",
     "-p no:legacypath",
 ]
 log_cli_level = "info"

@@ -71,7 +71,15 @@ def test_interpret_valid_int_bit_flags(flag, flip, expected):
     assert bitmask.interpret_bit_flags(bit_flags=flag, flip_bits=flip) == expected
 
 
-@pytest.mark.parametrize("flag", [None, " ", "None", "Indef"])
+@pytest.mark.parametrize(
+    "flag",
+    [
+        pytest.param(None, id="literal-None"),
+        pytest.param(None, id="str('None')"),
+        " ",
+        "Indef",
+    ],
+)
 def test_interpret_none_bit_flags_as_None(flag):
     assert bitmask.interpret_bit_flags(bit_flags=flag) is None
 
@@ -140,13 +148,13 @@ def test_interpret_valid_mnemonic_bit_flags(flag, expected):
 @pytest.mark.parametrize(
     "flag,flip",
     [
-        (None, True),
+        pytest.param(None, True, id="None-True"),
         (" ", True),
-        ("None", True),
+        pytest.param("None", True, id="str('None')-True"),
         ("Indef", True),
-        (None, False),
+        pytest.param(None, False, id="None-False"),
         (" ", False),
-        ("None", False),
+        pytest.param("None", False, id="str('None')-False"),
         ("Indef", False),
         ("1", True),
         ("1", False),

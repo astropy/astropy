@@ -121,7 +121,13 @@ class MaskedUfuncTests(MaskedArraySetup):
         with pytest.raises(TypeError):
             np.add(self.a, self.b, out=out, where=Masked(True, mask=True))
 
-    @pytest.mark.parametrize("ufunc", (np.add.outer, np.minimum.outer))
+    @pytest.mark.parametrize(
+        "ufunc",
+        [
+            pytest.param(np.add.outer, id="np.add.outer"),
+            pytest.param(np.minimum.outer, id="np.minimum.outer"),
+        ],
+    )
     @pytest.mark.parametrize("a, b", [("ma", "mb"), ("ma", "b"), ("a", "mb")])
     def test_2op_ufunc_outer(self, ufunc, a, b):
         a, b = getattr(self, a), getattr(self, b)
@@ -140,7 +146,13 @@ class MaskedUfuncTests(MaskedArraySetup):
         assert result2 is out
         assert_masked_equal(result2, result)
 
-    @pytest.mark.parametrize("ufunc", (np.add.outer, np.minimum.outer))
+    @pytest.mark.parametrize(
+        "ufunc",
+        [
+            pytest.param(np.add.outer, id="np.add.outer"),
+            pytest.param(np.minimum.outer, id="np.minimum.outer"),
+        ],
+    )
     def test_2op_ufunc_outer_no_masked_input(self, ufunc):
         expected_data = ufunc(self.a, self.b)
         out = Masked(np.zeros_like(expected_data), True)

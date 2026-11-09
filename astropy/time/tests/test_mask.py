@@ -306,7 +306,15 @@ def test_all_masked_input(masked_cls, val):
 
 
 @pytest.mark.parametrize("mask_cls", [np.ma.MaskedArray, Masked])
-@pytest.mark.parametrize("val", ["", [".."], b"", [b".."]])
+@pytest.mark.parametrize(
+    "val",
+    [
+        pytest.param("", id="empty-str"),
+        [".."],
+        pytest.param(b"", id="empty-bytes"),
+        [b".."],
+    ],
+)
 def test_all_masked_input_str(mask_cls, val):
     dates = mask_cls(val, mask=True)
     t = Time(dates, format="iso", in_subfmt="date")

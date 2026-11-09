@@ -44,8 +44,7 @@ KERNEL_TYPES = [
     Ring2DKernel,
 ]
 
-
-NUMS = [1, 1.0, np.float32(1.0), np.float64(1.0)]
+NUM_TYPES = [int, float, np.float32, np.float64]
 
 
 # Test data
@@ -240,31 +239,31 @@ class TestKernels:
 
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
-    @pytest.mark.parametrize("number", NUMS)
-    def test_multiply_scalar(self, number):
+    @pytest.mark.parametrize("num_type", NUM_TYPES)
+    def test_multiply_scalar(self, num_type):
         """
         Check if multiplying a kernel with a scalar works correctly.
         """
         gauss = Gaussian1DKernel(3)
-        gauss_new = number * gauss
-        assert_almost_equal(gauss_new.array, gauss.array * number, decimal=12)
+        gauss_new = num_type(1) * gauss
+        assert_almost_equal(gauss_new.array, gauss.array * num_type(1), decimal=12)
 
-    @pytest.mark.parametrize("number", NUMS)
-    def test_multiply_scalar_type(self, number):
+    @pytest.mark.parametrize("num_type", NUM_TYPES)
+    def test_multiply_scalar_type(self, num_type):
         """
         Check if multiplying a kernel with a scalar works correctly.
         """
         gauss = Gaussian1DKernel(3)
-        gauss_new = number * gauss
+        gauss_new = num_type(1) * gauss
         assert type(gauss_new) is Gaussian1DKernel
 
-    @pytest.mark.parametrize("number", NUMS)
-    def test_rmultiply_scalar_type(self, number):
+    @pytest.mark.parametrize("num_type", NUM_TYPES)
+    def test_rmultiply_scalar_type(self, num_type):
         """
         Check if multiplying a kernel with a scalar works correctly.
         """
         gauss = Gaussian1DKernel(3)
-        gauss_new = gauss * number
+        gauss_new = gauss * num_type(1)
         assert type(gauss_new) is Gaussian1DKernel
 
     def test_multiply_kernel1d(self):
