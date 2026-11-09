@@ -215,10 +215,26 @@ def test_slices_limit_rounding_method(
     [
         (None, "^Limit rounding method must be a callable"),
         ("invalid", "^Limit rounding method must be a callable"),
-        (lambda x: (1, 2), "^Limit rounding method must accept a single number"),
-        (lambda x: "invalid", "^Limit rounding method must accept a single number"),
-        (lambda x, y: 1, "^Limit rounding method must accept a single number"),
-        (lambda: 1, "^Limit rounding method must accept a single number"),
+        pytest.param(
+            lambda x: (1, 2),
+            "^Limit rounding method must accept a single number",
+            id="1-arg_ret-tuple",
+        ),
+        pytest.param(
+            lambda x: "invalid",
+            "^Limit rounding method must accept a single number",
+            id="1-arg_ret-str",
+        ),
+        pytest.param(
+            lambda x, y: 1,
+            "^Limit rounding method must accept a single number",
+            id="2-args_ret_int",
+        ),
+        pytest.param(
+            lambda: 1,
+            "^Limit rounding method must accept a single number",
+            id="0-args_ret-int",
+        ),
     ],
 )
 def test_slices_wrong_limit_rounding_method(limit_rounding_method, error_msg):

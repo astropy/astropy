@@ -231,6 +231,7 @@ def test_custom_format_scalar_jd1_jd2_okay(custom_format_name):
         np.datetime64("2005-02-25"),
         date(2006, 2, 25),
     ],
+    ids=type,
 )
 def test_custom_format_can_return_any_scalar(custom_format_name, thing):
     class Custom(TimeFormat):

@@ -193,7 +193,11 @@ def test_metadata_merging():
 
 
 @pytest.mark.parametrize("metadata_conflicts", ["warn", "error", "silent"])
-@pytest.mark.parametrize("left,right", [(b"alpha", "beta"), ("alpha", b"beta")])
+@pytest.mark.parametrize(
+    "left,right",
+    [(b"alpha", "beta"), ("alpha", b"beta")],
+    ids=lambda p: f"{p[0]!r}-{p[1]!r}",
+)
 def test_metadata_merging_bytes_text(metadata_conflicts, left, right):
     out = merge(
         {"labels": np.array([left])},

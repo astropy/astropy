@@ -421,13 +421,17 @@ class TestQuantityMathFuncs:
         res_vecmat = np.vecmat(vec, mat)
         assert_array_equal(res_vecmat, ref_vecmat)
 
-    @pytest.mark.parametrize("function", (np.divide, np.true_divide))
+    @pytest.mark.parametrize(
+        "function", [np.divide, pytest.param(np.true_divide, id="true_divide")]
+    )
     def test_divide_scalar(self, function):
         assert function(4.0 * u.m, 2.0 * u.s) == function(4.0, 2.0) * u.m / u.s
         assert function(4.0 * u.m, 2.0) == function(4.0, 2.0) * u.m
         assert function(4.0, 2.0 * u.s) == function(4.0, 2.0) / u.s
 
-    @pytest.mark.parametrize("function", (np.divide, np.true_divide))
+    @pytest.mark.parametrize(
+        "function", [np.divide, pytest.param(np.true_divide, id="true_divide")]
+    )
     def test_divide_array(self, function):
         assert np.all(
             function(np.arange(3.0) * u.m, 2.0 * u.s)
@@ -737,8 +741,8 @@ class TestInvariantUfuncs:
         [
             np.absolute,
             np.fabs,
-            np.conj,
             np.conjugate,
+            pytest.param(np.conj, id="conj"),  # alias for conjugate
             np.negative,
             np.spacing,
             np.rint,
@@ -774,7 +778,7 @@ class TestInvariantUfuncs:
             np.minimum,
             np.nextafter,
             np.remainder,
-            np.mod,
+            pytest.param(np.mod, id="mod"),  # alias for remainder
             np.fmod,
         ],
     )
@@ -803,7 +807,7 @@ class TestInvariantUfuncs:
             ),
             np.nextafter,
             np.remainder,
-            np.mod,
+            pytest.param(np.mod, id="mod"),  # alias for remainder
             np.fmod,
         ],
     )
@@ -837,7 +841,7 @@ class TestInvariantUfuncs:
             (np.minimum, 0.0),
             (np.nextafter, 0.0),
             (np.remainder, np.inf),
-            (np.mod, np.inf),
+            pytest.param(np.mod, np.inf, id="mod-inf"),  # alias for remainder
             (np.fmod, np.inf),
         ],
     )
@@ -858,7 +862,7 @@ class TestInvariantUfuncs:
             np.minimum,
             np.nextafter,
             np.remainder,
-            np.mod,
+            pytest.param(np.mod, id="mod"),  # alias for remainder
             np.fmod,
         ],
     )
@@ -1618,7 +1622,8 @@ if HAS_SCIPY:
     erf_like_ufuncs = (
         sps.erf, sps.erfc, sps.erfcx, sps.erfi,
         sps.gamma, sps.gammaln, sps.loggamma, sps.gammasgn, sps.psi,
-        sps.rgamma, sps.digamma, sps.wofz, sps.dawsn,
+        pytest.param(sps.digamma, id='digamma'), # alias for psi
+        sps.rgamma, sps.wofz, sps.dawsn,
         sps.entr, sps.exprel, sps.expm1, sps.log1p, sps.exp2, sps.exp10,
     )  # fmt: skip
 
@@ -1682,9 +1687,10 @@ if HAS_SCIPY:
                 function(3.0 * u.m, 2.0 * u.s, 1.0 * u.kg)
 
         jv_like_ufuncs = (
-            sps.jv, sps.jn, sps.jve, sps.yn, sps.yv, sps.yve, sps.kn, sps.kv,
+            sps.jv, sps.jve, sps.yn, sps.yv, sps.yve, sps.kn, sps.kv,
             sps.kve, sps.iv, sps.ive, sps.hankel1, sps.hankel1e, sps.hankel2,
             sps.hankel2e,
+            pytest.param(sps.jn, id='jn'), # alias for jv
         )  # fmt: skip
 
         @pytest.mark.parametrize("function", jv_like_ufuncs)

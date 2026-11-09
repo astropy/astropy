@@ -61,8 +61,13 @@ def test_pass_nddata():
 @pytest.mark.parametrize(
     "func",
     (
-        lambda *, data, wcs, unit=None: (data, wcs, unit),
-        lambda *, wcs=None, data, unit=None: (data, wcs, unit),
+        pytest.param(
+            lambda *, data, wcs, unit=None: (data, wcs, unit), id="default-unit"
+        ),
+        pytest.param(
+            lambda *, wcs=None, data, unit=None: (data, wcs, unit),
+            id="default-wcs_unit",
+        ),
     ),
 )
 def test_pass_nddata_kwarg_only(func):
@@ -229,8 +234,8 @@ def test_pass_nddata_ignored():
 @pytest.mark.parametrize(
     "func",
     (
-        lambda something, wcs=None, unit=None: None,
-        lambda wcs=None, unit=None: None,
+        pytest.param(lambda something, wcs=None, unit=None: None, id="no-default"),
+        pytest.param(lambda wcs=None, unit=None: None, id="default"),
     ),
 )
 def test_incorrect_first_argument(func):
