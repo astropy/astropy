@@ -273,14 +273,11 @@ remote_data_strict = true
 addopts = [
     # keep in sync with tox.ini (oldestdeps's PYTEST_ADDOPTS)
     "--doctest-rst",
-    "--strict-config",
-    "--strict-markers",
-    "--strict-parametrization-ids",
     "-p no:legacypath",
 ]
 log_cli_level = "info"
 log_level = "INFO"
-xfail_strict = true
+strict = true
 filterwarnings = [
     "error",
     # https://github.com/astropy/astropy/issues/18126
