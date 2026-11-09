@@ -109,10 +109,10 @@ Core Package Contributors
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
-* cgarling
 * Charalampos Stratakis
 * Chiara Marmo
 * Chris Beaumont
+* Chris Garling
 * Chris Hanley
 * Chris Osborne
 * Chris Simpson
