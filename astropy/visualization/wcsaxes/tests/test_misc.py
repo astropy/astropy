@@ -724,7 +724,7 @@ def test_tightbbox_pgf_measurement_renderer(tmp_path, ignore_matplotlibrc):
     fig = Figure(layout="constrained")
     FigureCanvasPgf(fig)
     ax = fig.add_subplot(projection=WCS())
-    fig.savefig(tmp_path / 'test.pgf')
+    fig.savefig(tmp_path / "test.pgf")
 
     # When saving the plot above, get_tightbox should get called, but we can
     # double check that it also passes without failing if called explicitly
