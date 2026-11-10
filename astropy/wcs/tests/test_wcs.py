@@ -5,6 +5,7 @@ import io
 import os
 import re
 import sys
+import warnings
 from contextlib import nullcontext
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
@@ -1224,21 +1225,22 @@ def test_d2im_comments():
     f.close()
     wcscards = list(w.to_fits()[0].header["D2IM*"].cards)
     wcsdict = {k: (v, c) for k, v, c in wcscards}
+    err1 = float(np.max(np.abs(w.det2im1.data)))
+    err2 = float(np.max(np.abs(w.det2im2.data)))
 
     refcards = [
         ("D2IMDIS1", "LOOKUP", "Detector to image correction type"),
-        ("D2IM1.EXTVER", 1.0, "Version number of WCSDVARR extension"),
+        ("D2IMERR1", err1, "Maximum error of D2IM correction for axis 1"),
+        ("D2IM1.EXTVER", 1.0, "Version number of D2IMARR extension"),
         ("D2IM1.NAXES", 2.0, "Number of independent variables in D2IM function"),
         ("D2IM1.AXIS.1", 1.0, "Axis number of the 1st variable in a D2IM function"),
         ("D2IM1.AXIS.2", 2.0, "Axis number of the 2nd variable in a D2IM function"),
         ("D2IMDIS2", "LOOKUP", "Detector to image correction type"),
-        ("D2IM2.EXTVER", 2.0, "Version number of WCSDVARR extension"),
+        ("D2IMERR2", err2, "Maximum error of D2IM correction for axis 2"),
+        ("D2IM2.EXTVER", 2.0, "Version number of D2IMARR extension"),
         ("D2IM2.NAXES", 2.0, "Number of independent variables in D2IM function"),
         ("D2IM2.AXIS.1", 1.0, "Axis number of the 1st variable in a D2IM function"),
         ("D2IM2.AXIS.2", 2.0, "Axis number of the 2nd variable in a D2IM function"),
-        # ('D2IMERR1', 0.049, 'Maximum error of D2IM correction for axis 1'),
-        # ('D2IMERR2', 0.035, 'Maximum error of D2IM correction for axis 2'),
-        # ('D2IMEXT', 'iref$y7b1516hi_d2i.fits', ''),
     ]
 
     assert len(wcsdict) == len(refcards)
@@ -2346,6 +2348,514 @@ def test_shared_prior_distortion_pickle_alternate():
     assert w2.wcs.alt == "O"
     assert_array_equal(w2.cpdis1.data, w.cpdis1.data)
     assert_array_equal(w2.cpdis2.data, w.cpdis2.data)
+
+
+def _lookup_table(scale, shape=(33, 65)):
+    rng = default_rng(int(scale * 1000))
+    data = (rng.standard_normal(shape) * scale).astype(np.float32)
+    return wcs.DistortionLookupTable(data, (0.0, 0.0), (0.0, 0.0), (16.0, 32.0))
+
+
+def _wcs_with_tables(alt=" ", cpdis_scale=0.01, d2im_scale=None):
+    w = wcs.WCS(naxis=2)
+    w.wcs.alt = alt
+    w.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    w.wcs.crpix = [512, 512]
+    w.wcs.crval = [150, -35]
+    w.wcs.cdelt = [-0.0002777778, 0.0002777778]
+    w.cpdis1 = _lookup_table(cpdis_scale)
+    w.cpdis2 = _lookup_table(2 * cpdis_scale)
+    if d2im_scale is not None:
+        w.det2im1 = _lookup_table(d2im_scale)
+        w.det2im2 = _lookup_table(2 * d2im_scale)
+    return w
+
+
+def _assert_same_tables(w1, w2):
+    for name in ("cpdis1", "cpdis2", "det2im1", "det2im2"):
+        assert wcs.wcs._same_lookup_table(getattr(w1, name), getattr(w2, name)), name
+
+
+def _set_image_size(header):
+    """
+    Give ``header`` the size of an image. The primary header that
+    ``to_fits()`` writes has ``NAXIS = 0``, and reading a WCS from such a
+    header warns that the WCS has more axes than the image.
+    """
+    header["NAXIS"] = 2
+    header["NAXIS1"] = 37
+    header["NAXIS2"] = 67
+
+
+def _extvers(hdulist, extname):
+    return sorted(hdu.ver for hdu in hdulist if hdu.name == extname)
+
+
+@pytest.mark.parametrize(
+    ("alt", "key", "suffix"),
+    [
+        (" ", None, ""),
+        ("A", None, "A"),
+        ("A", "B", "B"),
+        ("A", " ", ""),  # what stwcs does to make headerlets
+    ],
+)
+def test_to_fits_lookup_tables_key(alt, key, suffix):
+    """
+    to_fits() writes the lookup-table keywords with the key of the WCS, or
+    with the ``key`` argument if it is given.
+    """
+    w = _wcs_with_tables(alt=alt, d2im_scale=0.02)
+    hdulist = w.to_fits(relax=True, key=key)
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    for j in (1, 2):
+        assert header[f"CPDIS{j}{suffix}"] == "LOOKUP"
+        assert header[f"DP{j}{suffix}.EXTVER"] == j
+        assert f"D2IMDIS{j}" in header  # D2IM has no WCS key
+    # there are no lookup-table keywords of another key
+    cpdis_keywords = [kw for kw in header if kw.startswith("CPDIS")]
+    assert cpdis_keywords == [f"CPDIS1{suffix}", f"CPDIS2{suffix}"]
+
+    _assert_same_tables(w, wcs.WCS(header, hdulist, key=suffix or " "))
+
+
+def test_to_fits_identical_tables_use_two_extensions():
+    """
+    to_fits() writes one extension per axis, with EXTVER equal to the axis
+    number, even if the two tables are identical (stwcs relies on that).
+    """
+    w = _wcs_with_tables(alt=" ", d2im_scale=0.02)
+    w.cpdis2 = w.cpdis1
+    w.det2im2 = w.det2im1
+    hdulist = w.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    assert _extvers(hdulist, "WCSDVARR") == [1, 2]
+    assert _extvers(hdulist, "D2IMARR") == [1, 2]
+    assert header["DP1.EXTVER"] == 1
+    assert header["DP2.EXTVER"] == 2
+    assert header["D2IM1.EXTVER"] == 1
+    assert header["D2IM2.EXTVER"] == 2
+    _assert_same_tables(w, wcs.WCS(header, hdulist))
+
+
+@pytest.mark.parametrize("alt", [" ", "A"])
+def test_lookup_table_on_first_axis_only(alt):
+    """
+    A table on axis 1 alone can be read back. WCSLIB used to reject the
+    header before the lookup-table keywords were removed from it.
+    """
+    import pickle
+
+    w = _wcs_with_tables(alt=alt)
+    w.cpdis2 = None
+    hdulist = w.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    assert f"CPDIS1{alt.strip()}" in header
+    assert f"CPDIS2{alt.strip()}" not in header
+    _assert_same_tables(w, wcs.WCS(header, hdulist, key=alt))
+    _assert_same_tables(w, pickle.loads(pickle.dumps(w)))
+
+
+def test_lookup_table_with_nan_and_inf():
+    """Tables with NaN or infinite values can be written, read and pickled."""
+    import pickle
+
+    w = _wcs_with_tables(alt="A")
+    data = np.array(w.cpdis1.data)
+    data[0, 0] = np.nan
+    data[1, 1] = np.inf
+    w.cpdis1 = wcs.DistortionLookupTable(data, (0.0, 0.0), (0.0, 0.0), (16.0, 32.0))
+    all_nan = np.full((33, 65), np.nan, dtype=np.float32)
+    w.cpdis2 = wcs.DistortionLookupTable(all_nan, (0.0, 0.0), (0.0, 0.0), (16.0, 32.0))
+
+    hdulist = w.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    # CPERRja is the largest finite correction, 0 if there is none
+    finite = data[np.isfinite(data)]
+    assert header["CPERR1A"] == pytest.approx(np.max(np.abs(finite)))
+    assert header["CPERR2A"] == 0.0
+    _assert_same_tables(w, wcs.WCS(header, hdulist, key="A"))
+    _assert_same_tables(w, pickle.loads(pickle.dumps(w)))
+
+
+def test_lookup_table_errors():
+    """CPERRja and D2IMERRj hold the largest correction, so minerr works."""
+    w = _wcs_with_tables(alt="A", cpdis_scale=0.01, d2im_scale=0.02)
+    hdulist = w.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    assert header["CPERR1A"] == pytest.approx(np.max(np.abs(w.cpdis1.data)))
+    assert header["CPERR2A"] == pytest.approx(np.max(np.abs(w.cpdis2.data)))
+    assert header["D2IMERR1"] == pytest.approx(np.max(np.abs(w.det2im1.data)))
+
+    # a small minerr keeps all tables, a large one drops them
+    w_small = wcs.WCS(header, hdulist, key="A", minerr=1e-6)
+    _assert_same_tables(w, w_small)
+    w_large = wcs.WCS(header, hdulist, key="A", minerr=1e3)
+    assert w_large.cpdis1 is None
+    assert w_large.cpdis2 is None
+    assert w_large.det2im1 is None
+
+
+def test_write_lookup_tables_reuses_identical_tables():
+    w_primary = _wcs_with_tables(alt=" ", d2im_scale=0.02)
+    hdulist = w_primary.to_fits()
+    assert len(hdulist) == 5  # primary + 2 D2IMARR + 2 WCSDVARR
+
+    # an alternate WCS with the same tables refers to the existing extensions
+    w_alt = _wcs_with_tables(alt="A", d2im_scale=0.02)
+    w_alt.wcs.crval = [151, -36]
+    header = hdulist[0].header
+    header.update(w_alt.to_header(relax=True))
+    _set_image_size(header)
+    w_alt.write_lookup_tables(hdulist)
+
+    assert len(hdulist) == 5
+    assert header["DP1A.EXTVER"] == header["DP1.EXTVER"]
+    assert header["DP2A.EXTVER"] == header["DP2.EXTVER"]
+    _assert_same_tables(w_alt, wcs.WCS(header, hdulist, key="A"))
+    _assert_same_tables(w_primary, wcs.WCS(header, hdulist))
+
+
+def test_write_lookup_tables_identical_tables_use_two_extensions():
+    """The two axes of a WCS never refer to the same extension."""
+    w_primary = _wcs_with_tables(alt=" ")
+    w_primary.cpdis2 = w_primary.cpdis1
+    hdulist = w_primary.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    w_alt = _wcs_with_tables(alt="A")
+    w_alt.cpdis2 = w_alt.cpdis1
+    header.update(w_alt.to_header(relax=True))
+    w_alt.write_lookup_tables(hdulist)
+
+    # no table is written again, and each axis has an extension of its own
+    assert _extvers(hdulist, "WCSDVARR") == [1, 2]
+    assert header["DP1A.EXTVER"] == 1
+    assert header["DP2A.EXTVER"] == 2
+    _assert_same_tables(w_alt, wcs.WCS(header, hdulist, key="A"))
+
+
+def test_write_lookup_tables_replaces_keywords_of_key():
+    w_primary = _wcs_with_tables(alt=" ")
+    hdulist = w_primary.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+    w_a1 = _wcs_with_tables(alt="A", cpdis_scale=0.05)
+    header.update(w_a1.to_header(relax=True))
+
+    w_a1.write_lookup_tables(hdulist)
+    assert header["DP1A.EXTVER"] == 3
+    assert header["DP2A.EXTVER"] == 4
+
+    w_a2 = _wcs_with_tables(alt="A", cpdis_scale=0.07)
+    w_a2.cpdis2 = None
+    w_a2.write_lookup_tables(hdulist, key="A")
+
+    assert "CPDIS2A" not in header
+    assert "CPERR2A" not in header
+    assert not any(k.startswith("DP2A.") for k in header)
+    w = wcs.WCS(header, hdulist, key="A")
+    assert wcs.wcs._same_lookup_table(w.cpdis1, w_a2.cpdis1)
+    assert w.cpdis2 is None
+    # The new table is written over the one that it replaces, which nothing
+    # else used. The extension of the table that was dropped is kept.
+    assert header["DP1A.EXTVER"] == 3
+    assert _extvers(hdulist, "WCSDVARR") == [1, 2, 3, 4]
+    _assert_same_tables(w_primary, wcs.WCS(header, hdulist))
+
+
+def test_write_lookup_tables_keeps_table_used_by_another_key():
+    """A table that another key refers to is not written over."""
+    w_primary = _wcs_with_tables(alt=" ")
+    hdulist = w_primary.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    # A starts with the tables of the primary WCS, in the same extensions ...
+    w_alt = _wcs_with_tables(alt="A")
+    header.update(w_alt.to_header(relax=True))
+    w_alt.write_lookup_tables(hdulist)
+    assert header["DP1A.EXTVER"] == 1
+    assert header["DP2A.EXTVER"] == 2
+
+    # ... and then gets tables of its own.
+    w_new = _wcs_with_tables(alt="A", cpdis_scale=0.05)
+    w_new.write_lookup_tables(hdulist)
+    assert header["DP1A.EXTVER"] == 3
+    assert header["DP2A.EXTVER"] == 4
+    _assert_same_tables(w_new, wcs.WCS(header, hdulist, key="A"))
+    _assert_same_tables(w_primary, wcs.WCS(header, hdulist))
+
+
+def test_write_lookup_tables_without_tables_removes_them():
+    """A WCS without lookup tables removes those of its key, and only those."""
+    w_primary = _wcs_with_tables(alt=" ")
+    hdulist = w_primary.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+    w_alt = _wcs_with_tables(alt="A", cpdis_scale=0.05)
+    header.update(w_alt.to_header(relax=True))
+    w_alt.write_lookup_tables(hdulist)
+    assert wcs.wcs._has_prior_distortion_kw(header, "A")
+
+    w_alt.cpdis1 = None
+    w_alt.cpdis2 = None
+    w_alt.write_lookup_tables(hdulist)
+
+    assert not wcs.wcs._has_prior_distortion_kw(header, "A")
+    w = wcs.WCS(header, hdulist, key="A")
+    assert w.cpdis1 is None
+    assert w.cpdis2 is None
+    _assert_same_tables(w_primary, wcs.WCS(header, hdulist))
+
+
+def test_write_lookup_tables_keeps_other_distortion_types():
+    """Keywords of a distortion that is not a lookup table are left alone."""
+    hdulist = fits.HDUList([fits.PrimaryHDU()])
+    header = hdulist[0].header
+    header["CPDIS1A"] = "TPD"
+    header["DP1A.NAXES"] = 2
+    header["DP1A.TPD.FWD.4"] = 1.0e-6
+    before = header.tostring()
+
+    # a WCS without lookup tables changes nothing
+    w = _wcs_with_tables(alt="A")
+    w.cpdis1 = None
+    w.cpdis2 = None
+    w.write_lookup_tables(hdulist)
+    assert header.tostring() == before
+
+    # a table for the second axis does not touch the keywords of the first
+    w.cpdis2 = _lookup_table(0.02)
+    w.write_lookup_tables(hdulist)
+    assert header["CPDIS1A"] == "TPD"
+    assert header["DP1A.NAXES"] == 2
+    assert header["DP1A.TPD.FWD.4"] == 1.0e-6
+    assert header["CPDIS2A"] == "LOOKUP"
+
+
+def test_write_lookup_tables_d2im_is_shared():
+    hdulist = _wcs_with_tables(alt=" ", d2im_scale=0.02).to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+    n_ext = len(hdulist)
+
+    # same D2IM: nothing is written again
+    w_same = _wcs_with_tables(alt="A", d2im_scale=0.02)
+    w_same.write_lookup_tables(hdulist)
+    assert len(hdulist) == n_ext
+
+    # different D2IM for an alternate WCS: refused
+    w_diff = _wcs_with_tables(alt="B", d2im_scale=0.04)
+    with pytest.raises(ValueError, match="detector-to-image"):
+        w_diff.write_lookup_tables(hdulist)
+
+    # different D2IM for the primary WCS: replaced
+    w_diff.write_lookup_tables(hdulist, key=" ")
+    w = wcs.WCS(header, hdulist)
+    assert wcs.wcs._same_lookup_table(w.det2im1, w_diff.det2im1)
+    assert wcs.wcs._same_lookup_table(w.det2im2, w_diff.det2im2)
+    # the new tables are written over the old ones
+    assert _extvers(hdulist, "D2IMARR") == [1, 2]
+
+
+def test_write_lookup_tables_replaces_old_d2im_format():
+    """
+    Writing a detector-to-image correction removes AXISCORR. A header with
+    that keyword is read in the old format, whatever else it has.
+    """
+    w = _wcs_with_tables(alt=" ", d2im_scale=0.02)
+    old_header = w.to_header(relax=True)
+    old_header["AXISCORR"] = 1
+    old_table = fits.ImageHDU(np.zeros(64, dtype=np.float32), name="D2IMARR")
+    hdulist = fits.HDUList([fits.PrimaryHDU(header=old_header), old_table])
+    header = hdulist[0].header
+    _set_image_size(header)
+
+    w.write_lookup_tables(hdulist)
+
+    assert "AXISCORR" not in header
+    # the table of the old format (EXTVER 1) is kept, next to the new ones
+    assert _extvers(hdulist, "D2IMARR") == [1, 2, 3]
+    assert header["D2IM1.EXTVER"] == 2
+    assert header["D2IM2.EXTVER"] == 3
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # the old format warns when read
+        _assert_same_tables(w, wcs.WCS(header, hdulist))
+
+
+def test_to_fits_lookup_table_extver_is_axis_number():
+    """A table on axis 2 alone keeps EXTVER 2, as in earlier versions."""
+    w = _wcs_with_tables(alt=" ", d2im_scale=0.02)
+    w.cpdis1 = None
+    w.det2im1 = None
+    hdulist = w.to_fits()
+    header = hdulist[0].header
+    _set_image_size(header)
+    assert header["DP2.EXTVER"] == 2
+    assert header["D2IM2.EXTVER"] == 2
+    assert hdulist["WCSDVARR", 2].data is not None
+    assert hdulist["D2IMARR", 2].data is not None
+    _assert_same_tables(w, wcs.WCS(header, hdulist))
+
+
+def test_write_lookup_tables_bad_key():
+    w = _wcs_with_tables()
+    with pytest.raises(ValueError, match="key must be"):
+        w.write_lookup_tables(w.to_fits(), key="AB")
+
+
+def _stsci_hst_file():
+    hdulist = _stsci_hst_distortion_hdulist()
+    hdulist[0].header.update(_stsci_hst_distortion_header())
+    return hdulist
+
+
+def _stsci_hst_two_chip_file(chip2_extvers=(3, 4)):
+    """
+    A file laid out like ACS/WFC data: four WCSDVARR extensions and two SCI
+    extensions. The first SCI extension uses WCSDVARR 1 and 2, and the second
+    one uses ``chip2_extvers``.
+    """
+    hdulist = _stsci_hst_distortion_hdulist(nextver=4)
+    for chip, extvers in ((1, (1, 2)), (2, chip2_extvers)):
+        header = _stsci_hst_distortion_header()
+        header["DP1.EXTVER"] = float(extvers[0])
+        header["DP2.EXTVER"] = float(extvers[1])
+        image = np.zeros((4, 4), dtype=np.float32)
+        sci = fits.ImageHDU(image, header=header, name="SCI")
+        sci.ver = chip
+        hdulist.append(sci)
+    return hdulist
+
+
+def test_write_lookup_tables_stsci_keyed_warns():
+    hdulist = _stsci_hst_file()
+    header = hdulist[0].header
+    w_alt = _wcs_with_tables(alt="A", cpdis_scale=0.05)
+    header.update(w_alt.to_header(relax=True))
+    with pytest.warns(AstropyUserWarning, match="shared_cpdis=True"):
+        w_alt.write_lookup_tables(hdulist)
+    _assert_same_tables(w_alt, wcs.WCS(header, hdulist, key="A"))
+    # O no longer inherits by default, but still can with shared_cpdis=True
+    assert wcs.WCS(header, hdulist, key="O").cpdis1 is None
+    w_o = wcs.WCS(header, hdulist, key="O", shared_cpdis=True)
+    assert_array_equal(w_o.cpdis1.data, hdulist["WCSDVARR", 1].data)
+
+
+def test_write_lookup_tables_stsci_second_chip_keeps_extver():
+    """
+    New tables for the second chip are written over its old ones. The header
+    keeps EXTVER 3 and 4, so the alternate WCSs still share the tables.
+    """
+    hdulist = _stsci_hst_two_chip_file()
+    header = hdulist["SCI", 2].header
+    w_new = _wcs_with_tables(alt=" ", cpdis_scale=0.05)
+    with pytest.warns(AstropyUserWarning, match="all alternate WCSs"):
+        w_new.write_lookup_tables(hdulist, ext=("SCI", 2))
+
+    assert header["DP1.EXTVER"] == 3
+    assert header["DP2.EXTVER"] == 4
+    assert _extvers(hdulist, "WCSDVARR") == [1, 2, 3, 4]
+    _assert_same_tables(w_new, wcs.WCS(header, hdulist))
+    _assert_same_tables(w_new, wcs.WCS(header, hdulist, key="O"))
+
+    # the first chip is not affected
+    unchanged = _stsci_hst_distortion_hdulist(nextver=4)
+    w_chip1 = wcs.WCS(hdulist["SCI", 1].header, hdulist, key="O")
+    assert_array_equal(w_chip1.cpdis1.data, unchanged["WCSDVARR", 1].data)
+    assert_array_equal(w_chip1.cpdis2.data, unchanged["WCSDVARR", 2].data)
+
+
+def test_write_lookup_tables_stsci_no_free_extver():
+    """
+    Tables that another header uses are not written over. With EXTVER 1 to 4
+    taken, the header stops following the STScI convention, and the warning
+    says so.
+    """
+    hdulist = _stsci_hst_two_chip_file(chip2_extvers=(1, 2))
+    header = hdulist["SCI", 2].header
+    w_new = _wcs_with_tables(alt=" ", cpdis_scale=0.05)
+    with pytest.warns(AstropyUserWarning, match="no longer follows"):
+        w_new.write_lookup_tables(hdulist, ext=("SCI", 2))
+
+    assert header["DP1.EXTVER"] == 5
+    assert header["DP2.EXTVER"] == 6
+    _assert_same_tables(w_new, wcs.WCS(header, hdulist))
+    assert wcs.WCS(header, hdulist, key="O").cpdis1 is None
+    w_o = wcs.WCS(header, hdulist, key="O", shared_cpdis=True)
+    _assert_same_tables(w_new, w_o)
+
+    # the first chip still has its tables
+    unchanged = _stsci_hst_distortion_hdulist(nextver=4)
+    w_chip1 = wcs.WCS(hdulist["SCI", 1].header, hdulist, key="O")
+    assert_array_equal(w_chip1.cpdis1.data, unchanged["WCSDVARR", 1].data)
+    assert_array_equal(w_chip1.cpdis2.data, unchanged["WCSDVARR", 2].data)
+
+
+def test_write_lookup_tables_stsci_without_tables():
+    w_none = wcs.WCS(naxis=2)
+
+    # An alternate WCS has no tables of its own in the header: no change.
+    hdulist = _stsci_hst_file()
+    header = hdulist[0].header
+    before = header.tostring()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        w_none.write_lookup_tables(hdulist, key="O")
+    assert header.tostring() == before
+
+    # For the primary WCS, the tables that all WCSs share are removed.
+    with pytest.warns(AstropyUserWarning, match="all alternate WCSs"):
+        w_none.write_lookup_tables(hdulist, key=" ")
+    assert not wcs.wcs._has_prior_distortion_kw(header, "")
+    assert wcs.WCS(header, hdulist).cpdis1 is None
+    assert wcs.WCS(header, hdulist, key="O").cpdis1 is None
+
+
+def test_write_lookup_tables_hst_file():
+    """Lookup tables of a SCI extension as stwcs writes it for HST/ACS data."""
+    path = get_pkg_data_filename("data/dist_lookup.fits.gz")
+    with fits.open(path) as hdulist:
+        # The primary header of this file lacks the keywords of an HST file.
+        hdulist[0].header["TELESCOP"] = "HST"
+        hdulist[0].header["INSTRUME"] = "ACS"
+        header = hdulist[1].header
+        w = wcs.WCS(header, hdulist)
+        n_ext = len(hdulist)
+
+        # Writing the WCS back changes nothing.
+        before = header.tostring()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            w.write_lookup_tables(hdulist, ext=1)
+        assert header.tostring() == before
+        assert len(hdulist) == n_ext
+
+        # A new table for the first axis is written over the old one, and
+        # the alternate WCS, which shares the tables, uses it.
+        old = w.cpdis1
+        w.cpdis1 = wcs.DistortionLookupTable(
+            2 * old.data, old.crpix, old.crval, old.cdelt
+        )
+        with pytest.warns(AstropyUserWarning, match="all alternate WCSs"):
+            w.write_lookup_tables(hdulist, ext=1)
+        assert len(hdulist) == n_ext
+        assert header["DP1.EXTVER"] == 1
+        assert header["DP2.EXTVER"] == 2
+        _assert_same_tables(w, wcs.WCS(header, hdulist))
+        _assert_same_tables(w, wcs.WCS(header, hdulist, key="O"))
 
 
 def test_DistortionLookupTable():
