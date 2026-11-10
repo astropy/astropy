@@ -1,9 +1,9 @@
 version: 2
 
 build:
-  os: "ubuntu-22.04"
+  os: "ubuntu-26.04"
   tools:
-    python: "miniforge3-25.11"
+    python: "miniforge3-26.3"
   jobs:
     post_checkout:
       - git fetch --unshallow || true
