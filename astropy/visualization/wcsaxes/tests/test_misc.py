@@ -724,6 +724,12 @@ def test_tightbbox_pgf_measurement_renderer(tmp_path, ignore_matplotlibrc):
     fig = Figure(layout="constrained")
     FigureCanvasPgf(fig)
     ax = fig.add_subplot(projection=WCS())
+
+    # Hide all text so that no TeX installation is needed
+    for coord in ax.coords:
+        coord.set_ticklabel_visible(False)
+        coord.set_axislabel("")
+
     fig.savefig(tmp_path / "test.pgf")
 
     # When saving the plot above, get_tightbox should get called, but we can
