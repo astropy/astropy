@@ -128,7 +128,6 @@ astropy
 │   │   │   │   │   ├── kiwisolver v1.4.5
 │   │   │   │   │   ├── numpy v2.0.0
 │   │   │   │   │   ├── packaging v25.0
-│   │   │   │   │   ├── pillow v9.5.0
 │   │   │   │   │   ├── pillow v10.0.0
 │   │   │   │   │   ├── pyparsing v2.4.0
 │   │   │   │   │   └── python-dateutil v2.8.2 (*)
@@ -180,7 +179,6 @@ astropy
 │   │   │   │   │   │   ├── jinja2 v3.1.3 (*)
 │   │   │   │   │   │   └── sphinx v8.2.0 (*)
 │   │   │   │   │   ├── packaging v25.0
-│   │   │   │   │   ├── pillow v9.5.0
 │   │   │   │   │   ├── pillow v10.0.0
 │   │   │   │   │   ├── pytest-doctestplus v1.4.0
 │   │   │   │   │   │   ├── packaging v25.0
@@ -190,7 +188,6 @@ astropy
 │   │   │   │   │   ├── sphinx-gallery v0.0.4
 │   │   │   │   │   │   ├── joblib v0.8.0
 │   │   │   │   │   │   ├── matplotlib v3.8.4 (*)
-│   │   │   │   │   │   ├── pillow v9.5.0
 │   │   │   │   │   │   ├── pillow v10.0.0
 │   │   │   │   │   │   └── sphinx v8.2.0 (*)
 │   │   │   │   │   ├── sphinxcontrib-jquery v1.0.0
@@ -448,7 +445,6 @@ astropy
 │   │   │   │   │   │   ├── jinja2 v3.1.3 (*)
 │   │   │   │   │   │   ├── matplotlib v3.8.4 (*)
 │   │   │   │   │   │   ├── packaging v25.0
-│   │   │   │   │   │   ├── pillow v9.5.0
 │   │   │   │   │   │   ├── pillow v10.0.0
 │   │   │   │   │   │   └── pytest v9.0.0 (*)
 │   │   │   │   │   ├── tox v4.33.0 (group: dev-all)

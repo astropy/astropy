@@ -846,10 +846,11 @@ exclude_files = [ # don't process filepaths that match these regex
 preview-features = [
     "index-exclude-newer",
 ]
-# ensure that uv resolves envs that are compatible with macOS arm64,
+# ensure that uv resolves envs that are compatible with envs used in development
 # even in drastic conditions like --resolution=lowest[-direct],
 # taking into account tool.uv.no-build-package
 required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
