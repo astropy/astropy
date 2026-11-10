@@ -235,6 +235,6 @@ class TestToFromMapping(ToFromDirectTestBase, ToFromMappingTestMixin):
     def setup_class(self):
         self.functions = {"to": to_mapping, "from": from_mapping}
 
-    @pytest.mark.skip("N/A")
+    @pytest.mark.skip(reason="N/A")
     def test_fromformat_subclass_partial_info_mapping(self):
         """This test does not apply to the direct functions."""
