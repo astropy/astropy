@@ -174,7 +174,7 @@ class CdsHeader(core.BaseHeader):
                     # catch when warnings are turned into errors so we can check
                     # whether this line is likely a multi-line description (see below)
                     col.unit = UnrecognizedUnit(unit)
-            col.description = (match.group("descr") or "").lstrip()
+            col.description = (match.group("descr") or "").rstrip()
             col.raw_type = match.group("format")
             try:
                 col.type = self.get_col_type(col)
