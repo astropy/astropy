@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections import defaultdict
+from contextlib import nullcontext
 from functools import partial
 
 import numpy as np
@@ -936,8 +937,11 @@ class WCSAxes(Axes):
         if not self.get_visible():
             return
 
-        # Do a draw to populate the self._bboxes list
-        self.draw_wcsaxes(renderer)
+        # Do a draw to populate the self._bboxes list, disabling any actual
+        # drawing commands since some renderers used for layout (e.g. the PGF
+        # measurement renderer) cannot accept them.
+        with getattr(renderer, "_draw_disabled", nullcontext)():
+            self.draw_wcsaxes(renderer)
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 

@@ -742,6 +742,30 @@ def test_invisible_bbox():
     assert ax.get_tightbbox(fig.canvas.get_renderer()) is None
 
 
+def test_tightbbox_pgf_measurement_renderer(tmp_path, ignore_matplotlibrc):
+    # Regression test for a bug that caused get_tightbbox to emit actual
+    # drawing commands, which fails with renderers that can only be used
+    # for measurement, such as the PGF layout renderer (which has no
+    # output stream), e.g. when saving a figure with layout='constrained'
+    # to a PGF file.
+    from matplotlib.backends.backend_pgf import FigureCanvasPgf
+
+    fig = Figure(layout="constrained")
+    FigureCanvasPgf(fig)
+    ax = fig.add_subplot(projection=WCS())
+
+    # Hide all text so that no TeX installation is needed
+    for coord in ax.coords:
+        coord.set_ticklabel_visible(False)
+        coord.set_axislabel("")
+
+    fig.savefig(tmp_path / "test.pgf")
+
+    # When saving the plot above, get_tightbox should get called, but we can
+    # double check that it also passes without failing if called explicitly
+    assert ax.get_tightbbox(fig.canvas.get_renderer()) is not None
+
+
 def test_get_axislabel_default():
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
