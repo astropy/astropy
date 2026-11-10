@@ -1,0 +1,5 @@
+``WCS.to_fits()`` now writes ``CPERRja`` and ``D2IMERRj`` keywords, set to the
+largest absolute value in each lookup table (ignoring NaN and infinite values),
+so that the ``minerr`` argument of ``WCS`` works for the files it writes. Code
+that adds its own ``CPERRja`` or ``D2IMERRj`` cards to the header returned by
+``to_fits()`` should now replace these cards instead of appending new ones.

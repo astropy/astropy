@@ -389,6 +389,285 @@ def _is_stsci_prior_distortion(header):  # noqa: PLR0911
     return len(extvers) == len(_STSCI_AXES)
 
 
+def _same_lookup_table(a, b):
+    """
+    Return `True` if two `~astropy.wcs.DistortionLookupTable` objects (or
+    `None`) describe the same correction. NaN values at the same positions
+    count as equal.
+    """
+    if a is None or b is None:
+        return a is None and b is None
+    return (
+        np.array_equal(a.data, b.data, equal_nan=True)
+        and np.array_equal(a.crpix, b.crpix)
+        and np.array_equal(a.crval, b.crval)
+        and np.array_equal(a.cdelt, b.cdelt)
+    )
+
+
+def _lookup_table_from_hdu(hdu):
+    """
+    Lookup table stored in an image extension, as the WCS reader reads it
+    for keywords that list the axes of the table in their natural order
+    (``AXIS.1`` is 1 and ``AXIS.2`` is 2). `_write_lookup_tables` always
+    writes the keywords that way.
+    """
+    header = hdu.header
+    return DistortionLookupTable(
+        hdu.data,
+        (header.get("CRPIX1", 0.0), header.get("CRPIX2", 0.0)),
+        (header.get("CRVAL1", 0.0), header.get("CRVAL2", 0.0)),
+        (header.get("CDELT1", 1.0), header.get("CDELT2", 1.0)),
+    )
+
+
+def _hdu_holds_lookup_table(hdu, table):
+    """Return `True` if the image extension ``hdu`` holds ``table``."""
+    if not isinstance(hdu, fits.ImageHDU):
+        return False
+    # Compare the shapes first: this does not load the data of the extension.
+    if hdu.shape != table.data.shape:
+        return False
+    if hdu.data is None:
+        return False
+    return _same_lookup_table(_lookup_table_from_hdu(hdu), table)
+
+
+def _largest_correction(table):
+    """
+    Largest absolute value in a lookup table. NaN and infinite values are
+    ignored (a FITS header card cannot hold them); 0.0 is returned if the
+    table has no finite value.
+    """
+    magnitudes = np.abs(table.data)
+    finite = magnitudes[np.isfinite(magnitudes)]
+    if finite.size == 0:
+        return 0.0
+    return float(finite.max())
+
+
+def _set_lookup_table_wcs(header, table):
+    """Write the reference pixel, value and increment of ``table``."""
+    header["CRPIX1"] = (table.crpix[0], "Coordinate system reference pixel")
+    header["CRPIX2"] = (table.crpix[1], "Coordinate system reference pixel")
+    header["CRVAL1"] = (table.crval[0], "Coordinate system value at reference pixel")
+    header["CRVAL2"] = (table.crval[1], "Coordinate system value at reference pixel")
+    header["CDELT1"] = (table.cdelt[0], "Coordinate increment along axis")
+    header["CDELT2"] = (table.cdelt[1], "Coordinate increment along axis")
+
+
+def _remove_lookup_keywords(
+    header, *, dist, rec_kw, err_kw, suffix, axes_with_new_table=()
+):
+    """
+    Remove from ``header`` the lookup-table keywords (``{dist}ja``,
+    ``{err_kw}ja`` and ``{rec_kw}ja``) of WCS key ``suffix``. Return an
+    ``{axis: EXTVER}`` dictionary of the lookup tables that the removed
+    keywords referred to.
+
+    The keywords of an axis are removed if they describe a lookup table, or
+    if the axis is in ``axes_with_new_table`` (a table is about to be
+    written for it, whatever the header has now). Keywords of another type
+    of distortion (e.g. a ``TPD`` polynomial) are kept on all other axes.
+    """
+    # Lookup tables that the header has for this key, by axis number.
+    old_extvers = {}
+    dist_pattern = re.compile(rf"{dist}([0-9]+){suffix}")
+    for keyword in header:
+        match = dist_pattern.fullmatch(str(keyword).strip().upper())
+        if match is None:
+            continue
+        if str(header[keyword]).strip().upper() != "LOOKUP":
+            continue
+        axis = int(match.group(1))
+        extver = header.get(f"{rec_kw}{axis}{suffix}.EXTVER", 1)
+        old_extvers[axis] = _as_int(extver)
+
+    axes_to_clear = set(old_extvers)
+    axes_to_clear.update(axes_with_new_table)
+
+    any_pattern = re.compile(rf"(?:{dist}|{err_kw}|{rec_kw})([0-9]+){suffix}(?:\..+)?")
+    stale = []
+    for index, keyword in enumerate(header):
+        match = any_pattern.fullmatch(str(keyword).strip().upper())
+        if match is not None and int(match.group(1)) in axes_to_clear:
+            stale.append(index)
+    for index in reversed(stale):
+        del header[index]
+
+    return old_extvers
+
+
+def _referenced_lookup_extvers(hdulist, *, dist, rec_kw):
+    """
+    Return the ``EXTVER`` of every lookup-table extension that a header in
+    ``hdulist`` refers to: ``{dist}ja = 'LOOKUP'`` with ``{rec_kw}ja.EXTVER``
+    (1 if absent), for any axis and WCS key.
+    """
+    pattern = re.compile(rf"{dist}([0-9]+[A-Z]?)")
+    extvers = set()
+    for hdu in hdulist:
+        header = hdu.header
+        if dist == "D2IMDIS" and "AXISCORR" in header:
+            # The old format of the detector-to-image correction always
+            # uses the first D2IMARR extension.
+            extvers.add(1)
+        for keyword in header:
+            match = pattern.fullmatch(str(keyword).strip().upper())
+            if match is None:
+                continue
+            if str(header[keyword]).strip().upper() != "LOOKUP":
+                continue
+            extver = header.get(f"{rec_kw}{match.group(1)}.EXTVER", 1)
+            extver = _as_int(extver)
+            if extver is not None:
+                extvers.add(extver)
+    return extvers
+
+
+def _free_extver(preferred, used):
+    """
+    Return ``preferred`` if it is not in ``used``, and the smallest positive
+    integer that is not in ``used`` otherwise.
+    """
+    if preferred not in used:
+        return preferred
+    extver = 1
+    while extver in used:
+        extver += 1
+    return extver
+
+
+def _write_lookup_tables(
+    hdulist,
+    ext,
+    tables,
+    *,
+    dist,
+    rec_kw,
+    err_kw,
+    extname,
+    label,
+    type_comment,
+    key,
+):
+    """
+    Write lookup-table distortion keywords for WCS ``key`` to
+    ``hdulist[ext].header`` and the tables to ``extname`` image extensions.
+
+    - The lookup-table keywords that the header has for ``key`` are
+      replaced, and removed for an axis that has no table in ``tables``;
+      see `_remove_lookup_keywords`.
+    - ``{err_kw}ja`` is set to the largest absolute value in the table, so
+      that the ``minerr`` argument of `WCS` works after a round trip.
+    - Each table is stored in an extension of its own, the first of:
+
+      1. the extension that the header already refers to for this key and
+         axis, if it holds an identical table;
+      2. that same extension, written over with the new table, if no other
+         keyword in ``hdulist`` refers to it. Steps 1 and 2 keep the
+         ``EXTVER`` that the header has, as the HST/STScI convention for
+         sharing tables requires (see `_is_stsci_prior_distortion`);
+      3. another extension of ``hdulist`` that holds an identical table;
+      4. a new extension, with ``EXTVER`` equal to the axis number if that
+         is free (as earlier versions wrote) and the smallest free
+         ``EXTVER`` otherwise.
+
+      Two tables written by one call never share an extension, even if they
+      are identical: ``WCS.to_fits()`` has always written one extension per
+      axis, with ``EXTVER`` equal to the axis number, and code that
+      post-processes its output (e.g. ``stwcs``) relies on that.
+      Extensions are never removed.
+    """
+    header = hdulist[ext].header
+    suffix = key.strip().upper()
+
+    # Extensions that are in the file before anything is written, by EXTVER.
+    # If an EXTVER is repeated, the reader uses the first extension.
+    extensions = {}
+    for hdu in hdulist:
+        if hdu.name == extname and hdu.ver not in extensions:
+            extensions[hdu.ver] = hdu
+
+    axes_with_new_table = []
+    for num, table in enumerate(tables, start=1):
+        if table is not None:
+            axes_with_new_table.append(num)
+
+    old_extvers = _remove_lookup_keywords(
+        header,
+        dist=dist,
+        rec_kw=rec_kw,
+        err_kw=err_kw,
+        suffix=suffix,
+        axes_with_new_table=axes_with_new_table,
+    )
+    # This is done after the keywords of ``key`` are removed, so these are
+    # the extensions that something else still uses.
+    referenced = _referenced_lookup_extvers(hdulist, dist=dist, rec_kw=rec_kw)
+
+    # EXTVERs given to the tables written by this call.
+    taken = set()
+
+    for num, table in enumerate(tables, start=1):
+        if table is None:
+            continue
+
+        # The extension that the header referred to for this key and axis.
+        old_extver = old_extvers.get(num)
+        old_hdu = extensions.get(old_extver)
+        old_is_available = (
+            isinstance(old_hdu, fits.ImageHDU) and old_extver not in taken
+        )
+
+        extver = None
+        if old_is_available and _hdu_holds_lookup_table(old_hdu, table):
+            # 1. The header already refers to this table.
+            extver = old_extver
+        elif old_is_available and old_extver not in referenced:
+            # 2. Nothing else uses the table that is being replaced.
+            extver = old_extver
+            old_hdu.data = table.data
+            _set_lookup_table_wcs(old_hdu.header, table)
+        else:
+            # 3. Another extension that holds an identical table.
+            for candidate, hdu in extensions.items():
+                if candidate not in taken and _hdu_holds_lookup_table(hdu, table):
+                    extver = candidate
+                    break
+
+        if extver is None:
+            # 4. A new extension.
+            extver = _free_extver(num, set(extensions) | taken)
+            image = fits.ImageHDU(table.data, name=extname)
+            image.ver = extver
+            _set_lookup_table_wcs(image.header, table)
+            hdulist.append(image)
+
+        taken.add(extver)
+
+        axis = f"{num:d}{suffix}"
+        header[f"{dist}{axis}"] = ("LOOKUP", type_comment)
+        header[f"{err_kw}{axis}"] = (
+            _largest_correction(table),
+            f"Maximum error of {label} correction for axis {num:d}",
+        )
+        header[f"{rec_kw}{axis}.EXTVER"] = (
+            extver,
+            f"Version number of {extname} extension",
+        )
+        header[f"{rec_kw}{axis}.NAXES"] = (
+            table.data.ndim,
+            f"Number of independent variables in {label} function",
+        )
+        for i in range(table.data.ndim):
+            jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
+            header[f"{rec_kw}{axis}.AXIS.{i + 1:d}"] = (
+                i + 1,
+                f"Axis number of the {jth} variable in a {label} function",
+            )
+
+
 def _parse_keysel(keysel):
     keysel_flags = 0
     if keysel is not None:
@@ -539,9 +818,10 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         provided if *header* is also provided.
 
     minerr : float, optional
-        The minimum value a distortion correction must have in order
-        to be applied. If the value of ``CQERRja`` is smaller than
-        *minerr*, the corresponding distortion is not applied.
+        The minimum value a lookup-table distortion correction must have
+        in order to be applied. If the value of ``CPERRja`` (``D2IMERRj``
+        for the detector-to-image correction) is smaller than *minerr*,
+        the corresponding lookup table is not used.
 
     relax : bool or int, optional
         Degree of permissiveness:
@@ -809,6 +1089,16 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
+                # WCSLIB does not evaluate lookup-table distortions (this
+                # class does), and it cannot parse a header in which only
+                # the first axis has one, so do not pass them to it.
+                _remove_lookup_keywords(
+                    tmp_header,
+                    dist="CPDIS",
+                    rec_kw="DP",
+                    err_kw="CPERR",
+                    suffix=(key or " ").strip().upper(),
+                )
                 tmp_header_bytes = tmp_header.tostring().rstrip()
                 if isinstance(tmp_header_bytes, str):
                     tmp_header_bytes = tmp_header_bytes.encode("ascii")
@@ -1243,7 +1533,15 @@ reduce these to 2 dimensions using the naxis kwarg.
         for i in range(1, self.naxis + 1):
             d_error = header.get(err_kw + str(i), 0.0)
             if d_error < err:
+                # Skip this table, and remove its keywords as when it is read.
                 tables[i] = None
+                stale = [
+                    kw
+                    for kw in header
+                    if kw == dist + str(i) or kw.startswith(f"{d_kw}{i}.")
+                ]
+                for kw in stale:
+                    header.remove(kw, ignore_missing=True, remove_all=True)
                 continue
             distortion = dist + str(i)
             if distortion in header:
@@ -1325,60 +1623,28 @@ reduce these to 2 dimensions using the naxis kwarg.
             warnings.warn("Expected AXISCORR to be 1 or 2", AstropyUserWarning)
             return (None, None)
 
-    def _write_det2im(self, hdulist):
+    def _write_det2im(self, hdulist, ext=0):
         """
-        Writes a `distortion paper`_ type lookup table to the given
-        `~astropy.io.fits.HDUList`.
+        Write the detector-to-image lookup tables (``D2IMDISj``) to
+        ``hdulist[ext]``. ``D2IMDISj`` keywords have no alternate WCS key:
+        they are shared by all WCSs in a header.
         """
-        if self.det2im1 is None and self.det2im2 is None:
-            return
-        dist = "D2IMDIS"
-        d_kw = "D2IM"
-
-        def write_d2i(num, det2im):
-            if det2im is None:
-                return
-
-            hdulist[0].header[f"{dist}{num:d}"] = (
-                "LOOKUP",
-                "Detector to image correction type",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.EXTVER"] = (
-                num,
-                "Version number of WCSDVARR extension",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.NAXES"] = (
-                len(det2im.data.shape),
-                "Number of independent variables in D2IM function",
-            )
-
-            for i in range(det2im.data.ndim):
-                jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
-                hdulist[0].header[f"{d_kw}{num:d}.AXIS.{i + 1:d}"] = (
-                    i + 1,
-                    f"Axis number of the {jth} variable in a D2IM function",
-                )
-
-            image = fits.ImageHDU(det2im.data, name="D2IMARR")
-            header = image.header
-
-            header["CRPIX1"] = (det2im.crpix[0], "Coordinate system reference pixel")
-            header["CRPIX2"] = (det2im.crpix[1], "Coordinate system reference pixel")
-            header["CRVAL1"] = (
-                det2im.crval[0],
-                "Coordinate system value at reference pixel",
-            )
-            header["CRVAL2"] = (
-                det2im.crval[1],
-                "Coordinate system value at reference pixel",
-            )
-            header["CDELT1"] = (det2im.cdelt[0], "Coordinate increment along axis")
-            header["CDELT2"] = (det2im.cdelt[1], "Coordinate increment along axis")
-            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}.EXTVER"])
-            hdulist.append(image)
-
-        write_d2i(1, self.det2im1)
-        write_d2i(2, self.det2im2)
+        _write_lookup_tables(
+            hdulist,
+            ext,
+            (self.det2im1, self.det2im2),
+            dist="D2IMDIS",
+            rec_kw="D2IM",
+            err_kw="D2IMERR",
+            extname="D2IMARR",
+            label="D2IM",
+            type_comment="Detector to image correction type",
+            key="",
+        )
+        if self.det2im1 is not None or self.det2im2 is not None:
+            # A header in the old format (AXISCORR) is read in that format
+            # even if it has D2IMDISj keywords, so remove the old keyword.
+            hdulist[ext].header.remove("AXISCORR", ignore_missing=True)
 
     @staticmethod
     def _inherit_primary_prior_distortion(header, fobj, key, shared_cpdis):
@@ -1461,7 +1727,16 @@ reduce these to 2 dimensions using the naxis kwarg.
                 d_error = 0.0
 
             if d_error < err:
+                # Skip this table, but remove its keywords: WCSLIB cannot
+                # evaluate a Lookup distortion if they reach it.
                 tables[i] = None
+                dis_kw = dist + axis_key_suffix
+                dp_prefix = d_kw + axis_key_suffix + "."
+                stale = [
+                    kw for kw in header if kw == dis_kw or kw.startswith(dp_prefix)
+                ]
+                for kw in stale:
+                    header.remove(kw, ignore_missing=True, remove_all=True)
                 continue
 
             distortion = dist + axis_key_suffix
@@ -1520,63 +1795,217 @@ reduce these to 2 dimensions using the naxis kwarg.
         else:
             return (tables.get(1), tables.get(2))
 
-    def _write_distortion_kw(self, hdulist, dist="CPDIS"):
+    def _write_distortion_kw(self, hdulist, dist="CPDIS", ext=0, key=" "):
         """
-        Write out `distortion paper`_ keywords to the given
-        `~astropy.io.fits.HDUList`.
+        Write the `distortion paper`_ lookup tables (``CPDISja``, or
+        ``CQDISia`` for ``dist="CQDIS"``) for WCS ``key`` to ``hdulist[ext]``.
         """
-        if self.cpdis1 is None and self.cpdis2 is None:
-            return
-
         if dist == "CPDIS":
-            d_kw = "DP"
+            rec_kw = "DP"
+            err_kw = "CPERR"
+            comment = "Prior distortion function type"
         else:
-            d_kw = "DQ"
+            rec_kw = "DQ"
+            err_kw = "CQERR"
+            comment = "Sequent distortion function type"
+        _write_lookup_tables(
+            hdulist,
+            ext,
+            (self.cpdis1, self.cpdis2),
+            dist=dist,
+            rec_kw=rec_kw,
+            err_kw=err_kw,
+            extname="WCSDVARR",
+            label=dist,
+            type_comment=comment,
+            key=key,
+        )
 
-        def write_dist(num, cpdis):
-            if cpdis is None:
-                return
+    def write_lookup_tables(self, hdulist, ext=0, key=None):
+        """
+        Write the lookup-table distortions of this WCS to an existing
+        `~astropy.io.fits.HDUList`.
 
-            hdulist[0].header[f"{dist}{num:d}"] = (
-                "LOOKUP",
-                "Prior distortion function type",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.EXTVER"] = (
-                num,
-                "Version number of WCSDVARR extension",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.NAXES"] = (
-                len(cpdis.data.shape),
-                f"Number of independent variables in {dist} function",
-            )
+        The `distortion paper`_ prior distortion (`cpdis1`, `cpdis2`) is
+        written as ``CPDISja``, ``CPERRja`` and ``DPja`` keywords for WCS
+        *key*, and the detector-to-image correction (`det2im1`, `det2im2`) as
+        ``D2IMDISj``, ``D2IMERRj`` and ``D2IMj`` keywords, to the header of
+        ``hdulist[ext]``. The tables themselves are stored in ``WCSDVARR``
+        and ``D2IMARR`` image extensions of *hdulist*.
 
-            for i in range(cpdis.data.ndim):
-                jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
-                hdulist[0].header[f"{d_kw}{num:d}.AXIS.{i + 1:d}"] = (
-                    i + 1,
-                    f"Axis number of the {jth} variable in a {dist} function",
+        Use it together with `to_header` to add this WCS to a file that
+        already holds other WCSs, e.g.::
+
+            hdr = hdulist[ext].header
+            hdr.update(w.to_header(key="A", relax=True))
+            w.write_lookup_tables(hdulist, ext, key="A")
+
+        Parameters
+        ----------
+        hdulist : `~astropy.io.fits.HDUList`
+            The file to write to. Image extensions are appended to it as
+            needed.
+        ext : int, str or tuple, optional
+            The HDU whose header receives the keywords. Default is 0.
+        key : str, optional
+            The WCS key, ``' '`` or ``'A'``-``'Z'``. Defaults to the key of
+            this WCS (``self.wcs.alt``).
+
+        Notes
+        -----
+        - The lookup-table keywords (``CPDISja``, ``CPERRja`` and ``DPja``)
+          that the header already has for *key* are replaced, and removed
+          for an axis that has no table in this WCS. Keywords of other keys
+          are not changed. Neither are keywords of *key* that describe
+          another type of prior distortion, on an axis that gets no table.
+          A header that already describes the tables of this WCS for *key*
+          is left as it is.
+
+        - Each table is stored in a ``WCSDVARR`` (or ``D2IMARR``) extension
+          of its own. A table that replaces another table of the same *key*
+          and axis is written over it, with the same ``EXTVER``, unless
+          another keyword in *hdulist* refers to that extension. Otherwise,
+          a table that is identical to an extension already in *hdulist* is
+          not written again; the keywords refer to the existing extension.
+          Any other table is appended, with ``EXTVER`` equal to the axis
+          number if it is free and the smallest free ``EXTVER`` otherwise.
+          Extensions are never removed.
+
+        - ``D2IMDISj`` keywords have no WCS key and apply to all WCSs in the
+          header. This WCS's detector-to-image correction is written if the
+          header has none. If the header already has one that differs, it is
+          replaced when *key* is ``' '`` and a `ValueError` is raised
+          otherwise. If this WCS has no detector-to-image correction,
+          existing ``D2IMDISj`` keywords are left unchanged. An ``AXISCORR``
+          keyword (the old format of this correction) is removed when the
+          correction is written.
+
+        - ``CPERRja`` and ``D2IMERRj`` are set to the largest absolute value
+          in each table (ignoring NaN and infinite values), so that the
+          ``minerr`` argument of `WCS` works when the file is read back.
+
+        - In HST ACS and WFC3 files that follow the STScI convention of
+          sharing the unsuffixed prior-distortion tables with all alternate
+          WCSs (see the ``shared_cpdis`` parameter of `WCS`), writing keyed
+          ``CPDISja`` keywords turns that sharing off for the whole header,
+          and changing the unsuffixed tables (*key* ``' '``) changes them for
+          every alternate WCS that shares them. An
+          `~astropy.utils.exceptions.AstropyUserWarning` is issued in both
+          cases. It also says so if the header no longer follows the
+          convention after the unsuffixed tables are changed, for example
+          because the new tables could not be written over the old ones and
+          no ``EXTVER`` from 1 to 4 was free.
+        """
+        if key is None:
+            key = self.wcs.alt
+        key = (key or " ").upper()
+        if len(key) != 1 or not (key == " " or "A" <= key <= "Z"):
+            raise ValueError("key must be ' ' or 'A'-'Z'")
+
+        header = hdulist[ext].header
+
+        if self.det2im1 is not None or self.det2im2 is not None:
+            stored = self._stored_det2im(hdulist, ext)
+            has_d2im = stored[0] is not None or stored[1] is not None
+            same = _same_lookup_table(stored[0], self.det2im1)
+            same = same and _same_lookup_table(stored[1], self.det2im2)
+            if not has_d2im or (not same and key == " "):
+                self._write_det2im(hdulist, ext)
+            elif not same:
+                raise ValueError(
+                    "The header already has a different detector-to-image "
+                    "correction (D2IMDISj). It is shared by all WCSs in the "
+                    f"header, so it cannot be changed for WCS key {key!r}; "
+                    "write it with key=' ' instead."
                 )
 
-            image = fits.ImageHDU(cpdis.data, name="WCSDVARR")
-            header = image.header
+        stored = self._stored_cpdis(hdulist, ext, key)
+        if (
+            stored is not None
+            and _same_lookup_table(stored[0], self.cpdis1)
+            and _same_lookup_table(stored[1], self.cpdis2)
+        ):
+            # The header already describes these tables for this key.
+            return
 
-            header["CRPIX1"] = (cpdis.crpix[0], "Coordinate system reference pixel")
-            header["CRPIX2"] = (cpdis.crpix[1], "Coordinate system reference pixel")
-            header["CRVAL1"] = (
-                cpdis.crval[0],
-                "Coordinate system value at reference pixel",
-            )
-            header["CRVAL2"] = (
-                cpdis.crval[1],
-                "Coordinate system value at reference pixel",
-            )
-            header["CDELT1"] = (cpdis.cdelt[0], "Coordinate increment along axis")
-            header["CDELT2"] = (cpdis.cdelt[1], "Coordinate increment along axis")
-            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}.EXTVER"])
-            hdulist.append(image)
+        shared = _is_hst_acs_wfc3(hdulist) and _is_stsci_prior_distortion(header)
+        self._write_distortion_kw(hdulist, dist="CPDIS", ext=ext, key=key)
+        if shared:
+            self._warn_shared_cpdis_changed(header, key)
 
-        write_dist(1, self.cpdis1)
-        write_dist(2, self.cpdis2)
+    def _stored_det2im(self, hdulist, ext):
+        """
+        Return the detector-to-image lookup tables that the header of
+        ``hdulist[ext]`` describes: ``(None, None)`` if there are none, or
+        if they cannot be read.
+        """
+        header = hdulist[ext].header.copy()
+        try:
+            with warnings.catch_warnings():
+                # Reading the old (AXISCORR) format warns that it is
+                # deprecated, which is of no interest to someone writing.
+                warnings.simplefilter("ignore", AstropyDeprecationWarning)
+                warnings.simplefilter("ignore", AstropyUserWarning)
+                return self._read_det2im_kw(header, hdulist)
+        except (KeyError, TypeError, ValueError):
+            # e.g. the keywords refer to an extension that does not exist
+            return (None, None)
+
+    def _stored_cpdis(self, hdulist, ext, key):
+        """
+        Return the prior-distortion lookup tables that the header of
+        ``hdulist[ext]`` has for WCS ``key`` itself (not the tables that an
+        alternate WCS shares with the primary WCS), or `None` if they cannot
+        be read.
+        """
+        header = hdulist[ext].header.copy()
+        try:
+            with warnings.catch_warnings():
+                # Another type of distortion only gives a warning when read.
+                warnings.simplefilter("ignore", AstropyUserWarning)
+                return self._read_distortion_kw(header, hdulist, dist="CPDIS", key=key)
+        except (KeyError, TypeError, ValueError):
+            # e.g. the keywords refer to an extension that does not exist
+            return None
+
+    @staticmethod
+    def _warn_shared_cpdis_changed(header, key):
+        """
+        Warn that the prior-distortion keywords just written for ``key``
+        change what the alternate WCSs of ``header`` use. ``header`` followed
+        the HST/STScI convention of sharing the prior-distortion tables of
+        the primary WCS before they were written.
+        """
+        if key != " ":
+            warnings.warn(
+                f"Writing CPDISj{key} keywords to a header whose alternate "
+                "WCSs share the unsuffixed (CPDISj) prior-distortion tables "
+                "of the primary WCS (HST/STScI convention). The other "
+                "alternate WCSs will no longer use these tables unless the "
+                "file is read with shared_cpdis=True.",
+                AstropyUserWarning,
+            )
+            return
+
+        message = (
+            "Changing the unsuffixed (CPDISj) prior-distortion tables of a "
+            "header whose alternate WCSs share them (HST/STScI convention). "
+        )
+        still_shared = _is_stsci_prior_distortion(header)
+        tables_removed = not _has_prior_distortion_kw(header, "")
+        if still_shared or tables_removed:
+            message += (
+                "The change applies to all alternate WCSs without CPDISja "
+                "keywords of their own."
+            )
+        else:
+            message += (
+                "The header no longer follows that convention (tables for "
+                "both axes, in WCSDVARR extensions with different EXTVER "
+                "from 1 to 4), so the alternate WCSs will not use the new "
+                "tables unless the file is read with shared_cpdis=True."
+            )
+        warnings.warn(message, AstropyUserWarning)
 
     def _fix_pre2012_scamp_tpv(self, header, wcskey=""):
         """
@@ -3183,19 +3612,30 @@ reduce these to 2 dimensions using the naxis kwarg.
         key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
-            part of the ``CTYPEia`` cards.
+            part of the ``CTYPEia`` cards. It is also used for the
+            `distortion paper`_ lookup-table keywords (``CPDISja``,
+            ``CPERRja``, ``DPja``). Defaults to the key of this WCS.
 
         Returns
         -------
         hdulist : `~astropy.io.fits.HDUList`
+
+        See Also
+        --------
+        write_lookup_tables : Add the lookup tables to an existing file.
         """
         header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
 
+        # The lookup-table keywords carry the same WCS key as the rest of the
+        # header, so that an alternate WCS survives a round trip through
+        # to_fits() and WCS(..., key=key).
+        if key is None:
+            key = self.wcs.alt
         self._write_det2im(hdulist)
-        self._write_distortion_kw(hdulist)
+        self._write_distortion_kw(hdulist, key=key)
 
         return hdulist
 
@@ -3649,13 +4089,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         # non-picklable cache contents (e.g. closures) from breaking pickle.
         dct = {k: v for k, v in self.__dict__.items() if not k.endswith("_cache")}
         dct["_alt_wcskey"] = self.wcs.alt
-        # The serialized file holds only this object's own distortion tables.
-        # For an alternate WCS they may be written without the key suffix, so
-        # make sure they are read back when unpickling.
-        dct["_init_kwargs"] = {
-            **dct.get("_init_kwargs", {}),
-            "shared_cpdis": True,
-        }
 
         return (
             __WCS_unpickle__,
