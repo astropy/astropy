@@ -336,9 +336,8 @@ class MrtHeader(cds.CdsHeader):
                 description = "Description of " + col.name
 
             # Set null flag in column description
-            nullflag = ""
             if col.has_null:
-                nullflag = "?"
+                description = f"? {description}"
 
             # Set column unit
             if col.unit is not None:
@@ -353,9 +352,6 @@ class MrtHeader(cds.CdsHeader):
                 col_unit = "mag"
             else:
                 col_unit = "---"
-
-            if nullflag != "":
-                description = f"{nullflag} {description}"
 
             # Find the maximum label and description column widths.
             max_label_width = max(len(col.name), max_label_width)
