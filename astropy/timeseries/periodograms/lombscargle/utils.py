@@ -70,7 +70,7 @@ def convert_normalization(Z, N, from_normalization, to_normalization, chi2_ref=N
     if len(errors) == 1:
         raise errors[0]
     elif errors:
-        raise ExceptionGroup("invalid normalizations", errors)
+        raise ExceptionGroup("multiple invalid normalizations", errors)
 
     if from_normalization == to_normalization:
         return Z
