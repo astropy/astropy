@@ -112,6 +112,7 @@ Core Package Contributors
 * Charalampos Stratakis
 * Chiara Marmo
 * Chris Beaumont
+* Chris Garling
 * Chris Hanley
 * Chris Osborne
 * Chris Simpson
@@ -235,6 +236,7 @@ Core Package Contributors
 * Helen Sherwood-Taylor
 * Hélvio Peixoto
 * Henrike F\.
+* Henrique Carvalho
 * Henry Schreiner
 * Himanshu Pathak
 * homeboy445
