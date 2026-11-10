@@ -253,8 +253,8 @@ namespaces = true
 [tool.setuptools_scm]
 version_file = "astropy/_version.py"
 
-[tool.pytest.ini_options]
-minversion = "8.0"
+[tool.pytest]
+minversion = "9.0"
 testpaths = [
     "astropy",
     "docs",
