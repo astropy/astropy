@@ -55,9 +55,11 @@ def test_convert_normalization_invalid(norm_in, norm_out, invalid):
 
 
 def test_convert_normalization_both_invalid():
-    with pytest.raises(ExceptionGroup, match="invalid normalizations") as excinfo:
-        convert_normalization(np.ones(3), 10, "spam", "eggs")
-    assert [str(exc) for exc in excinfo.value.exceptions] == [
-        "spam is not a valid normalization",
-        "eggs is not a valid normalization",
+
+    expected_exceptions = [
+        pytest.RaisesExc(ValueError, match="spam is not a valid normalization"),
+        pytest.RaisesExc(ValueError, match="eggs is not a valid normalization"),
     ]
+
+    with pytest.RaisesGroup(*expected_exceptions, match="invalid normalizations"):
+        convert_normalization(np.ones(3), 10, "spam", "eggs")
