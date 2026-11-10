@@ -29,8 +29,7 @@ a column since MRT format does not preserve table metadata.
                                   density at z=0.
     38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
     45-49  F5.3         ---    Neff      Number of effective neutrino species.
-    51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                  species.
+    51-64  A14          ---    m_nu      Mass of neutrino species.
     66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                   density/critical density at z=0.
     --------------------------------------------------------------------------------
@@ -132,8 +131,7 @@ def read_mrt(
                                       density at z=0.
         38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
         45-49  F5.3         ---    Neff      Number of effective neutrino species.
-        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                      species.
+        51-64  A14          ---    m_nu      Mass of neutrino species.
         66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                       density/critical density at z=0.
         --------------------------------------------------------------------------------
@@ -232,8 +230,7 @@ def write_mrt[T: Table](
                                       density at z=0.
         38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
         45-49  F5.3         ---    Neff      Number of effective neutrino species.
-        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                    species.
+        51-64  A14          ---    m_nu      Mass of neutrino species.
         66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
@@ -271,7 +268,7 @@ def write_mrt[T: Table](
                 table[name] = Column(
                     data=[format_col_item(idx) for idx in range(len(col))],
                     name=name,
-                    description=str(col.value) + " " + col.info.description,
+                    description=col.info.description,
                 )
             except TypeError as exc:
                 msg = f"could not convert column {col.info.name!r} to string: {exc}"
