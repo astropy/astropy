@@ -115,10 +115,9 @@ class CdsHeader(core.BaseHeader):
                 names = [s for s in re.split("[, ]+", match.group("name")) if s]
                 # Iterate on names to find if one matches the tablename
                 # including wildcards.
-                for pattern in filter(match_filename, names):
+                if any(map(match_filename, names)):
                     in_header = True
                     lines.append(line)
-                    break
 
             else:
                 raise core.InconsistentTableError(
