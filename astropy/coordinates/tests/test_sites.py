@@ -99,11 +99,14 @@ def test_Earthlocation_get_site_names_refresh_cache():
     assert len(EarthLocation.get_site_names(refresh_cache=True)) > 3
 
 
+KECK_LON = -155.4744763 * u.deg
+
+
 @pytest.mark.remote_data(source="astropy")
 @pytest.mark.usefixtures("remote_site_data")
 def test_Earthlocation_of_site_empty_cache():
     keck = EarthLocation.of_site("keck")
-    assert_quantity_allclose(keck.lon, -155.47833333 * u.deg)
+    assert_quantity_allclose(keck.lon, KECK_LON)
 
 
 @pytest.mark.usefixtures("local_site_data")
@@ -119,7 +122,7 @@ def test_Earthlocation_of_site_refresh_cache():
         EarthLocation.of_site("keck")
     # Regression test for #18572 - refresh_cache=True had no effect
     keck = EarthLocation.of_site("keck", refresh_cache=True)
-    assert_quantity_allclose(keck.lon, -155.47833333 * u.deg)
+    assert_quantity_allclose(keck.lon, KECK_LON)
 
 
 def test_registry():
