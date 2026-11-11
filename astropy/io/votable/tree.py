@@ -239,8 +239,8 @@ class _ReadValueByValue(Exception):
 
 def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
     """
-    Count the complete rows of a BINARY or BINARY2 stream, and how many items
-    each of their variable-length fields holds.
+    Count the rows of a BINARY or BINARY2 stream, and how many items each of
+    their variable-length fields holds.
 
     A row is a run of fixed-size fields (starting with the BINARY2 null
     bitmap), then a variable-length field, then another run, and so on,
@@ -263,23 +263,29 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
     Returns
     -------
     nrows : int
-        The number of complete rows.  A partial row at the end of the stream
-        is left out, as the value-by-value reader does.
+        The number of rows.
     counts : list of `~numpy.ndarray`
-        The item count of each variable-length field, in each complete row.
+        The item count of each variable-length field, in each row.
 
     Raises
     ------
     _ReadValueByValue
-        If a variable-length field holds more items than its limit, which the
-        value-by-value reader warns about, or a row takes up no bytes.
+        If the stream ends partway through a row, since the value-by-value
+        reader decodes the values in it before it stops, or if a
+        variable-length field holds more items than its limit, which the
+        value-by-value reader warns about.
     """
     end = len(buffer)
     if not var_item_sizes:
         # Every row has the same size
-        if run_sizes[0] == 0:
+        row_size = run_sizes[0]
+        if row_size == 0:
+            # Only when every field is an empty string.  Reading value by
+            # value would never stop.
+            return 0, []
+        if end % row_size:
             raise _ReadValueByValue()
-        return end // run_sizes[0], []
+        return end // row_size, []
 
     # A loop over the rows is needed, since each row starts where the
     # strings of the one before it end
@@ -298,20 +304,18 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
                 append_count(count)
                 pos += run_size + 4 + count * item_size
             pos += last_run_size
-            if pos > end:
-                break
             nrows += 1
     except struct.error:
         # The stream ends partway through a count
-        pass
+        raise _ReadValueByValue() from None
+    if pos != end:
+        raise _ReadValueByValue()
 
     counts = [np.frombuffer(c, dtype=np.int64) for c in counts]
-    # Every count read, including in a partial last row, as the
-    # value-by-value reader warns about all of them
     for count, max_count in zip(counts, var_max_counts):
         if max_count >= 0 and np.any(count > max_count):
             raise _ReadValueByValue()
-    return nrows, [count[:nrows] for count in counts]
+    return nrows, counts
 
 
 class _BinaryColumnReader:
@@ -400,9 +404,10 @@ class _BinaryColumnReader:
 
         Raises
         ------
-        _ReadValueByValue, UnicodeDecodeError
+        _ReadValueByValue
             If the rows need the warnings or errors that reading value by
-            value gives.
+            value gives.  A value that does not convert raises the exception
+            of its converter.
         """
         nrows, self.counts = _scan_binary_rows(
             buffer, self.run_sizes, self.var_item_sizes, self.var_max_counts
@@ -3531,13 +3536,14 @@ class TableElement(
         -------
         array : `~numpy.ma.MaskedArray` or None
             `None` when a field has a datatype read only value by value, or
-            when the rows need the warnings or errors that reading value by
-            value gives.
+            when anything stops the column reader, such as a value that does
+            not convert.  The value-by-value reader then reads the stream,
+            and gives the warnings and errors for it.
         """
         try:
             reader = _BinaryColumnReader(self.all_fields, mode)
             return reader.read(buffer, colnumbers, self.array.dtype)
-        except (_ReadValueByValue, UnicodeDecodeError):
+        except Exception:
             return None
 
     def _parse_binary(self, mode, iterator, colnumbers, config, pos):

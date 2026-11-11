@@ -11,7 +11,7 @@ import struct
 import numpy as np
 import pytest
 
-from astropy.io.votable import parse_single_table
+from astropy.io.votable import converters, parse_single_table
 from astropy.io.votable.exceptions import W46
 from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
@@ -99,17 +99,17 @@ def every_datatype_votable(tabledata_format):
     return document
 
 
-def binary2_votable(fields, stream):
+def binary_votable(tag, fields, stream):
     """
     Return a VOTable document with the given FIELD elements, and *stream* as
-    its BINARY2 data.
+    its data in the *tag* element, BINARY or BINARY2.
     """
     return io.BytesIO(
         b'<?xml version="1.0" encoding="utf-8"?>\n'
         b'<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">\n'
-        b"<RESOURCE><TABLE>" + fields.encode() + b"<DATA><BINARY2>"
+        b"<RESOURCE><TABLE>" + fields.encode() + b"<DATA><" + tag.encode() + b">"
         b'<STREAM encoding="base64">' + base64.b64encode(stream) + b"</STREAM>"
-        b"</BINARY2></DATA></TABLE></RESOURCE></VOTABLE>"
+        b"</" + tag.encode() + b"></DATA></TABLE></RESOURCE></VOTABLE>"
     )
 
 
@@ -127,6 +127,17 @@ def record_column_reader(monkeypatch):
 
     monkeypatch.setattr(TableElement, "_parse_binary_columns", recording_column_reader)
     return results
+
+
+def read_by_columns(document, monkeypatch, **kwargs):
+    """
+    Return the array of ``parse_single_table(document, **kwargs)``, and fail
+    if the column reader leaves the table to the value-by-value reader.
+    """
+    results = record_column_reader(monkeypatch)
+    array = parse_single_table(document, **kwargs).array
+    assert results[0] is not None, "read value by value"
+    return array
 
 
 @pytest.mark.parametrize("tabledata_format", ["binary", "binary2"])
@@ -160,7 +171,8 @@ def test_bounded_string_over_its_limit_warns():
     parse_single_table on a BINARY2 string longer than its arraysize limit
     warns W46, as reading value by value does.
     """
-    document = binary2_votable(
+    document = binary_votable(
+        "BINARY2",
         '<FIELD name="c" datatype="char" arraysize="4*"/>',
         b"\x00" + struct.pack(">I", 6) + b"abcdef",
     )
@@ -175,7 +187,8 @@ def test_partial_last_row_is_dropped():
     third row gives the two complete rows.
     """
     row = b"\x00" + struct.pack(">d", 1.5) + struct.pack(">I", 2) + b"ab"
-    document = binary2_votable(
+    document = binary_votable(
+        "BINARY2",
         '<FIELD name="d" datatype="double"/>'
         '<FIELD name="c" datatype="char" arraysize="*"/>',
         row + row + row[:-1],
@@ -194,7 +207,8 @@ def test_bad_string_in_a_column_not_read_raises():
     Reading value by value decodes every column, so the column reader checks
     the strings it does not return too.
     """
-    document = binary2_votable(
+    document = binary_votable(
+        "BINARY2",
         '<FIELD name="c" datatype="char" arraysize="*"/>'
         '<FIELD name="d" datatype="double"/>',
         b"\x00" + struct.pack(">I", 2) + b"a\xe9" + struct.pack(">d", 2.0),
@@ -209,7 +223,8 @@ def test_empty_stream_gives_no_rows():
     parse_single_table on a BINARY2 table with an empty stream gives an array
     with no rows.
     """
-    document = binary2_votable(
+    document = binary_votable(
+        "BINARY2",
         '<FIELD name="d" datatype="double"/>'
         '<FIELD name="c" datatype="char" arraysize="*"/>',
         b"",
@@ -218,3 +233,76 @@ def test_empty_stream_gives_no_rows():
     array = parse_single_table(document).array
 
     assert len(array) == 0
+
+
+def test_partial_last_row_with_a_bad_string_raises():
+    """
+    parse_single_table on a BINARY2 stream whose partial last row holds a
+    unicodeChar string that does not decode raises UnicodeDecodeError, as
+    reading value by value does.
+    """
+    row = b"\x00" + struct.pack(">I", 1) + "a".encode("utf_16_be")
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="u" datatype="unicodeChar" arraysize="*"/>'
+        '<FIELD name="d" datatype="double"/>',
+        row + struct.pack(">d", 1.0) + b"\x00" + struct.pack(">I", 1) + b"\xd8\x00",
+    )
+
+    with pytest.raises(UnicodeDecodeError):
+        parse_single_table(document)
+
+
+@pytest.mark.parametrize("datatype", ["char", "unicodeChar"])
+def test_zero_length_string_is_read_by_columns(datatype, monkeypatch):
+    """
+    parse_single_table on a BINARY2 table with a string field of arraysize 0
+    gives an empty string for it, with the column reader.
+    """
+    document = binary_votable(
+        "BINARY2",
+        f'<FIELD name="s" datatype="{datatype}" arraysize="0"/>'
+        '<FIELD name="d" datatype="double"/>',
+        b"\x00" + struct.pack(">d", 1.0),
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.tolist() == [("", 1.0)]
+
+
+def test_rows_of_no_bytes_give_no_rows():
+    """
+    parse_single_table on a BINARY table whose only field is a char of
+    arraysize 0, so that its rows take up no bytes, gives no rows.
+
+    Reading value by value never stops on such rows.
+    """
+    document = binary_votable(
+        "BINARY", '<FIELD name="c" datatype="char" arraysize="0"/>', b""
+    )
+
+    array = parse_single_table(document).array
+
+    assert len(array) == 0
+
+
+def test_unexpected_error_reads_value_by_value(monkeypatch):
+    """
+    parse_single_table on a BINARY2 table, when converting a column raises
+    ValueError, gives the values read value by value.
+    """
+
+    def fail(self, stored):
+        raise ValueError()
+
+    monkeypatch.setattr(converters.Double, "_binparse_column", fail)
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="d" datatype="double"/>',
+        b"\x00" + struct.pack(">d", 1.5),
+    )
+
+    array = parse_single_table(document).array
+
+    assert array.tolist() == [(1.5,)]

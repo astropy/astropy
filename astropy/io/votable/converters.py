@@ -436,6 +436,10 @@ class Char(Converter):
         the ``uint8`` array *stored*.
         """
         nvalues, nbytes = stored.shape
+        mask = np.zeros(nvalues, dtype=bool)
+        if nbytes == 0:
+            # Neither the checks nor the view below work without bytes
+            return np.full(nvalues, ""), mask
         if nvalues and stored.max() >= 0x80:
             # The UnicodeDecodeError of _binparse_fixed, which decodes every
             # byte, even after a NUL
@@ -449,7 +453,7 @@ class Char(Converter):
         nnul = np.count_nonzero(is_nul, axis=1)
         cut = np.flatnonzero((nnul > 0) & (nnul != nbytes - first_nul))
         codes[cut] *= np.arange(nbytes) < first_nul[cut, None]
-        return codes.view(f"U{nbytes}")[:, 0], np.zeros(nvalues, dtype=bool)
+        return codes.view(f"U{nbytes}")[:, 0], mask
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -561,13 +565,16 @@ class UnicodeChar(Converter):
         `_binparse_fixed` on each, given the bytes of each value as a row of
         the ``uint8`` array *stored*.
         """
+        nvalues, nbytes = stored.shape
+        mask = np.zeros(nvalues, dtype=bool)
+        if nbytes == 0:
+            return [""] * nvalues, mask
         data = stored.tobytes()
-        nbytes = stored.shape[1]
         strings = [
             data[start : start + nbytes].decode("utf_16_be").partition("\0")[0]
             for start in range(0, len(data), nbytes)
         ]
-        return strings, np.zeros(len(strings), dtype=bool)
+        return strings, mask
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
