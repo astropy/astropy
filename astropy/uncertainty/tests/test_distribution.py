@@ -465,7 +465,7 @@ def test_distr_view_different_dtype2():
     # Viewing with a new dtype should follow the same rules as for a
     # regular array with the same dtype.
     uint32 = Distribution(
-        np.array([[0x01020304, 0x05060708], [0x11121314, 0x15161718]], dtype="u4")
+        np.array([[0x0102_0304, 0x0506_0708], [0x1112_1314, 0x1516_1718]], dtype="u4")
     )
     uint8 = uint32.view("4u1")
     assert uint8.shape == uint32.shape + (4,)
