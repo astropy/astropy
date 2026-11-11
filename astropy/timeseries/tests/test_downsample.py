@@ -403,6 +403,89 @@ def test_downsample_with_masked_array(masked_cls, aggregate_func):
     assert_masked_equal(down3["m"], expected3)
 
 
+def test_reduceat_multidimensional():
+    # See gh-13225: a per-bin result with trailing dimensions must be
+    # stacked along a new leading axis, not concatenated into a flat array.
+    data = np.arange(24.0).reshape(8, 3)
+    indices = [0, 3, 5]
+
+    def median_axis0(x):
+        return np.median(np.atleast_2d(x), axis=0)
+
+    out = reduceat(data, indices, median_axis0)
+    assert out.shape == (3, 3)
+    assert_equal(out[0], np.median(data[0:3], axis=0))
+    assert_equal(out[1], np.median(data[3:5], axis=0))
+    assert_equal(out[2], np.median(data[5:8], axis=0))
+
+
+def test_nanmean_reduceat_multidimensional():
+    # See gh-13225: for a multidimensional (unmasked, no-NaN) input, the
+    # per-bin counts must broadcast against the trailing dimensions instead
+    # of only matching the number of bins.
+    data = np.arange(24.0).reshape(8, 3)
+    indices = [0, 3, 5]  # unequal bin sizes: 3, 2, 3
+
+    out = nanmean_reduceat(data, indices)
+    assert out.shape == (3, 3)
+    assert_equal(out, [data[0:3].mean(0), data[3:5].mean(0), data[5:8].mean(0)])
+
+    # Same, but now with a fully-masked bin, which takes the other branch.
+    masked = Masked(data, mask=False)
+    masked.mask[3:5] = True
+    out_masked = nanmean_reduceat(masked, indices)
+    assert out_masked.shape == (3, 3)
+    assert_equal(out_masked.unmasked[0], data[0:3].mean(0))
+    assert_equal(out_masked.mask[1], [True, True, True])
+    assert_equal(out_masked.unmasked[2], data[5:8].mean(0))
+
+
+@pytest.mark.parametrize("as_quantity", [False, True])
+def test_downsample_multidimensional_column(as_quantity):
+    # Regression test for gh-13225: a multidimensional data column (e.g. a
+    # spectrum per time sample) must only be reduced along the time axis,
+    # with the trailing dimensions preserved rather than dropped, and this
+    # must not crash for unequal bin sizes.
+    n_times, n_channels = 7, 3
+    time = INPUT_TIME[0] + np.arange(n_times) * u.s
+    values = np.arange(n_times * n_channels, dtype=float).reshape(n_times, n_channels)
+    if as_quantity:
+        values = values << u.Jy
+
+    ts = TimeSeries(time=time, data=[values], names=["flux"])
+    # 3 bins of size 3s -> unequal bins covering 3, 3, 1 samples.
+    down = aggregate_downsample(ts, time_bin_size=3 * u.s)
+
+    assert down["flux"].shape == (3, n_channels)
+    raw = values.value if as_quantity else values
+    assert_equal(
+        np.asarray(down["flux"]), [raw[0:3].mean(0), raw[3:6].mean(0), raw[6:7].mean(0)]
+    )
+
+
+def test_downsample_multidimensional_column_masked():
+    # Regression test for gh-13225: masking must work per-element for a
+    # multidimensional column, and a fully-masked bin must come back masked
+    # (with the correct shape) rather than raising.
+    time = INPUT_TIME[0] + np.arange(3) * u.s
+    data = Masked(np.arange(9.0).reshape(3, 3), mask=False)
+    data.mask[1] = True  # entire middle row masked
+
+    ts = TimeSeries(time=time, data=[data], names=["flux"])
+    down = aggregate_downsample(
+        ts,
+        time_bin_start=time,
+        time_bin_end=time + 0.5 * u.s,  # one sample per bin, non-touching
+    )
+
+    down_data, down_mask = get_data_and_mask(down["flux"])
+    orig_data, _ = get_data_and_mask(data)
+    assert down_data.shape == (3, 3)
+    assert_equal(down_mask, [[False] * 3, [True] * 3, [False] * 3])
+    assert_equal(down_data[0], orig_data[0])
+    assert_equal(down_data[2], orig_data[2])
+
+
 @pytest.mark.parametrize(
     "diff_from_base", [1 * u.year, 10 * u.year, 50 * u.year, 100 * u.year]
 )
