@@ -441,16 +441,17 @@ class Char(Converter):
         nvalues, nbytes = stored.shape
         mask = np.zeros(nvalues, dtype=bool)
         if nbytes == 0:
-            # Neither the checks nor the view below work without bytes
+            # arraysize="0": the numpy steps below need at least one byte
             return np.full(nvalues, ""), mask
         if nvalues and stored.max() >= 0x80:
-            # The UnicodeDecodeError of _binparse_fixed, which decodes every
-            # byte, even after a NUL
+            # Raise the same UnicodeDecodeError as _binparse_fixed, which
+            # decodes every byte, even those after a NUL
             stored.tobytes().decode("ascii")
-        # An ASCII byte is its own code point
+        # numpy stores unicode strings as 4-byte code points, and an ASCII
+        # byte is its own code point
         codes = stored.astype(np.uint32)
-        # numpy drops the NULs at the end of a string, so only a value with
-        # other bytes after its first NUL needs cutting there
+        # Cut each value at its first NUL. numpy already drops trailing NULs,
+        # so only values with other bytes after a NUL need cutting.
         is_nul = stored == 0
         first_nul = is_nul.argmax(axis=1)
         nnul = np.count_nonzero(is_nul, axis=1)
@@ -1330,7 +1331,7 @@ class Bit(Converter):
         return fast_binparse_bit(data)
 
     def _binparse_column(self, stored):
-        # fast_binparse_bit reads the bit that binary_one sets
+        # binary_one is 0x08, the bit that fast_binparse_bit tests
         return (stored & self.binary_one[0]) != 0, np.zeros(len(stored), dtype=bool)
 
     def binoutput(self, value, mask):
@@ -1427,7 +1428,8 @@ class Boolean(Converter):
         ord(" "): (False, True),
         ord("?"): (False, True),
     }
-    # fast_binparse_bool reads a code missing from the mapping as missing too
+    # As in fast_binparse_bool, a code not in the mapping reads as masked
+    # (binparse_value, used for boolean arrays, raises E05 for it instead)
     _true_codes = [code for code, (value, _) in _binparse_mapping.items() if value]
     _unmasked_codes = [
         code for code, (_, mask) in _binparse_mapping.items() if not mask
