@@ -6,6 +6,7 @@ from numpy.testing import assert_allclose, assert_equal
 
 from astropy.stats.jackknife import jackknife_resampling, jackknife_stats
 from astropy.utils.compat.optional_deps import HAS_SCIPY
+from astropy.utils.masked import Masked
 
 
 def test_jackknife_resampling():
@@ -88,3 +89,18 @@ def test_jackknife_masked_all_masked_raises():
     with pytest.raises(ValueError, match="data must contain at least one measurement"):
         jackknife_stats(data, np.mean)
 
+
+def test_jackknife_resampling_astropy_masked():
+    data = Masked(np.array([1.0, 2.0, 3.0, 4.0, 999.0]), mask=[0, 0, 0, 0, 1])
+    expected = jackknife_resampling(np.array([1.0, 2.0, 3.0, 4.0]))
+    assert_equal(expected, jackknife_resampling(data))
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_jackknife_stats_astropy_masked():
+    values = np.array([1.0, 2.0, 3.0, 4.0, 1000.0])
+    data = Masked(values, mask=[0, 0, 0, 0, 1])
+    result = jackknife_stats(data, np.mean)
+    expected = jackknife_stats(values[:4], np.mean)
+    for res, exp in zip(result, expected):
+        assert_allclose(res, exp)

@@ -1,0 +1,1 @@
+``astropy.stats.jackknife_resampling()`` and ``astropy.stats.jackknife_stats()`` now drop masked values from ``numpy.ma.MaskedArray`` and ``astropy.utils.masked.Masked`` input instead of letting them leak into the jackknife resamples.

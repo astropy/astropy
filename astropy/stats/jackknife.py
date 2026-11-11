@@ -9,6 +9,21 @@ __all__ = ["jackknife_resampling", "jackknife_stats"]
 __doctest_requires__ = {"jackknife_stats": ["scipy"]}
 
 
+def _drop_masked(data):
+    """Return the unmasked values of ``data`` as a plain array.
+
+    Handles `numpy.ma.MaskedArray` and `astropy.utils.masked.Masked` input.
+    Masked entries are removed, so the result is 1-D for 1-D input (and
+    flattened for higher-dimensional masked input). Data without a mask is
+    returned unchanged.
+    """
+    if isinstance(data, np.ma.MaskedArray):
+        return data.compressed()
+    if hasattr(data, "unmasked") and hasattr(data, "mask"):
+        return data[~data.mask].unmasked
+    return data
+
+
 def jackknife_resampling(
     data: np.ndarray[tuple[int], np.dtype[np.number]],
 ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
@@ -25,7 +40,9 @@ def jackknife_resampling(
     ----------
     data : ndarray
         Original sample (1-D array) from which the jackknife resamples will be
-        generated.
+        generated. If ``data`` is a masked array (`numpy.ma.MaskedArray` or
+        `~astropy.utils.masked.Masked`), masked values are dropped before
+        resampling.
 
     Returns
     -------
@@ -44,10 +61,7 @@ def jackknife_resampling(
 
     .. [3] Jackknife resampling <https://en.wikipedia.org/wiki/Jackknife_resampling>
     """
-    if isinstance(data, np.ma.MaskedArray):
-        data = data.compressed()
-    elif hasattr(data, "unmasked") and hasattr(data, "mask"):
-        data = data[~data.mask].unmasked
+    data = _drop_masked(data)
 
     n = data.shape[0]
     if n <= 0:
@@ -73,7 +87,9 @@ def jackknife_stats(
     Parameters
     ----------
     data : ndarray
-        Original sample (1-D array).
+        Original sample (1-D array). If ``data`` is a masked array
+        (`numpy.ma.MaskedArray` or `~astropy.utils.masked.Masked`), masked
+        values are dropped before the statistic is evaluated.
     statistic : function
         Any function (or vector of functions) on the basis of the measured
         data, e.g, sample mean, sample variance, etc. The jackknife estimate of
@@ -160,10 +176,7 @@ def jackknife_stats(
         raise ValueError("confidence level must be in (0, 1).")
 
     # make sure original data is proper
-    if isinstance(data, np.ma.MaskedArray):
-        data = data.compressed()
-    elif hasattr(data, "unmasked") and hasattr(data, "mask"):
-        data = data[~data.mask].unmasked
+    data = _drop_masked(data)
 
     n = data.shape[0]
     if n <= 0:
