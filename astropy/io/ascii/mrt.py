@@ -23,7 +23,6 @@ from astropy.utils.masked import Masked
 from . import cds, core, fixedwidth
 
 MAX_SIZE_README_LINE = 80
-MAX_COL_INTLIMIT = 100000
 
 
 __doctest_skip__ = ["*"]
