@@ -208,3 +208,39 @@ def test_pickle_spline(inputs):
 
     mp = loads(dumps(m))
     assert_allclose(m(inputs[0]), mp(inputs[0]))
+
+
+@pytest.mark.parametrize("model", ["Gaussian1D", "Gaussian2D", "Const1D"])
+def test_fresh_model_parameters_are_initialized(model):
+    """A freshly constructed model must have a fully initialized ``_parameters``
+    array (not uninitialized ``np.empty`` memory).
+
+    Regression test for #18598: ``_parameters`` used to be allocated with
+    ``np.empty`` and only filled on the first access of the ``parameters``
+    property. A pristine model therefore held uninitialized memory in
+    ``_parameters``; when that memory happened to contain a NaN, strict
+    equality checks against the unpickled copy (which recomputes the values)
+    failed non-deterministically.
+    """
+    m = getattr(functional_models, model)()
+    # Copy the raw stored array *before* touching the ``parameters`` property
+    # (which fills ``_parameters`` lazily in place and would otherwise mask the
+    # bug by mutating the very array we want to inspect).
+    raw = np.array(m.__dict__["_parameters"], copy=True)
+    assert not np.isnan(raw).any()
+    assert_allclose(raw, m.parameters)
+
+
+def test_gaussian1d_strict_pickling_recovery():
+    """``Gaussian1D`` must survive a *strict*-equality pickle round-trip.
+
+    Regression test for #18598. ``check_pickling_recovery`` compares the
+    original and unpickled objects attribute-by-attribute with strict
+    equality (unlike the ``assert_allclose`` comparisons elsewhere in this
+    module), so it catches the uninitialized-``_parameters`` bug that made
+    ``Gaussian1DKernel``'s pickle test flaky.
+    """
+    from astropy.tests.helper import check_pickling_recovery
+
+    for protocol in (0, 1, 4, -1):
+        check_pickling_recovery(functional_models.Gaussian1D(), protocol)
