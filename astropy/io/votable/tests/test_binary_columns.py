@@ -212,16 +212,51 @@ def test_chunks_hold_at_most_the_chunk_size(monkeypatch):
     assert chunks == [(0, 10), (10, 11), (11, 12)]
 
 
-def test_column_reader_handles_every_datatype(monkeypatch):
+@pytest.mark.parametrize("tabledata_format", ["binary", "binary2"])
+def test_column_reader_handles_every_datatype(tabledata_format, monkeypatch):
     """
-    parse_single_table on a BINARY2 table with a column of each datatype the
-    column reader handles reads it with the column reader.
+    parse_single_table on a table with a column of each datatype the column
+    reader handles reads it with the column reader.
     """
     results = record_column_reader(monkeypatch)
 
-    parse_single_table(every_datatype_votable("binary2"))
+    parse_single_table(every_datatype_votable(tabledata_format))
 
     assert results[0] is not None
+
+
+def test_integer_null_value_is_masked(monkeypatch):
+    """
+    parse_single_table on a BINARY int column with VALUES null="-1" masks the
+    values equal to -1, with the column reader.
+    """
+    document = binary_votable(
+        "BINARY",
+        '<FIELD name="i" datatype="int"><VALUES null="-1"/></FIELD>',
+        struct.pack(">ii", -1, 5),
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array["i"].mask.tolist() == [True, False]
+
+
+def test_null_bitmap_masks_integers_and_bits(monkeypatch):
+    """
+    parse_single_table on a BINARY2 table whose null bitmap marks the int and
+    the bit of its first row masks those two values, with the column reader.
+    """
+    first_row = b"\xc0" + struct.pack(">i", 7) + b"\x08"
+    second_row = b"\x00" + struct.pack(">i", 8) + b"\x00"
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="i" datatype="int"/><FIELD name="b" datatype="bit"/>',
+        first_row + second_row,
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.mask.tolist() == [(True, True), (False, False)]
 
 
 def test_bounded_string_over_its_limit_warns(monkeypatch):
