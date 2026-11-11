@@ -7,6 +7,7 @@ from astropy.io import fits
 from astropy.io.fits import ImageHDU, PrimaryHDU
 
 da = pytest.importorskip("dask.array")
+dask = pytest.importorskip("dask")
 
 
 @pytest.fixture
@@ -169,3 +170,15 @@ def test_file_handle(mode, dask_array_in_mem, tmp_path):
         np.testing.assert_allclose(hdulist_new[0].data, dask_array_in_mem.compute())
         assert isinstance(hdulist_new[1].data, np.ndarray)
         np.testing.assert_allclose(hdulist_new[1].data, np.arange(10))
+
+
+@pytest.mark.parametrize("scheduler", ["synchronous", "threads", "processes"])
+def test_save_scheduler(dask_array_in_mem, tmp_path, scheduler):
+    # Schedulers that run tasks in other processes used to silently write
+    # zeros, since the memory-mapped output array was copied to each process.
+    filename = tmp_path / "test.fits"
+    with dask.config.set(scheduler=scheduler):
+        PrimaryHDU(data=dask_array_in_mem).writeto(filename)
+
+    with fits.open(filename) as hdulist_new:
+        np.testing.assert_array_equal(hdulist_new[0].data, dask_array_in_mem.compute())

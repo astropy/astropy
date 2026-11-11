@@ -21,6 +21,49 @@ from .base import BITPIX2DTYPE, DELAYED, DTYPE2BITPIX, ExtensionHDU, _ValidHDU
 __all__ = ["ImageHDU", "PrimaryHDU", "Section"]
 
 
+class _MemmapRegion:
+    """
+    Target for `dask.array.store` that writes to part of a file.
+
+    The file is only memory-mapped when the first chunk is stored, and the
+    memory map is not included when the target is pickled, so that the target
+    can be used by schedulers that run tasks in other processes. Each process
+    then maps the file itself.
+    """
+
+    def __init__(self, filename, offset, shape, dtype):
+        self.filename = filename
+        self.offset = offset
+        self.shape = shape
+        self.dtype = dtype
+        self.length = offset + np.dtype(dtype).itemsize * int(np.prod(shape))
+        self._mmap = None
+        self._array = None
+
+    def __getstate__(self):
+        return {**self.__dict__, "_mmap": None, "_array": None}
+
+    def __setitem__(self, key, value):
+        if self._array is None:
+            with open(self.filename, mode="rb+") as fp:
+                self._mmap = mmap.mmap(
+                    fp.fileno(), length=self.length, access=mmap.ACCESS_WRITE
+                )
+            self._array = np.ndarray(
+                shape=self.shape,
+                dtype=self.dtype,
+                offset=self.offset,
+                buffer=self._mmap,
+            )
+        self._array[key] = value
+
+    def close(self):
+        if self._mmap is not None:
+            self._array = None
+            self._mmap.close()
+            self._mmap = None
+
+
 class _ImageBaseHDU(_ValidHDU):
     """FITS image HDU base class.
 
@@ -700,36 +743,20 @@ class _ImageBaseHDU(_ValidHDU):
         fileobj.write(b"\0")
         fileobj.flush()
 
-        if fileobj.fileobj_mode not in ("rb+", "wb+", "ab+"):
-            # Use another file handle if the current one is not in
-            # read/write mode
-            fp = open(fileobj.name, mode="rb+")
-            should_close = True
-        else:
-            fp = fileobj._file
-            should_close = False
-
+        # The target opens the file by name in each process that stores chunks,
+        # so that it also works with schedulers that run tasks in other
+        # processes. A memory-mapped array opened here would be copied to each
+        # process, so the data would never reach the file.
+        target = _MemmapRegion(
+            fileobj.name, initial_position, output.shape, output.dtype
+        )
         try:
-            outmmap = mmap.mmap(
-                fp.fileno(), length=initial_position + n_bytes, access=mmap.ACCESS_WRITE
-            )
-
-            outarr = np.ndarray(
-                shape=output.shape,
-                dtype=output.dtype,
-                offset=initial_position,
-                buffer=outmmap,
-            )
-
-            output.store(outarr, lock=True, compute=True)
+            output.store(target, lock=True, compute=True)
         finally:
-            if should_close:
-                fp.close()
-            outmmap.close()
+            target.close()
 
-        # On Windows closing the memmap causes the file pointer to return to 0, so
-        # we need to go back to the end of the data (since padding may be written
-        # after)
+        # Make sure the file pointer is at the end of the data, since padding may
+        # be written after
         fileobj.seek(initial_position + n_bytes)
 
         return n_bytes
