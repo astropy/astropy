@@ -1,0 +1,1 @@
+Ensure the ``CCDData`` unit requirement is restored when an arithmetic operation raises an exception.
