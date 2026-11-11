@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1
+from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -349,3 +349,11 @@ def test_hcompress_decode_invalid_stream(bytepix):
         with pytest.raises(ValueError, match="tile dimensions are invalid"):
             HCompress1(nx=nx, ny=ny, **settings).decode(_as_array(cbytes))
 
+
+@pytest.mark.parametrize("bytepix", (0, 3, 8))
+def test_rice_decode_invalid_bytepix(bytepix):
+    # Only BYTEPIX values of 1, 2 and 4 are supported
+    data = np.arange(64, dtype="i4")
+    cbytes = Rice1(blocksize=32, bytepix=4, tilesize=64).encode(data)
+    with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
+        Rice1(blocksize=32, bytepix=bytepix, tilesize=64).decode(_as_array(cbytes))

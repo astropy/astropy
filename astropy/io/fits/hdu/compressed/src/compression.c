@@ -274,6 +274,12 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    // cfitsio only provides Rice decoders for 1, 2 and 4 byte integers
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(PyExc_ValueError, "Rice can only work with 1, 2 or 4 byte integers.");
+        return (PyObject *)NULL;
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
         compressed_values = (unsigned char *)str;
