@@ -11,7 +11,7 @@ import struct
 import numpy as np
 import pytest
 
-from astropy.io.votable import converters, parse_single_table
+from astropy.io.votable import converters, parse_single_table, tree
 from astropy.io.votable.exceptions import W46
 from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
@@ -152,6 +152,64 @@ def test_columns_match_value_by_value(tabledata_format, monkeypatch):
 
     assert by_columns.dtype == by_values.dtype
     assert by_columns.tolist() == by_values.tolist()
+
+
+@pytest.mark.parametrize("tabledata_format", ["binary", "binary2"])
+def test_chunks_of_one_row_match_value_by_value(tabledata_format, monkeypatch):
+    """
+    parse_single_table with a chunk size of one byte, so that the column
+    reader reads one row at a time, gives the same values and mask as
+    reading value by value.
+    """
+    monkeypatch.setattr(tree, "_BINARY_CHUNK_BYTES", 1)
+    by_columns = read_by_columns(every_datatype_votable(tabledata_format), monkeypatch)
+    monkeypatch.setattr(TableElement, "_parse_binary_columns", lambda *args: None)
+    by_values = parse_single_table(every_datatype_votable(tabledata_format)).array
+
+    assert by_columns.tolist() == by_values.tolist()
+
+
+@pytest.mark.parametrize("tabledata_format", ["binary", "binary2"])
+def test_chunks_of_two_rows_match_value_by_value(tabledata_format, monkeypatch):
+    """
+    parse_single_table with chunks of at most two rows, so that the column
+    reader reads the three rows as two and one, gives the same values and
+    mask as reading value by value.
+    """
+    monkeypatch.setattr(tree, "_BINARY_CHUNK_ROWS", 2)
+    by_columns = read_by_columns(every_datatype_votable(tabledata_format), monkeypatch)
+    monkeypatch.setattr(TableElement, "_parse_binary_columns", lambda *args: None)
+    by_values = parse_single_table(every_datatype_votable(tabledata_format)).array
+
+    assert by_columns.tolist() == by_values.tolist()
+
+
+def test_chunks_hold_at_most_the_chunk_size(monkeypatch):
+    """
+    parse_single_table on ten BINARY2 rows of 9 bytes then two of 59 bytes,
+    with a chunk size of 100 bytes, reads the rows in chunks of ten, one and
+    one.
+    """
+    chunks = []
+    read_rows = tree._BinaryColumnReader._read_rows
+
+    def recording_read_rows(self, buffer, first, last, low):
+        chunks.append((first, last))
+        read_rows(self, buffer, first, last, low)
+
+    monkeypatch.setattr(tree._BinaryColumnReader, "_read_rows", recording_read_rows)
+    monkeypatch.setattr(tree, "_BINARY_CHUNK_BYTES", 100)
+    short_row = b"\x00" + struct.pack(">I", 4) + b"abcd"
+    long_row = b"\x00" + struct.pack(">I", 54) + b"x" * 54
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="c" datatype="char" arraysize="*"/>',
+        short_row * 10 + long_row * 2,
+    )
+
+    parse_single_table(document)
+
+    assert chunks == [(0, 10), (10, 11), (11, 12)]
 
 
 def test_column_reader_handles_every_datatype(monkeypatch):
