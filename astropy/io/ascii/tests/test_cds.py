@@ -646,3 +646,19 @@ def test_qtable_masked_invalid_quantity(val):
     t_r = QTable(data={"B": Masked(Quantity(data[::-1], "m"), mask=mask[::-1])})
     t_r.write(out_r, format="ascii.mrt")
     assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
+
+
+@pytest.mark.xfail(strict=True)
+def test_masked_col_with_description():
+    # regression test for a bug where the null flag would be prepended
+    # to the user-specified description instead of inserting
+    col = MaskedColumn(
+        [1.5, 2.5],
+        description="[0/10] desc",
+        mask=[0, 1],
+    )
+    t = Table({"a": col})
+    buffer = StringIO()
+    t.write(buffer, format="ascii.mrt")
+    lines = [L.rstrip() for L in buffer.getvalue().splitlines()]
+    assert "1-3  F3.1   ---    a       [0/10]? desc" in lines
