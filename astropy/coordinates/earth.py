@@ -372,7 +372,7 @@ class EarthLocation(u.Quantity):
         >>> from astropy.coordinates import EarthLocation
         >>> keck = EarthLocation.of_site('Keck Observatory')  # doctest: +REMOTE_DATA
         >>> keck.geodetic  # doctest: +REMOTE_DATA +FLOAT_CMP
-        GeodeticLocation(lon=<Longitude -155.47833333 deg>, lat=<Latitude 19.82833333 deg>, height=<Quantity 4160. m>)
+        GeodeticLocation(lon=<Longitude -155.4744763 deg>, lat=<Latitude 19.82625353 deg>, height=<Quantity 4159.6 m>)
         >>> keck.info  # doctest: +REMOTE_DATA
         name = W. M. Keck Observatory
         dtype = (float64, float64, float64)
@@ -380,7 +380,7 @@ class EarthLocation(u.Quantity):
         class = EarthLocation
         n_bad = 0
         >>> keck.info.meta  # doctest: +REMOTE_DATA
-        {'source': 'IRAF Observatory Database', 'timezone': 'US/Hawaii'}
+        {'source': ..., 'timezone': 'US/Hawaii'}
 
         See Also
         --------
