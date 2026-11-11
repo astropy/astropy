@@ -1,0 +1,3 @@
+Fixed a bug that caused dask arrays to be silently written as zeros when
+writing FITS files with a dask scheduler that runs tasks in other processes,
+such as the ``processes`` scheduler or ``dask.distributed``.
