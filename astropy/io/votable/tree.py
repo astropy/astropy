@@ -4,6 +4,7 @@
 # STDLIB
 import base64
 import binascii
+import bisect
 import codecs
 import gzip
 import io
@@ -226,8 +227,10 @@ _BINARY_CHAR_SIZES = {converters.Char: 1, converters.UnicodeChar: 2}
 # issue 8995)
 _NEVER_MASKED_DATATYPES = ("char", "unicodeChar")
 
-# Roughly how many bytes of a BINARY stream to turn into columns at a time
+# The most bytes and rows of a BINARY stream to turn into columns at a time,
+# though a chunk always holds at least one row
 _BINARY_CHUNK_BYTES = 1 << 24
+_BINARY_CHUNK_ROWS = 1 << 16
 
 
 class _ReadValueByValue(Exception):
@@ -239,8 +242,8 @@ class _ReadValueByValue(Exception):
 
 def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
     """
-    Count the rows of a BINARY or BINARY2 stream, and how many items each of
-    their variable-length fields holds.
+    Find the end of each row of a BINARY or BINARY2 stream, and how many
+    items each of its variable-length fields holds.
 
     A row is a run of fixed-size fields (starting with the BINARY2 null
     bitmap), then a variable-length field, then another run, and so on,
@@ -259,8 +262,8 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
 
     Returns
     -------
-    nrows : int
-        The number of rows.
+    row_ends : `range` or `~numpy.ndarray`
+        The offset in *buffer* of the end of each row.
     counts : list of `~numpy.ndarray`
         The item count of each variable-length field, in each row.
 
@@ -277,10 +280,10 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
         if row_size == 0:
             # Only when every field is an empty string.  Reading value by
             # value would never stop.
-            return 0, []
+            return range(0), []
         if end % row_size:
             raise _ReadValueByValue()
-        return end // row_size, []
+        return range(row_size, end + 1, row_size), []
 
     # A loop over the rows is needed, since each row starts where the
     # strings of the one before it end
@@ -288,10 +291,11 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
 
     unpack_count = struct.Struct(">I").unpack_from
     counts = [array("q") for _ in var_item_sizes]
+    row_ends = array("q")
+    end_row = row_ends.append
     fields = list(zip(run_sizes, var_item_sizes, [c.append for c in counts]))
     last_run_size = run_sizes[-1]
     pos = 0
-    nrows = 0
     try:
         while pos < end:
             for run_size, item_size, append_count in fields:
@@ -299,14 +303,16 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
                 append_count(count)
                 pos += run_size + 4 + count * item_size
             pos += last_run_size
-            nrows += 1
+            end_row(pos)
     except struct.error:
         # The stream ends partway through a count
         raise _ReadValueByValue() from None
     if pos != end:
         raise _ReadValueByValue()
 
-    return nrows, [np.frombuffer(c, dtype=np.int64) for c in counts]
+    return np.frombuffer(row_ends, dtype=np.int64), [
+        np.frombuffer(c, dtype=np.int64) for c in counts
+    ]
 
 
 class _BinaryColumnReader:
@@ -399,9 +405,10 @@ class _BinaryColumnReader:
             If the stream ends partway through a row.  A value that does not
             convert raises the exception of its converter.
         """
-        nrows, self.counts = _scan_binary_rows(
+        row_ends, self.counts = _scan_binary_rows(
             buffer, self.run_sizes, self.var_item_sizes
         )
+        nrows = len(row_ends)
         self.array = np.zeros(nrows, dtype=dtype)
         self.mask = np.zeros(nrows, dtype=ma.make_mask_descr(dtype))
         selected = dict(zip(sorted(set(colnumbers)), dtype.names))
@@ -415,18 +422,16 @@ class _BinaryColumnReader:
             and (name is not None or type(field.converter) in _BINARY_CHAR_SIZES)
         ]
 
-        row_sizes = np.full(nrows, sum(self.run_sizes), dtype=np.int64)
-        for item_size, count in zip(self.var_item_sizes, self.counts):
-            row_sizes += 4 + count * item_size
-        row_ends = np.cumsum(row_sizes)
-
-        # Turn the rows into columns a chunk of rows at a time
-        stream_size = row_ends[-1] if nrows else 0
-        chunk_rows = max(1, _BINARY_CHUNK_BYTES * nrows // max(1, stream_size))
-        for first in range(0, nrows, chunk_rows):
-            last = min(first + chunk_rows, nrows)
-            low = int(row_ends[first - 1]) if first else 0
+        first = low = 0
+        while first < nrows:
+            last = bisect.bisect_right(
+                row_ends,
+                low + _BINARY_CHUNK_BYTES,
+                first + 1,
+                min(nrows, first + _BINARY_CHUNK_ROWS),
+            )
             self._read_rows(buffer, first, last, low)
+            first, low = last, int(row_ends[last - 1])
 
         self._warn_too_long()
         return ma.MaskedArray(self.array, mask=self.mask, copy=False, keep_mask=False)
