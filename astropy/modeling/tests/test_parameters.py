@@ -518,9 +518,9 @@ class TestParameters:
         # Reshape error
         MESSAGE = r"cannot reshape array of size 4 into shape .*"
         with pytest.raises(ValueError, match=MESSAGE):
-            param.shape = (5,)
+            param._set_shape((5,))
         # Reshape success
-        param.shape = (2, 2)
+        param._set_shape((2, 2))
         assert param.shape == (2, 2)
         assert (param.value == [[1, 2], [3, 4]]).all()
 
@@ -530,16 +530,16 @@ class TestParameters:
         # Reshape error
         MESSAGE = r"Cannot assign this shape to a scalar quantity"
         with pytest.raises(ValueError, match=MESSAGE):
-            param.shape = (5,)
-        param.shape = (1,)
+            param._set_shape((5,))
+        param._set_shape((1,))
 
         # single value
         param = Parameter(name="test", default=np.array([1]))
         assert param.shape == (1,)
         # Reshape error
         with pytest.raises(ValueError, match=MESSAGE):
-            param.shape = (5,)
-        param.shape = ()
+            param._set_shape((5,))
+        param._set_shape(())
 
     def test_size(self):
         param = Parameter(name="test", default=[1, 2, 3, 4])
