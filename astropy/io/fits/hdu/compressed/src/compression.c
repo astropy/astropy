@@ -11,6 +11,7 @@
 
 /* The following is needed in order to avoid compilation warnings related to calloc() */
 #include <stdlib.h>
+#include <limits.h>
 
 /* Define docstrings */
 static char module_docstring[] = "Core compression/decompression functions wrapped from cfitsio.";
@@ -399,6 +400,17 @@ static PyObject *compress_hcompress_1_c(PyObject *self, PyObject *args)
     return result;
 }
 
+// Size in bytes of the header at the start of an HCOMPRESS_1 stream: magic
+// code (2), nx (4), ny (4), scale (4), sum of all pixels (8) and number of
+// bit planes in each quadrant (3).
+#define HCOMPRESS_HEADER_SIZE 25
+
+static int hcompress_read_int(const unsigned char *buf)
+{
+    return (int)(((unsigned int)buf[0] << 24) | ((unsigned int)buf[1] << 16) |
+                 ((unsigned int)buf[2] << 8) | (unsigned int)buf[3]);
+}
+
 static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
 {
 
@@ -408,6 +420,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
     PyObject *result;
 
     int bytepix, nx, ny, scale, smooth;
+    int na, stream_nx, stream_ny;
     int status = 0; // Important to initialize this to zero otherwise will fail silently
 
     unsigned char *compressed_values;
@@ -423,12 +436,46 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
         return (PyObject *)NULL;
     }
 
+    if (nx <= 0 || ny <= 0 || nx > INT_MAX / ny) {
+        PyErr_SetString(PyExc_ValueError, "HCompress tile dimensions are invalid.");
+        return (PyObject *)NULL;
+    }
+
+    // The compressed stream starts with a two byte magic code followed by the
+    // dimensions of the image as big-endian 4 byte integers, which should
+    // match the tile shape.
+    if (count < HCOMPRESS_HEADER_SIZE || str[0] != 0xDD || str[1] != 0x99) {
+        PyErr_SetString(PyExc_ValueError, "HCompress compressed data is truncated or corrupt.");
+        return (PyObject *)NULL;
+    }
+
+    stream_nx = hcompress_read_int(str + 2);
+    stream_ny = hcompress_read_int(str + 6);
+
+    if (stream_nx != nx || stream_ny != ny) {
+        PyErr_Format(
+            PyExc_ValueError,
+            "HCompress compressed data has dimensions (%d, %d) but expected (%d, %d).",
+            stream_nx,
+            stream_ny,
+            nx,
+            ny
+        );
+        return (PyObject *)NULL;
+    }
+
+    // Number of elements (not bytes) in the output buffer
+    na = nx * ny;
+
+    dbytes = malloc((size_t)na * (size_t)bytepix);
+
+    if (dbytes == NULL) {
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
         compressed_values = (unsigned char *)str;
-
-    int na = nx * ny * bytepix;
-    dbytes = malloc((size_t)na);
 
     if (bytepix == 4) {
         decompressed_values_int = (int *)dbytes;
@@ -450,6 +497,7 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(dbytes);
         return (PyObject *)NULL;
     }
 
@@ -457,11 +505,22 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
         PyErr_SetString(
             PyExc_ValueError, "Status returned from cfitsio is not zero for an unknown reason."
         );
+        free(dbytes);
+        return (PyObject *)NULL;
+    }
+
+    // cfitsio sets nx and ny to the values from the compressed stream, which
+    // should be unchanged.
+    if (nx != stream_nx || ny != stream_ny) {
+        PyErr_SetString(
+            PyExc_ValueError, "HCompress decompressed dimensions do not match the tile shape."
+        );
+        free(dbytes);
         return (PyObject *)NULL;
     }
 
     // fits_hdecompress[64] always returns 4 byte integers
-    result = Py_BuildValue("y#", dbytes, (Py_ssize_t)nx * ny * 4);
+    result = Py_BuildValue("y#", dbytes, (Py_ssize_t)na * 4);
     free(dbytes);
     return result;
 }
