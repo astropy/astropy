@@ -10,14 +10,17 @@ Ref: https://journals.aas.org/mrt-standards
 
 import re
 import warnings
+from dataclasses import dataclass, replace
 from io import StringIO
 from string import Template
 from textwrap import wrap
+from typing import Literal, Self, final
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import Column, MaskedColumn, Table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.masked import Masked
 
 from . import cds, core, fixedwidth
@@ -46,6 +49,107 @@ MRT_TEMPLATE = [
     "Notes:",
     "--------------------------------------------------------------------------------",
 ]
+
+_DESC_REGEXP = re.compile(
+    r"\s*"
+    r"(?P<limits>(\[|\])[\w/]*(\[|\]))?"
+    r"\s*"
+    r"(?P<null_flag>[\?!])?"
+    r"(?P<body>.+)?",
+    flags=re.DOTALL,
+)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class Description:
+    limits: str | None = None
+    null_flag: Literal["?", "!"] | None = None
+    body: str | None = None
+
+    def __post_init__(self) -> None:
+        # init-level normalization
+        original_body = self.body
+        if self.body is not None:
+            # normalize whitespace and newlines
+            object.__setattr__(
+                self, "body", re.sub(r"\s+", " ", self.body).strip() or None
+            )
+
+        # (in)validation
+        warnings_: tuple[str, type[Warning]] = []
+        exceptions: list[Exception] = []
+        if self.limits is not None and not re.fullmatch(
+            r"(\[|\]).+(\[|\])", self.limits
+        ):
+            exceptions.append(
+                ValueError(
+                    f"invalid limits expression {self.limits!r} "
+                    "(expected opening and closing square brackets)"
+                )
+            )
+        if self.null_flag not in {"?", "!", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid null flag {self.null_flag!r} "
+                    "(expected one of {'?', '!', None}) "
+                )
+            )
+
+        if self.body is None:
+            w = (
+                (
+                    "Description body is missing "
+                    "(could be empty or pure whitespace). "
+                    "This is deprecated since astropy 9.0.0 and "
+                    "will be rejected in a future version."
+                ),
+                AstropyDeprecationWarning,
+            )
+            warnings_.append(w)
+        elif (
+            self.limits is None
+            and self.null_flag is None
+            and re.match(r"[\[\]]", self.body)
+        ):
+            exceptions.append(
+                ValueError(
+                    f"Description body ({original_body!r}) cannot start with a square bracket "
+                    "if limits and null flags are omitted, because it would be read as "
+                    "(potentially invalid) limits."
+                )
+            )
+
+        for msg, category in warnings_:
+            # stacklevel=1 is the only somewhat useful value possible within
+            # this method, because __init__ is generated and cannot be
+            # included in tracebacks
+            warnings.warn(msg, category, stacklevel=1)
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with description fields", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, s: str, /) -> Self:
+        if (match := _DESC_REGEXP.match(s)) is None:  # pragma: no coverage
+            # the 'body' group is supposed to accept any valid *single-line* str
+            # thus, we don't *expect* this branch to be reachable,
+            # though it is useful in debugging and static analysis
+            raise ValueError(
+                f"Failed to match {s!r} against description regexp. "
+                "Please report this as a bug."
+            )
+
+        return Description(
+            body=match.group("body"),
+            limits=match.group("limits"),
+            null_flag=match.group("null_flag"),
+        )
+
+    def normalize(self) -> str:
+        return f"{self.limits or ''}{self.null_flag or ''} {self.body or ''}".strip()
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -330,14 +434,15 @@ class MrtHeader(cds.CdsHeader):
 
             # Set column description.
             if col.description is not None:
-                description = col.description
+                description = Description.from_str(col.description)
             else:
-                description = "Description of " + col.name
+                description = Description(body=f"Description of {col.name}")
 
             # Set null flag in column description
-            nullflag = ""
             if col.has_null:
-                nullflag = "?"
+                description = replace(description, null_flag="?")
+
+            normalized_description = description.normalize()
 
             # Set column unit
             if col.unit is not None:
@@ -353,12 +458,9 @@ class MrtHeader(cds.CdsHeader):
             else:
                 col_unit = "---"
 
-            if nullflag != "":
-                description = f"{nullflag} {description}"
-
             # Find the maximum label and description column widths.
             max_label_width = max(len(col.name), max_label_width)
-            max_descrip_size = max(len(description), max_descrip_size)
+            max_descrip_size = max(len(normalized_description), max_descrip_size)
 
             # Add a row for the Sign of Declination in the bbb table
             if col.name == "DEd":
@@ -380,10 +482,10 @@ class MrtHeader(cds.CdsHeader):
                     singlebfmt.format(startb)
                     if startb == endb
                     else fmtb.format(startb, endb),
-                    "" if col.fortran_format is None else col.fortran_format,
+                    col.fortran_format or "",
                     col_unit,
-                    "" if col.name is None else col.name,
-                    description,
+                    col.name or "",
+                    normalized_description,
                 ]
             )
             startb = endb + 2

@@ -6,7 +6,9 @@ reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
+import re
 from io import StringIO
+from typing import Literal, TypedDict
 
 import numpy as np
 import pytest
@@ -15,12 +17,145 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
+from astropy.io.ascii.mrt import Description
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
+
+
+class DescriptionKwargs(TypedDict, total=False):
+    limits: str | None = None
+    null_flag: Literal["?", "!"] | None = None
+    body: str | None = None
+
+
+MISSING_BODY_WARNING = (
+    r"^Description body is missing \(could be empty or pure whitespace\)\. "
+    r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
+)
+
+
+class TestDescription:
+    def test_init_defaults(self) -> None:
+        with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
+            d = Description()
+        assert d.body is None
+        assert d.limits is None
+        assert d.null_flag is None
+        assert d.normalize() == ""
+
+    @pytest.mark.parametrize("body", ["", " ", "\t", " \t ", "\t \t"])
+    def test_empty_body(self, body: str) -> None:
+        with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
+            d = Description.from_str(body)
+        assert d.body is None
+
+    def test_multiline_body(self) -> None:
+        body = "a\nb\nc"
+        d1 = Description(body=body)
+        assert d1.body == body.replace("\n", " ")
+        d2 = Description.from_str(body)
+        assert d2 == d1
+
+    @pytest.mark.parametrize("limits", ["", " ", "[", "]", "[[", "]]", "{1/2}"])
+    def test_invalid_limits(self, limits: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid limits expression {limits!r}")
+        ):
+            Description(limits=limits, body="body")
+
+    @pytest.mark.parametrize("nf", ["", " ", "??", " ?", "? ", "!!", "?!", "!?"])
+    def test_invalid_null_flag(self, nf: str) -> None:
+        with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
+            Description(null_flag=nf, body="body")
+
+    @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
+    def test_bracketed_body(self, body: str, subtests: pytest.Subtests) -> None:
+
+        msg = re.escape(
+            f"Description body ({body!r}) cannot start with a square bracket "
+            "if limits and null flags are omitted, because it would be read as "
+            "(potentially invalid) limits."
+        )
+
+        with subtests.test("body-only"), pytest.raises(ValueError, match=msg):
+            Description(body=body)
+
+        with subtests.test("w/ nullflag"):
+            Description(body=body, null_flag="?")
+
+        with subtests.test("w/ łimits"):
+            Description(body=body, limits="[0/1]")
+
+        with subtests.test("w/ łimits and nullflag"):
+            Description(body=body, limits="[0/1]", null_flag="?")
+
+    def test_multiple_exceptions(self) -> None:
+        with pytest.RaisesGroup(
+            pytest.RaisesExc(ValueError, match=r"invalid limits expression"),
+            pytest.RaisesExc(ValueError, match=r"invalid null flag"),
+            match=r"^multiple issues with description fields$",
+        ):
+            Description(limits="[[", null_flag="/", body="[body]")
+
+    @pytest.mark.filterwarnings("ignore:Description body is missing")
+    @pytest.mark.parametrize(
+        "s, dkw",
+        [
+            ("", {}),
+            ("[1/2[", dict(limits="[1/2[")),
+            ("?", dict(null_flag="?")),
+            ("!", dict(null_flag="!")),
+            ("body", dict(body="body")),
+            ("]1/2]?", dict(limits="]1/2]", null_flag="?")),
+            ("[1/2] body", dict(limits="[1/2]", body="body")),
+            ("? body", dict(null_flag="?", body="body")),
+            ("[1/2]? body", dict(limits="[1/2]", null_flag="?", body="body")),
+        ],
+    )
+    def test_stable_roundtrip(
+        self,
+        s: str,
+        dkw: DescriptionKwargs,
+        subtests: pytest.Subtests,
+    ) -> None:
+        d = Description(**dkw)
+        with subtests.test("forward"):
+            assert Description.from_str(s) == d
+        with subtests.test("backward"):
+            assert d.normalize() == s
+
+    @pytest.mark.filterwarnings("ignore:Description body is missing")
+    @pytest.mark.parametrize(
+        "s, expected_kw",
+        [
+            (" [1/2]", dict(limits="[1/2]")),
+            ("[1/2] ", dict(limits="[1/2]")),
+            (" [1/2] ", dict(limits="[1/2]")),
+            (" ?", dict(null_flag="?")),
+            ("? ", dict(null_flag="?")),
+            (" ? ", dict(null_flag="?")),
+            ("body\t", dict(body="body")),
+            ("\tbody", dict(body="body")),
+            ("\tbody\t", dict(body="body")),
+            ("[1/2]?", dict(limits="[1/2]", null_flag="?")),
+            ("[1/2]body", dict(limits="[1/2]", body="body")),
+            ("[1/2]?body", dict(limits="[1/2]", null_flag="?", body="body")),
+            ("[1/2] ?body", dict(limits="[1/2]", null_flag="?", body="body")),
+            ("[1/2] ? body", dict(limits="[1/2]", null_flag="?", body="body")),
+            ("?body", dict(null_flag="?", body="body")),
+            ("?  body", dict(null_flag="?", body="body")),
+            ("?\tbody", dict(null_flag="?", body="body")),
+            ("?\nbody", dict(null_flag="?", body="body")),
+        ],
+    )
+    def test_from_str(self, s: str, expected_kw: DescriptionKwargs) -> None:
+        expected = Description(**expected_kw)
+        assert Description.from_str(s) == expected
+
 
 test_dat = [
     "names e d s i",
@@ -648,7 +783,6 @@ def test_qtable_masked_invalid_quantity(val):
     assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
 
 
-@pytest.mark.xfail(strict=True)
 def test_masked_col_with_description():
     # regression test for a bug where the null flag would be prepended
     # to the user-specified description instead of inserting
