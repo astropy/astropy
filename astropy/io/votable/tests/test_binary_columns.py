@@ -166,10 +166,10 @@ def test_column_reader_handles_every_datatype(monkeypatch):
     assert results[0] is not None
 
 
-def test_bounded_string_over_its_limit_warns():
+def test_bounded_string_over_its_limit_warns(monkeypatch):
     """
     parse_single_table on a BINARY2 string longer than its arraysize limit
-    warns W46, as reading value by value does.
+    warns W46 with the column reader, as reading value by value does.
     """
     document = binary_votable(
         "BINARY2",
@@ -178,7 +178,43 @@ def test_bounded_string_over_its_limit_warns():
     )
 
     with pytest.warns(W46):
-        parse_single_table(document)
+        read_by_columns(document, monkeypatch)
+
+
+def test_strings_over_their_limits_warn_in_row_order(monkeypatch):
+    """
+    parse_single_table on a BINARY2 table with a unicodeChar string over its
+    limit in the first row, and a char string over its limit in the second,
+    gives the same W46 warnings in the same order as reading value by value.
+    """
+    first_row = (
+        b"\x00"
+        + struct.pack(">I", 2)
+        + b"ab"
+        + struct.pack(">I", 2)
+        + "xy".encode("utf_16_be")
+    )
+    second_row = (
+        b"\x00"
+        + struct.pack(">I", 3)
+        + b"abc"
+        + struct.pack(">I", 1)
+        + "x".encode("utf_16_be")
+    )
+    fields = (
+        '<FIELD name="c" datatype="char" arraysize="2*"/>'
+        '<FIELD name="u" datatype="unicodeChar" arraysize="1*"/>'
+    )
+
+    with pytest.warns(W46) as by_columns:
+        read_by_columns(
+            binary_votable("BINARY2", fields, first_row + second_row), monkeypatch
+        )
+    monkeypatch.setattr(TableElement, "_parse_binary_columns", lambda *args: None)
+    with pytest.warns(W46) as by_values:
+        parse_single_table(binary_votable("BINARY2", fields, first_row + second_row))
+
+    assert [str(w.message) for w in by_columns] == [str(w.message) for w in by_values]
 
 
 def test_partial_last_row_is_dropped():

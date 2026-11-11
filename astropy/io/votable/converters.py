@@ -490,11 +490,14 @@ class Char(Converter):
     def _binparse_var(self, read):
         length = self._parse_length(read)
         if self.arraysize != "*" and length > self.arraysize:
-            vo_warn(W46, ("char", self.arraysize), None, None)
+            self._warn_too_long()
 
         value = self._decode(read(length))
         self._check_width(value, self._config)
         return value, False
+
+    def _warn_too_long(self):
+        vo_warn(W46, ("char", self.arraysize), None, None)
 
     def _binparse_fixed(self, read):
         s = read(self.arraysize)
@@ -653,9 +656,12 @@ class UnicodeChar(Converter):
         length = self._parse_length(read)
 
         if self.arraysize != "*" and length > self.arraysize:
-            vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
+            self._warn_too_long()
 
         return read(length * 2).decode("utf_16_be"), False
+
+    def _warn_too_long(self):
+        vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
 
     def _binparse_fixed(self, read):
         s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
