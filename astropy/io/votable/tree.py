@@ -237,7 +237,7 @@ class _ReadValueByValue(Exception):
     """
 
 
-def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
+def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
     """
     Count the rows of a BINARY or BINARY2 stream, and how many items each of
     their variable-length fields holds.
@@ -256,9 +256,6 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
         variable-length fields.
     var_item_sizes : list of int
         The size in bytes of one item of each variable-length field.
-    var_max_counts : list of int
-        The most items each variable-length field may hold, or -1 for no
-        limit.
 
     Returns
     -------
@@ -271,9 +268,7 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
     ------
     _ReadValueByValue
         If the stream ends partway through a row, since the value-by-value
-        reader decodes the values in it before it stops, or if a
-        variable-length field holds more items than its limit, which the
-        value-by-value reader warns about.
+        reader decodes the values in it before it stops.
     """
     end = len(buffer)
     if not var_item_sizes:
@@ -311,11 +306,7 @@ def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
     if pos != end:
         raise _ReadValueByValue()
 
-    counts = [np.frombuffer(c, dtype=np.int64) for c in counts]
-    for count, max_count in zip(counts, var_max_counts):
-        if max_count >= 0 and np.any(count > max_count):
-            raise _ReadValueByValue()
-    return nrows, counts
+    return nrows, [np.frombuffer(c, dtype=np.int64) for c in counts]
 
 
 class _BinaryColumnReader:
@@ -405,12 +396,11 @@ class _BinaryColumnReader:
         Raises
         ------
         _ReadValueByValue
-            If the rows need the warnings or errors that reading value by
-            value gives.  A value that does not convert raises the exception
-            of its converter.
+            If the stream ends partway through a row.  A value that does not
+            convert raises the exception of its converter.
         """
         nrows, self.counts = _scan_binary_rows(
-            buffer, self.run_sizes, self.var_item_sizes, self.var_max_counts
+            buffer, self.run_sizes, self.var_item_sizes
         )
         self.array = np.zeros(nrows, dtype=dtype)
         self.mask = np.zeros(nrows, dtype=ma.make_mask_descr(dtype))
@@ -438,7 +428,30 @@ class _BinaryColumnReader:
             low = int(row_ends[first - 1]) if first else 0
             self._read_rows(buffer, first, last, low)
 
+        self._warn_too_long()
         return ma.MaskedArray(self.array, mask=self.mask, copy=False, keep_mask=False)
+
+    def _warn_too_long(self):
+        """
+        Warn W46 for each string over its limit, in the order of the
+        value-by-value reader: row by row, and field by field in a row.
+
+        This is left until every row is read, since the value-by-value reader
+        warns again if the column reader stops.
+        """
+        rows = []
+        strings = []
+        for k, (count, max_count) in enumerate(zip(self.counts, self.var_max_counts)):
+            if max_count >= 0:
+                (over,) = np.nonzero(count > max_count)
+                rows.append(over)
+                strings.append(np.full(len(over), k))
+        if not rows:
+            return
+        rows = np.concatenate(rows)
+        strings = np.concatenate(strings)
+        for k in strings[np.lexsort((strings, rows))].tolist():
+            self.fields[self.var_fields[k]].converter._warn_too_long()
 
     def _read_rows(self, buffer, first, last, low):
         """Read rows *first* to *last*, which start at byte *low* of *buffer*."""
