@@ -1,0 +1,1 @@
+Added `get_frame_class` as a new public function in `astropy.coordinates`. It accepts a frame name string (e.g. `'icrs'`) or a `BaseCoordinateFrame` subclass and returns the corresponding frame class, making it easier for downstream packages to validate and normalise coordinate frame inputs without constructing a full |SkyCoord|.

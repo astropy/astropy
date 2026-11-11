@@ -23,12 +23,14 @@ from .builtin_frames import GCRS, PrecessedGeocentric
 from .builtin_frames.utils import get_jd12
 from .representation import CartesianRepresentation, SphericalRepresentation
 from .sky_coordinate import SkyCoord
+from .sky_coordinate_parsers import get_frame_class  # noqa: F401
 
 __all__ = [
     "cartesian_to_spherical",
     "concatenate",
     "concatenate_representations",
     "get_constellation",
+    "get_frame_class",
     "get_sun",
     "spherical_to_cartesian",
 ]
