@@ -1,8 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-# ruff: noqa: PYI024
 
-# namedtuple is needed for find_mod_objs so it can have a non-local module
-from collections import namedtuple
 from unittest import mock
 
 import pytest
@@ -12,8 +9,6 @@ from astropy.utils import introspection
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.introspection import (
     find_current_module,
-    find_mod_objs,
-    isinstancemethod,
     minversion,
     resolve_name,
 )
@@ -49,36 +44,6 @@ def test_find_current_mod():
         find_current_module(0, ["faddfdsasewrweriopunjlfiurrhujnkflgwhu"])
 
 
-def test_find_mod_objs():
-    deprecation_message = (
-        "^The find_mod_objs function is deprecated and may be removed in "
-        r"a future version\.$"
-    )
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        lnms, fqns, objs = find_mod_objs("astropy")
-
-    # this import  is after the above call intentionally to make sure
-    # find_mod_objs properly imports astropy on its own
-    import astropy
-
-    # just check for astropy.conf ... other things might be added, so we
-    # shouldn't check that it's the only thing
-    assert "conf" in lnms
-    assert astropy.conf in objs
-
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        lnms, fqns, objs = find_mod_objs(__name__, onlylocals=False)
-    assert "namedtuple" in lnms
-    assert "collections.namedtuple" in fqns
-    assert namedtuple in objs
-
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        lnms, fqns, objs = find_mod_objs(__name__, onlylocals=True)
-    assert "namedtuple" not in lnms
-    assert "collections.namedtuple" not in fqns
-    assert namedtuple not in objs
-
-
 def test_minversion():
     import numpy as np
 
@@ -109,37 +74,6 @@ def test_find_current_module_bundle():
         assert find_current_module(0).__name__ == mod1
         assert find_current_module(1).__name__ == mod2
         assert find_current_module(0, True).__name__ == mod3
-
-
-def test_deprecated_isinstancemethod():
-    class MetaClass(type):
-        def a_classmethod(cls):
-            pass
-
-    class MyClass(metaclass=MetaClass):
-        def an_instancemethod(self):
-            pass
-
-        @classmethod
-        def another_classmethod(cls):
-            pass
-
-        @staticmethod
-        def a_staticmethod():
-            pass
-
-    deprecation_message = (
-        "^The isinstancemethod function is deprecated and may be removed in "
-        r"a future version\.$"
-    )
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        assert isinstancemethod(MyClass, MyClass.a_classmethod) is False
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        assert isinstancemethod(MyClass, MyClass.another_classmethod) is False
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        assert isinstancemethod(MyClass, MyClass.a_staticmethod) is False
-    with pytest.warns(AstropyDeprecationWarning, match=deprecation_message):
-        assert isinstancemethod(MyClass, MyClass.an_instancemethod) is True
 
 
 def test_resolve_name_deprecation():
