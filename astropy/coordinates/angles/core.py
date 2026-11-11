@@ -177,7 +177,18 @@ class Angle(SpecificTypeQuantity):
                     angle = u.Quantity(angle, angle_unit, copy=None)
 
             elif isinstance(angle, np.ndarray):
-                if angle.dtype.kind in "SUVO":
+                parsed = None
+                if angle.dtype.kind == "U" and angle.size >= formats._MIN_ARRAY_SIZE:
+                    parsed = formats.parse_angles(angle, unit)
+
+                if parsed is not None:
+                    values, angle_unit, unparsed = parsed
+                    # Whatever the array parser did not recognise is parsed one
+                    # element at a time, exactly as it would have been before.
+                    for i in np.nonzero(unparsed)[0]:
+                        values[i] = cls(angle[i], unit, copy=None).to_value(angle_unit)
+                    angle = u.Quantity(values, angle_unit, copy=False)
+                elif angle.dtype.kind in "SUVO":
                     angle = [cls(x, unit, copy=None) for x in angle]
 
             elif hasattr(angle, "__array__") and (
