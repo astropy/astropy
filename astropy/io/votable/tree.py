@@ -224,7 +224,7 @@ _NUMBER_BINARY_CONVERTERS = (
 _BINARY_CHAR_SIZES = {converters.Char: 1, converters.UnicodeChar: 2}
 
 # The datatypes never masked, whatever the BINARY2 null bitmap says (see
-# issue 8995)
+# https://github.com/astropy/astropy/issues/8995)
 _NEVER_MASKED_DATATYPES = ("char", "unicodeChar")
 
 # The most bytes and rows of a BINARY stream to turn into columns at a time,
@@ -3531,7 +3531,6 @@ class TableElement(
                 raise EOFError
             return result
 
-        # The decoded bytes are returned too when the whole stream is in memory
         return careful_read, buffer
 
     def _parse_binary_columns(self, mode, buffer, colnumbers):
