@@ -268,6 +268,32 @@ class Converter:
         """
         raise NotImplementedError("This datatype must implement a 'binparse' method.")
 
+    def _binparse_column(self, stored):
+        """
+        Convert a whole column of fixed-size values from the BINARY_ format,
+        giving the same values and mask as `binparse` on each value in turn.
+
+        Parameters
+        ----------
+        stored : `~numpy.ndarray`
+            One value per row as stored: big-endian numbers, or the bytes of
+            each value as a row of a ``uint8`` array.
+
+        Returns
+        -------
+        values : `~numpy.ndarray` or list
+        mask : `~numpy.ndarray`
+            `True` where a value is missing.
+
+        Raises
+        ------
+        Exception
+            Where `binparse` would raise for one of the values.
+        """
+        raise NotImplementedError(
+            "This datatype does not convert a whole binary column at once."
+        )
+
     def binoutput(self, value, mask):
         """
         Convert the object *value* in the native in-memory datatype to
@@ -335,6 +361,7 @@ class Char(Converter):
                 self.binoutput = self._binoutput_var
             else:
                 self.binparse = self._binparse_fixed
+                self._binparse_column = self._binparse_fixed_column
                 self.binoutput = self._binoutput_fixed
 
             self._struct_format = f">{self.arraysize:d}s"
@@ -390,6 +417,39 @@ class Char(Converter):
         if end != -1:
             return s[:end], False
         return s, False
+
+    def _binparse_var_column(self, buffer, starts, stops):
+        """
+        Convert a column of values from the BINARY_ format, the same as
+        `_binparse_var` on each but without its warning, given that the
+        characters of each value are ``buffer[start:stop]``.
+        """
+        strings = [
+            buffer[start:stop].decode("ascii") for start, stop in zip(starts, stops)
+        ]
+        return strings, np.zeros(len(strings), dtype=bool)
+
+    def _binparse_fixed_column(self, stored):
+        """
+        Convert a column of values from the BINARY_ format, the same as
+        `_binparse_fixed` on each, given the bytes of each value as a row of
+        the ``uint8`` array *stored*.
+        """
+        nvalues, nbytes = stored.shape
+        if nvalues and stored.max() >= 0x80:
+            # The UnicodeDecodeError of _binparse_fixed, which decodes every
+            # byte, even after a NUL
+            stored.tobytes().decode("ascii")
+        # An ASCII byte is its own code point
+        codes = stored.astype(np.uint32)
+        # numpy drops the NULs at the end of a string, so only a value with
+        # other bytes after its first NUL needs cutting there
+        is_nul = stored == 0
+        first_nul = is_nul.argmax(axis=1)
+        nnul = np.count_nonzero(is_nul, axis=1)
+        cut = np.flatnonzero((nnul > 0) & (nnul != nbytes - first_nul))
+        codes[cut] *= np.arange(nbytes) < first_nul[cut, None]
+        return codes.view(f"U{nbytes}")[:, 0], np.zeros(nvalues, dtype=bool)
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -453,6 +513,7 @@ class UnicodeChar(Converter):
                 self.binoutput = self._binoutput_var
             else:
                 self.binparse = self._binparse_fixed
+                self._binparse_column = self._binparse_fixed_column
                 self.binoutput = self._binoutput_fixed
 
             self._struct_format = f">{self.arraysize * 2:d}s"
@@ -482,6 +543,31 @@ class UnicodeChar(Converter):
         if end != -1:
             return s[:end], False
         return s, False
+
+    def _binparse_var_column(self, buffer, starts, stops):
+        """
+        Convert a column of values from the BINARY_ format, the same as
+        `_binparse_var` on each but without its warning, given that the
+        characters of each value are ``buffer[start:stop]``.
+        """
+        strings = [
+            buffer[start:stop].decode("utf_16_be") for start, stop in zip(starts, stops)
+        ]
+        return strings, np.zeros(len(strings), dtype=bool)
+
+    def _binparse_fixed_column(self, stored):
+        """
+        Convert a column of values from the BINARY_ format, the same as
+        `_binparse_fixed` on each, given the bytes of each value as a row of
+        the ``uint8`` array *stored*.
+        """
+        data = stored.tobytes()
+        nbytes = stored.shape[1]
+        strings = [
+            data[start : start + nbytes].decode("utf_16_be").partition("\0")[0]
+            for start in range(0, len(data), nbytes)
+        ]
+        return strings, np.zeros(len(strings), dtype=bool)
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -715,6 +801,9 @@ class Numeric(Converter):
     def binparse(self, read):
         result = np.frombuffer(read(self._memsize), dtype=self._bigendian_format)
         return result[0], self.is_null(result[0])
+
+    def _binparse_column(self, stored):
+        return stored, self.is_null(stored)
 
     def _is_null(self, value):
         return value == self.null
@@ -1227,6 +1316,10 @@ class Bit(Converter):
         data = read(1)
         return fast_binparse_bit(data)
 
+    def _binparse_column(self, stored):
+        # fast_binparse_bit reads the bit that binary_one sets
+        return (stored & self.binary_one[0]) != 0, np.zeros(len(stored), dtype=bool)
+
     def binoutput(self, value, mask):
         if mask:
             vo_warn(W39)
@@ -1321,6 +1414,14 @@ class Boolean(Converter):
         ord(" "): (False, True),
         ord("?"): (False, True),
     }
+    # fast_binparse_bool reads a code missing from the mapping as missing too
+    _true_codes = [code for code, (value, _) in _binparse_mapping.items() if value]
+    _unmasked_codes = [
+        code for code, (_, mask) in _binparse_mapping.items() if not mask
+    ]
+
+    def _binparse_column(self, stored):
+        return np.isin(stored, self._true_codes), ~np.isin(stored, self._unmasked_codes)
 
     def binparse_value(self, value):
         try:

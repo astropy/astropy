@@ -207,11 +207,11 @@ class _MaskedArrayBuilder:
         return ma.MaskedArray(values, mask=mask, copy=False, keep_mask=False)
 
 
-# Converters whose values `TableElement._parse_binary_columns` reads as
-# fixed-size big-endian numbers, or one-byte boolean codes
-_FIXED_SIZE_BINARY_CONVERTERS = (
-    converters.Bit,
-    converters.Boolean,
+# The converters of the fields that `_BinaryColumnReader` reads: a bit or a
+# boolean stored as one byte, a big-endian number, or a string.  Other
+# datatypes, such as arrays and complex numbers, are read value by value.
+_ONE_BYTE_BINARY_CONVERTERS = (converters.Bit, converters.Boolean)
+_NUMBER_BINARY_CONVERTERS = (
     converters.Double,
     converters.Float,
     converters.Int,
@@ -219,23 +219,12 @@ _FIXED_SIZE_BINARY_CONVERTERS = (
     converters.Short,
     converters.UnsignedByte,
 )
+# The size in bytes of one character of each string datatype
+_BINARY_CHAR_SIZES = {converters.Char: 1, converters.UnicodeChar: 2}
 
-# String converters it decodes, with the size in bytes of one character and
-# the codec for it
-_STRING_BINARY_CONVERTERS = {
-    converters.Char: (1, "ascii"),
-    converters.UnicodeChar: (2, "utf_16_be"),
-}
-
-# A boolean in a BINARY stream is one character: T, t or 1 for true, F, f or
-# 0 for false, and anything else (usually ?, a space or NUL) for missing
-_TRUE_CODES = np.frombuffer(b"Tt1", dtype=np.uint8)
-_TRUE_OR_FALSE_CODES = np.frombuffer(b"TtFf10", dtype=np.uint8)
-
-# A bit in a BINARY stream is one byte, read as true when this bit of it is
-# set. This matches the current value-by-value reader (fast_binparse_bit), and
-# astropy writes true as this byte.
-_TRUE_BIT = 0x08
+# The datatypes never masked, whatever the BINARY2 null bitmap says (see
+# issue 8995)
+_NEVER_MASKED_DATATYPES = ("char", "unicodeChar")
 
 # Roughly how many bytes of a BINARY stream to turn into columns at a time
 _BINARY_CHUNK_BYTES = 1 << 24
@@ -246,82 +235,6 @@ class _ReadValueByValue(Exception):
     The rows of a BINARY stream need the value-by-value reader in
     `TableElement._parse_binary`, which gives the warnings and errors for them.
     """
-
-
-def _binary_column_values(converter, values):
-    """
-    Return the values and mask of a column, from its values as stored in a
-    BINARY stream.
-
-    This gives the same values and mask as ``converter.binparse`` on each
-    value in turn.
-
-    Parameters
-    ----------
-    converter : `~astropy.io.votable.converters.Converter`
-        One of the `_FIXED_SIZE_BINARY_CONVERTERS`.
-    values : `~numpy.ndarray`
-        The stored values: big-endian numbers, or the one-byte codes of a
-        boolean or bit.
-
-    Returns
-    -------
-    values, mask : `~numpy.ndarray`
-    """
-    if type(converter) is converters.Bit:
-        return (values & _TRUE_BIT) != 0, np.zeros(len(values), dtype=bool)
-    if type(converter) is converters.Boolean:
-        return np.isin(values, _TRUE_CODES), ~np.isin(values, _TRUE_OR_FALSE_CODES)
-
-    if converter._fast_has_null:
-        mask = values == np.array(converter._fast_null_param, dtype=values.dtype)
-    elif isinstance(converter, converters.FloatingPoint):
-        mask = np.isnan(values)
-    else:
-        mask = np.zeros(len(values), dtype=bool)
-    return values, mask
-
-
-def _fixed_strings(converter, stored):
-    """
-    Return the strings of a fixed-length string column, from the bytes of
-    each of its values in a BINARY stream.
-
-    Like ``converter.binparse``, this decodes all the bytes of each value and
-    cuts the string at its first NUL character.
-
-    Raises
-    ------
-    UnicodeDecodeError
-        If a value does not decode.
-    _ReadValueByValue
-        If a char value has a non-ASCII byte, so that the value-by-value
-        reader gives the error for it.
-    """
-    item_size, codec = _STRING_BINARY_CONVERTERS[type(converter)]
-    if item_size == 1:
-        if np.any(stored >= 0x80):
-            raise _ReadValueByValue()
-        # Clear everything from the first NUL on; numpy then drops it
-        stored = np.where(np.cumsum(stored == 0, axis=1) > 0, 0, stored)
-        return (
-            stored.astype(np.uint8)
-            .view(f"S{stored.shape[1]}")[:, 0]
-            .astype(f"U{stored.shape[1]}")
-        )
-    strings = [value.tobytes().decode(codec) for value in stored]
-    return [string.split("\0", 1)[0] for string in strings]
-
-
-def _bytes_of_parts(data, is_part, part_sizes):
-    """
-    Return the bytes of *data* in the parts of each row that *is_part* picks.
-
-    *part_sizes* gives the size in bytes of each part of each row in turn,
-    and *is_part* says which parts of a row to keep.
-    """
-    nrows = len(part_sizes) // len(is_part)
-    return data[np.repeat(np.tile(is_part, nrows), part_sizes)]
 
 
 def _scan_binary_rows(buffer, run_sizes, var_item_sizes, var_max_counts):
@@ -415,6 +328,10 @@ class _BinaryColumnReader:
     fields before it, its count and its characters; then the last run.  So
     the characters of string ``k`` are part ``3 * k + 2``.
 
+    The converter of each field turns its values into a column, with
+    ``_binparse_column`` for fixed-size values and ``_binparse_var_column``
+    for variable-length strings.
+
     Parameters
     ----------
     fields : list of `~astropy.io.votable.tree.Field`
@@ -433,32 +350,33 @@ class _BinaryColumnReader:
         self.mode = mode
         nbitmap = (len(fields) + 7) // 8 if mode == 2 else 0
         self.run_sizes = [nbitmap]  # the size of each run of fixed-size fields
+        self.var_fields = []  # the index of each string
         self.var_item_sizes = []  # the size of one character of each string
         self.var_max_counts = []  # the most characters of each string, or -1
-        self.var_numbers = {}  # field index -> its place among the strings
         self.record_fields = [("bitmap", np.dtype(("u1", (nbitmap,))))]
         for i, field in enumerate(fields):
             self._add_field(i, field.converter)
         self.record_dtype = np.dtype(self.record_fields)
+        self.is_fixed_part = np.arange(3 * len(self.var_fields) + 1) % 3 == 0
 
     def _add_field(self, i, converter):
         """Add field *i* to the layout of a row."""
         kind = type(converter)
-        if kind in (converters.Bit, converters.Boolean):
-            self._add_fixed_size(i, np.dtype("u1"))  # the one-byte codes
-        elif kind in _FIXED_SIZE_BINARY_CONVERTERS:
-            self._add_fixed_size(i, np.dtype(">" + converter.format))
-        elif kind not in _STRING_BINARY_CONVERTERS:
+        if kind in _ONE_BYTE_BINARY_CONVERTERS:
+            self._add_fixed_size(i, np.dtype("u1"))
+        elif kind in _NUMBER_BINARY_CONVERTERS:
+            self._add_fixed_size(i, np.dtype(converter._bigendian_format))
+        elif kind not in _BINARY_CHAR_SIZES:
             raise _ReadValueByValue()
         elif converter.binparse == converter._binparse_var:
-            self.var_numbers[i] = len(self.var_item_sizes)
-            self.var_item_sizes.append(_STRING_BINARY_CONVERTERS[kind][0])
+            self.var_fields.append(i)
+            self.var_item_sizes.append(_BINARY_CHAR_SIZES[kind])
             self.var_max_counts.append(
                 -1 if converter.arraysize == "*" else converter.arraysize
             )
             self.run_sizes.append(0)
         else:
-            size = converter.arraysize * _STRING_BINARY_CONVERTERS[kind][0]
+            size = converter.arraysize * _BINARY_CHAR_SIZES[kind]
             self._add_fixed_size(i, np.dtype(("u1", (size,))))
 
     def _add_fixed_size(self, i, stored):
@@ -491,7 +409,16 @@ class _BinaryColumnReader:
         )
         self.array = np.zeros(nrows, dtype=dtype)
         self.mask = np.zeros(nrows, dtype=ma.make_mask_descr(dtype))
-        self._choose_fields(dict(zip(sorted(set(colnumbers)), dtype.names)))
+        selected = dict(zip(sorted(set(colnumbers)), dtype.names))
+        self.names = [selected.get(i) for i in range(len(self.fields))]
+        # The value-by-value reader decodes every string, selected or not, so
+        # they are all decoded here too, to raise the same errors
+        self.fixed_fields = [
+            i
+            for i, (field, name) in enumerate(zip(self.fields, self.names))
+            if i not in self.var_fields
+            and (name is not None or type(field.converter) in _BINARY_CHAR_SIZES)
+        ]
 
         row_sizes = np.full(nrows, sum(self.run_sizes), dtype=np.int64)
         for item_size, count in zip(self.var_item_sizes, self.counts):
@@ -499,129 +426,62 @@ class _BinaryColumnReader:
         row_ends = np.cumsum(row_sizes)
 
         # Turn the rows into columns a chunk of rows at a time
-        stream = np.frombuffer(buffer, dtype=np.uint8)
         stream_size = row_ends[-1] if nrows else 0
         chunk_rows = max(1, _BINARY_CHUNK_BYTES * nrows // max(1, stream_size))
         for first in range(0, nrows, chunk_rows):
             last = min(first + chunk_rows, nrows)
-            low = row_ends[first - 1] if first else 0
-            self._read_rows(stream[low : row_ends[last - 1]], first, last)
+            low = int(row_ends[first - 1]) if first else 0
+            self._read_rows(buffer, first, last, low)
 
         return ma.MaskedArray(self.array, mask=self.mask, copy=False, keep_mask=False)
 
-    def _choose_fields(self, selected):
-        """
-        Sort the fields by how each is read, given the *selected* ones as a
-        mapping of field index to array name.
+    def _read_rows(self, buffer, first, last, low):
+        """Read rows *first* to *last*, which start at byte *low* of *buffer*."""
+        nrows = last - first
+        if not self.var_fields:
+            records = np.ndarray(nrows, self.record_dtype, buffer=buffer, offset=low)
+        else:
+            sizes = np.empty((nrows, len(self.is_fixed_part)), dtype=np.int64)
+            sizes[:, 0::3] = self.run_sizes
+            sizes[:, 1::3] = 4
+            for k, (item_size, count) in enumerate(
+                zip(self.var_item_sizes, self.counts)
+            ):
+                sizes[:, 3 * k + 2] = count[first:last] * item_size
+            ends = low + np.cumsum(sizes).reshape(sizes.shape)
+            data = np.frombuffer(buffer, np.uint8, ends[-1, -1] - low, low)
+            # The fixed-size fields of each row, back to back
+            fixed = data[np.repeat(np.tile(self.is_fixed_part, nrows), sizes.ravel())]
+            records = np.ndarray(nrows, self.record_dtype, buffer=fixed)
 
-        The value-by-value reader decodes every string, selected or not, so
-        the strings that are not selected are decoded or checked too: any
-        that would give an error sends the rows back to it.
-        """
-        nparts = 3 * len(self.var_item_sizes) + 1
-        self.is_text_part = np.zeros(nparts, dtype=bool)  # selected char strings
-        self.is_other_text_part = np.zeros(nparts, dtype=bool)  # other char strings
-        self.text_fields = []  # (name, part) of each selected char string
-        self.unicode_fields = []  # (name or None, part) of each unicodeChar string
-        self.fixed_fields = {}  # index -> name, or None for strings only checked
-        for i, field in enumerate(self.fields):
-            name = selected.get(i)
-            if i not in self.var_numbers:
-                if name is not None or type(field.converter) in (
-                    _STRING_BINARY_CONVERTERS
-                ):
-                    self.fixed_fields[i] = name
-                continue
-            part = 3 * self.var_numbers[i] + 2
-            if _STRING_BINARY_CONVERTERS[type(field.converter)][0] == 2:
-                self.unicode_fields.append((name, part))
-            elif name is not None:
-                self.is_text_part[part] = True
-                self.text_fields.append((name, part))
-            else:
-                self.is_other_text_part[part] = True
-
-    def _read_rows(self, data, first, last):
-        """Read rows *first* to *last*, whose bytes are *data*."""
-        parts = np.empty((last - first, 3 * len(self.counts) + 1), dtype=np.int64)
-        parts[:, 0::3] = self.run_sizes
-        parts[:, 1::3] = 4
-        for k, (item_size, count) in enumerate(zip(self.var_item_sizes, self.counts)):
-            parts[:, 3 * k + 2] = count[first:last] * item_size
         rows = slice(first, last)
-        self._read_char_strings(data, parts, rows)
-        self._read_unicode_strings(data, parts, rows)
-        if self.fixed_fields:
-            self._read_fixed_size(data, parts, rows)
-
-    def _read_char_strings(self, data, parts, rows):
-        """
-        Decode the selected char strings, and check that the others are
-        ASCII.
-
-        With one byte per character, the selected strings of all the rows
-        are decoded at once, then cut apart.
-        """
-        part_sizes = parts.ravel()
-        if self.is_other_text_part.any() and np.any(
-            _bytes_of_parts(data, self.is_other_text_part, part_sizes) >= 0x80
-        ):
-            raise _ReadValueByValue()
-        if not self.text_fields:
-            return
-        text = _bytes_of_parts(data, self.is_text_part, part_sizes).tobytes()
-        text = text.decode("ascii")
-        lengths = parts[:, [part for _, part in self.text_fields]]
-        ends = np.cumsum(lengths.ravel()).reshape(lengths.shape)
-        for j, (name, _) in enumerate(self.text_fields):
-            starts = (ends[:, j] - lengths[:, j]).tolist()
-            self.array[name][rows] = [
-                text[start:end] for start, end in zip(starts, ends[:, j].tolist())
-            ]
-
-    def _read_unicode_strings(self, data, parts, rows):
-        """Decode every unicodeChar string, keeping the selected ones."""
-        for name, part in self.unicode_fields:
-            is_part = np.zeros(parts.shape[1], dtype=bool)
-            is_part[part] = True
-            text = _bytes_of_parts(data, is_part, parts.ravel()).tobytes()
-            ends = np.cumsum(parts[:, part]).tolist()
-            strings = [
-                text[start:end].decode("utf_16_be")
-                for start, end in zip([0] + ends[:-1], ends)
-            ]
-            if name is not None:
-                self.array[name][rows] = strings
-
-    def _read_fixed_size(self, data, parts, rows):
-        """
-        Read the fixed-size fields that are selected, and check the
-        fixed-length strings that are not.
-        """
-        if self.var_item_sizes:
-            # Leave out the strings, so that the fixed-size fields of each
-            # row are back to back
-            is_fixed_part = np.zeros(parts.shape[1], dtype=bool)
-            is_fixed_part[0::3] = True
-            data = _bytes_of_parts(data, is_fixed_part, parts.ravel())
-        records = data.view(self.record_dtype)
-
-        for i, name in self.fixed_fields.items():
+        bitmap = records["bitmap"]
+        for i in self.fixed_fields:
             converter = self.fields[i].converter
-            stored = records[f"f{i}"]
-            if type(converter) in _STRING_BINARY_CONVERTERS:
-                # Strings are never masked, and BINARY2 ignores the null
-                # bitmap for them (see issue 8995)
-                strings = _fixed_strings(converter, stored)
-                if name is not None:
-                    self.array[name][rows] = strings
-                continue
-            values, value_mask = _binary_column_values(converter, stored)
-            if self.mode == 2:
-                is_null = records["bitmap"][:, i // 8] & (0x80 >> (i % 8))
-                value_mask = value_mask | (is_null != 0)
-            self.array[name][rows] = values
-            self.mask[name][rows] = value_mask
+            values, mask = converter._binparse_column(records[f"f{i}"])
+            self._store(i, rows, values, mask, bitmap)
+        for k, i in enumerate(self.var_fields):
+            stops = ends[:, 3 * k + 2]
+            starts = stops - sizes[:, 3 * k + 2]
+            converter = self.fields[i].converter
+            values, mask = converter._binparse_var_column(
+                buffer, starts.tolist(), stops.tolist()
+            )
+            self._store(i, rows, values, mask, bitmap)
+
+    def _store(self, i, rows, values, mask, bitmap):
+        """
+        Put the *values* and *mask* of field *i* in *rows* of the array, if
+        the field is selected, also masking the values that the BINARY2
+        *bitmap* marks as null.
+        """
+        name = self.names[i]
+        if name is None:
+            return
+        if self.mode == 2 and self.fields[i].datatype not in _NEVER_MASKED_DATATYPES:
+            mask = mask | ((bitmap[:, i // 8] & (0x80 >> (i % 8))) != 0)
+        self.array[name][rows] = values
+        self.mask[name][rows] = mask
 
 
 def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
@@ -3712,11 +3572,8 @@ class TableElement(
                         converters.bitarray_to_bool(mask_bits, len(fields))
                     )
 
-                    # Ignore the mask for string columns (see issue 8995)
                     for i, f in enumerate(fields):
-                        if row_mask_data[i] and (
-                            f.datatype == "char" or f.datatype == "unicodeChar"
-                        ):
+                        if row_mask_data[i] and f.datatype in _NEVER_MASKED_DATATYPES:
                             row_mask_data[i] = False
 
                 for i, binparse in enumerate(binparsers):
