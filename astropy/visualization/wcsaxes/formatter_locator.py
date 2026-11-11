@@ -150,7 +150,20 @@ class BaseFormatterLocator:
         self._values = None
 
     def minor_locator(self, spacing, frequency, value_min, value_max):
-        if self.values is not None or self.number == 0:
+        if self.values is not None:
+            # There is no global spacing to subdivide, so place minor ticks
+            # by subdividing the intervals between consecutive tick values.
+            values = np.sort(self.values.to_value(self._unit))
+            if len(values) < 2 or frequency < 2:
+                return [] * self._unit
+            fractions = np.arange(1, frequency) / frequency
+            intervals = np.diff(values)
+            minor = (
+                values[:-1, None] + intervals[:, None] * fractions[None, :]
+            ).ravel()
+            return minor * self._unit
+
+        if self.number == 0:
             return [] * self._unit
 
         minor_spacing = spacing.value / frequency
