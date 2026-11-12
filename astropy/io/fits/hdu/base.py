@@ -2,6 +2,7 @@
 
 
 import datetime
+import math
 import numbers
 import os
 import sys
@@ -951,6 +952,99 @@ class _ValidHDU(_BaseHDU, _Verify):
             }
         else:
             return None
+
+    def memmap_kwargs(self, *, raw=False):
+        """
+        Return the arguments needed to memory-map the data of this HDU.
+
+        The returned dictionary can be passed directly to `numpy.memmap`::
+
+            >>> array = np.memmap(**hdu.memmap_kwargs())  # doctest: +SKIP
+
+        This makes it possible to access the data without going through the
+        HDU, for example to share it with other processes, or to check whether
+        two arrays are backed by the same file.
+
+        .. versionadded:: 8.1
+
+        Parameters
+        ----------
+        raw : bool, optional
+            By default, the arguments are only returned if the bytes in the
+            file can be interpreted directly as `data`, and an error is
+            raised otherwise, for example if the data needs to be scaled with
+            ``BSCALE``/``BZERO``. If `True`, the arguments describe the data
+            as it is stored in the file, without any scaling or conversion.
+            Interpreting the values is then up to the caller, using the
+            header. For binary tables this covers the main table only and
+            not the heap used by variable-length array columns.
+
+        Returns
+        -------
+        dict
+            Dictionary with the ``filename``, ``mode``, ``offset``,
+            ``shape``, and ``dtype`` arguments for `numpy.memmap`. The mode is
+            ``'r+'`` if the file was opened in ``update`` mode and ``'r'``
+            otherwise.
+
+        Raises
+        ------
+        ValueError
+            If the data cannot be memory-mapped, for example because the HDU
+            is not associated with an uncompressed file on disk, because the
+            data has been replaced since it was read, or, if ``raw=False``,
+            because the stored values need to be converted to obtain `data`.
+
+        Notes
+        -----
+        The arguments describe the data currently stored in the file. Changes
+        made in-place to `data` are only reflected once they are written to
+        the file, and are never reflected if the file was opened in
+        ``readonly`` or ``copyonwrite`` mode.
+        """
+        if self._file is None or self._data_offset is None:
+            raise ValueError("The HDU is not associated with a file.")
+
+        filename = getattr(self._file, "name", None)
+        if not isinstance(filename, str) or not os.path.isfile(filename):
+            raise ValueError("The HDU is not associated with a file on disk.")
+
+        if self._file.compression is not None:
+            raise ValueError(
+                f"The file is {self._file.compression}-compressed and cannot be "
+                "memory-mapped."
+            )
+
+        if self._data_replaced:
+            raise ValueError(
+                "The data has been replaced since it was read from the file."
+            )
+
+        shape, dtype = self._memmap_layout(raw=raw)
+
+        if not shape or math.prod(shape) == 0:
+            raise ValueError("The HDU does not contain any data.")
+
+        nbytes = math.prod(shape) * dtype.itemsize
+        if self._data_offset + nbytes > os.path.getsize(filename):
+            raise ValueError("The file is too small to contain the data.")
+
+        return {
+            "filename": os.path.abspath(filename),
+            "mode": "r+" if self._file.mode == "update" else "r",
+            "offset": self._data_offset,
+            "shape": shape,
+            "dtype": dtype,
+        }
+
+    def _memmap_layout(self, raw):
+        """
+        Return the shape and dtype of the data as stored in the file for
+        `memmap_kwargs`, raising a `ValueError` if it can't be described.
+        """
+        raise ValueError(
+            f"Memory-mapping is not supported for {self.__class__.__name__}."
+        )
 
     def copy(self):
         """

@@ -189,6 +189,39 @@ class _TableLikeHDU(_ValidHDU):
         """
         raise NotImplementedError
 
+    def _memmap_layout(self, raw):
+        dtype = self._raw_data_dtype().newbyteorder(">")
+        if not raw:
+            for column in self.columns:
+                reason = self._memmap_column_conversion(column)
+                if reason is not None:
+                    raise ValueError(
+                        f"Column {column.name!r} {reason}, so the stored values "
+                        "differ from the data. Use raw=True to get the arguments "
+                        "for the stored values."
+                    )
+        return (self._nrows,), dtype
+
+    def _raw_data_dtype(self):
+        """The dtype of the rows of the table as stored in the file."""
+        return self.columns.dtype
+
+    def _memmap_column_conversion(self, column):
+        """
+        Return why the values of a column in the file need to be converted to
+        give the data, or `None` if they don't.
+        """
+        format = column.format.format
+        if format in ("P", "Q"):
+            return "has variable-length arrays"
+        elif format == "L":
+            return "is logical"
+        elif format == "X":
+            return "is a bit array"
+        elif column.bscale not in (None, 1) or column.bzero not in (None, 0):
+            return "is scaled"
+        return None
+
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
         columns = self.columns
@@ -497,6 +530,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             return self._header.get("NAXIS2", 0)
         else:
             return len(self.data)
+
+    def _memmap_layout(self, raw):
+        shape, dtype = super()._memmap_layout(raw)
+        if dtype.itemsize != self._header["NAXIS1"]:
+            raise ValueError("The columns no longer match the rows in the file.")
+        return shape, dtype
 
     @property
     def _theap(self):
@@ -809,9 +848,18 @@ class TableHDU(_TableBaseHDU):
         if dup:
             raise ValueError(f"Duplicate field names: {dup}")
 
+        raw_data = self._get_raw_data(
+            self._nrows, self._raw_data_dtype(), self._data_offset
+        )
+        data = raw_data.view(np.rec.recarray)
+        self._init_tbdata(data)
+        return data.view(self._data_type)
+
+    def _raw_data_dtype(self):
         # TODO: Determine if this extra logic is necessary--I feel like the
         # _AsciiColDefs class should be responsible for telling the table what
         # its dtype should be...
+        columns = self.columns
         itemsize = columns.spans[-1] + columns.starts[-1] - 1
         dtype = {}
 
@@ -826,10 +874,10 @@ class TableHDU(_TableBaseHDU):
                     )
             dtype[columns.names[idx]] = (data_type, columns.starts[idx] - 1)
 
-        raw_data = self._get_raw_data(self._nrows, dtype, self._data_offset)
-        data = raw_data.view(np.rec.recarray)
-        self._init_tbdata(data)
-        return data.view(self._data_type)
+        return np.dtype(dtype)
+
+    def _memmap_column_conversion(self, column):
+        return "is stored as text in an ASCII table"
 
     def _calculate_datasum(self):
         """

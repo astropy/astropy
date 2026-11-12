@@ -862,6 +862,30 @@ class _ImageBaseHDU(_ValidHDU):
 
         return data
 
+    def _memmap_layout(self, raw):
+        shape = self.shape
+        dtype = np.dtype(BITPIX2DTYPE[self._orig_bitpix]).newbyteorder(">")
+
+        if not raw:
+            if not self._do_not_scale_image_data and (
+                self._orig_bscale != 1
+                or self._orig_bzero != 0
+                or self._blank is not None
+            ):
+                raise ValueError(
+                    "The data is scaled with BSCALE/BZERO or uses BLANK, so the "
+                    "stored values differ from the data. Use raw=True to get "
+                    "the arguments for the stored values."
+                )
+            if self._has_data and (
+                _is_dask_array(self.data)
+                or self.data.shape != shape
+                or self.data.dtype != dtype
+            ):
+                raise ValueError("The data no longer matches the file.")
+
+        return shape, dtype
+
     def _summary(self):
         """
         Summarize the HDU: name, dimensions, and formats.

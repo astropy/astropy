@@ -374,6 +374,10 @@ class GroupsHDU(PrimaryHDU, _TableLikeHDU):
         # Only really a lazyproperty for symmetry with _TableBaseHDU
         return 0
 
+    def _memmap_layout(self, raw):
+        # The data is laid out like a binary table, one row per group
+        return _TableLikeHDU._memmap_layout(self, raw)
+
     @property
     def is_image(self):
         return False
