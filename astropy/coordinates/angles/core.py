@@ -402,8 +402,6 @@ class Angle(SpecificTypeQuantity):
         wrap_angle_floor = wrap_angle - a360
         # Do the wrapping, but only if any angles need to be wrapped
         #
-        # Catch any invalid warnings from the floor division.
-
         # See if any wrapping is necessary and return early otherwise.
         # It is useful to avoid this since the array may be read-only
         # (e.g. due to broadcasting).
@@ -414,7 +412,10 @@ class Angle(SpecificTypeQuantity):
         if not out_of_range.any():
             return
 
-        wraps = (self_angle - wrap_angle_floor) // a360
+        # Catch any invalid warnings from the floor division, which
+        # infinities give.
+        with np.errstate(invalid="ignore"):
+            wraps = (self_angle - wrap_angle_floor) // a360
 
         self_angle -= wraps * a360
         # Rounding errors can cause problems.
