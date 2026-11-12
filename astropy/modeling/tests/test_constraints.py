@@ -61,6 +61,107 @@ class TestNonLinearConstraints:
         assert_allclose(model.mean.value, 50 * model.stddev, rtol=10 ** (-5))
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+    @pytest.mark.parametrize("fitter", fitters)
+    def test_tied_par_analytic_deriv(self, fitter):
+        """
+        Regression test for #20664: the analytic Jacobian must include the
+        contribution of tied parameters to the free parameters they depend on.
+        """
+        from scipy import optimize
+
+        ratio = 2.98
+        wave_ratio = 4958.9 / 5006.8
+
+        def make_model():
+            model = (
+                models.Gaussian1D(80, 5007, 2.5)
+                + models.Gaussian1D(30, 4959, 2.5)
+                + models.Const1D(5, fixed={"amplitude": True})
+            )
+            model.amplitude_1.tied = lambda m: m.amplitude_0 / ratio
+            model.mean_1.tied = lambda m: m.mean_0 * wave_ratio
+            model.stddev_1.tied = lambda m: m.stddev_0
+            return model
+
+        def func(p, x):
+            amplitude, mean, stddev = p
+            return (
+                models.Gaussian1D.evaluate(x, amplitude, mean, stddev)
+                + models.Gaussian1D.evaluate(
+                    x, amplitude / ratio, mean * wave_ratio, stddev
+                )
+                + 5
+            )
+
+        x = np.linspace(4900, 5050, 600)
+        y = func([100, 5006.8, 2.0], x) + 3 * default_rng(0).standard_normal(x.size)
+
+        expected, _ = optimize.leastsq(
+            lambda p: func(p, x) - y, [80, 5007, 2.5], xtol=1e-12, ftol=1e-12
+        )
+        model = fitter()(make_model(), x, y, maxiter=1000)
+        assert_allclose(model.parameters[:3], expected, rtol=1e-6)
+
+    @pytest.mark.parametrize("col_fit_deriv", [True, False])
+    def test_wrap_deriv_tied_chain_rule(self, col_fit_deriv):
+        """
+        The Jacobian returned for a model with fixed and tied parameters
+        should match finite differences of the model with respect to the free
+        parameters.
+        """
+
+        class TwoGaussians(Fittable1DModel):
+            amplitude_0 = Parameter(default=3)
+            mean_0 = Parameter(default=1.0)
+            stddev_0 = Parameter(default=0.5)
+            amplitude_1 = Parameter(default=1)
+            mean_1 = Parameter(default=2.0)
+            stddev_1 = Parameter(default=0.5)
+
+            @staticmethod
+            def evaluate(x, *params):
+                return models.Gaussian1D.evaluate(
+                    x, *params[:3]
+                ) + models.Gaussian1D.evaluate(x, *params[3:])
+
+            def fit_deriv(self, x, *params):
+                deriv = models.Gaussian1D.fit_deriv(
+                    x, *params[:3]
+                ) + models.Gaussian1D.fit_deriv(x, *params[3:])
+                return deriv if self.col_fit_deriv else np.transpose(deriv)
+
+        TwoGaussians.col_fit_deriv = col_fit_deriv
+        model = TwoGaussians()
+        model.amplitude_1.tied = lambda m: m.amplitude_0**2 / m.stddev_0
+        model.mean_1.tied = lambda m: m.mean_0 + 1.5
+        model.stddev_1.tied = lambda m: 2 * m.stddev_0
+        model.stddev_0.fixed = True
+
+        x = np.linspace(-2, 6, 50)
+        free, _, _ = fitting.model_to_fit_params(model)
+        fitting.fitter_to_model_params(model, free)
+        params_before = model.parameters.copy()
+
+        def evaluate(p):
+            m = model.copy()
+            fitting.fitter_to_model_params(m, p)
+            return m(x)
+
+        step = 1e-6
+        expected = np.array(
+            [
+                (evaluate(free + step * e) - evaluate(free - step * e)) / (2 * step)
+                for e in np.eye(free.size)
+            ]
+        )
+        jac = np.array(fitting.LevMarLSQFitter._wrap_deriv(free, model, None, x, None))
+        if not col_fit_deriv:
+            jac = jac.T
+        assert_allclose(jac, expected, rtol=1e-6, atol=1e-9)
+        # Evaluating the Jacobian must not change the model parameters
+        assert_allclose(model.parameters, params_before)
+
+    @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
     def test_joint_fitter(self):
         from scipy import optimize
 
