@@ -1,10 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import filecmp
 import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+from textwrap import dedent
 
 import numpy as np
 import pytest
 
+import astropy
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import (
     E26,
@@ -709,6 +715,50 @@ def test_votablefile_write(tmp_path):
 
     # format kwarg should be accepted and ignored for API compatibility
     vot.write(str(out), format="votable")
+
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
+def test_write_tabledata_row_as_long_as_buffer():
+    """
+    Test that Table.write to TABLEDATA, for a table whose one row is 256 bytes
+    of XML, exits cleanly in a Python process using the debug memory
+    allocator.
+
+    256 bytes is the size of the C writer's first row buffer. The debug
+    allocator aborts the process if anything was written past the end of a
+    buffer.
+    """
+    code = dedent(
+        """
+        import io
+        import re
+        import sys
+
+        # The astropy under test, which need not come first on this process's
+        # own sys.path.
+        sys.path.insert(0, sys.argv[1])
+
+        from astropy.table import Table
+
+        buffer = io.BytesIO()
+        Table({"a": ["x" * 219]}).write(
+            buffer, format="votable", tabledata_format="tabledata"
+        )
+        (row,) = re.findall(rb" *<TR>.*</TR>\\n", buffer.getvalue(), flags=re.DOTALL)
+        assert len(row) == 256, len(row)
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code, str(Path(astropy.__file__).parents[1])],
+        env=os.environ | {"PYTHONMALLOC": "debug"},
+        timeout=300,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
