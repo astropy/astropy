@@ -82,12 +82,13 @@ def _format_message(message, name, config=None, pos=None):
     return f"{filename}:{pos[0]}:{pos[1]}: {name}: {message}"
 
 
-def _suppressed_warning(warning, config, stacklevel=2):
-    warning_class = type(warning)
+def _suppressed_warning(warning_class, args, config, pos, stacklevel=2):
     config.setdefault("_warning_counts", {}).setdefault(warning_class, 0)
     config["_warning_counts"][warning_class] += 1
     message_count = config["_warning_counts"][warning_class]
     if message_count <= conf.max_warnings:
+        # Built only when shown: formatting the message is the slow part
+        warning = warning_class(args, config, pos)
         if message_count == conf.max_warnings:
             warning.formatted_message += (
                 " (suppressing further warnings of this type...)"
@@ -152,8 +153,7 @@ def vo_warn(warning_class, args=(), config=None, pos=None, stacklevel=1):
     # one would expect that calling warn_or_raise without config should not
     # silence the warnings.
     if config.get("verify", "warn") != "ignore":
-        warning = warning_class(args, config, pos)
-        _suppressed_warning(warning, config, stacklevel=stacklevel + 1)
+        _suppressed_warning(warning_class, args, config, pos, stacklevel=stacklevel + 1)
 
 
 def warn_unknown_attrs(element, attrs, config, pos, good_attr=[], stacklevel=1):  # ruff: ignore[PLR0917]
