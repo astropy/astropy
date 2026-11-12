@@ -9,6 +9,7 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
+from astropy.timeseries.periodograms.lombscargle.implementations import scipy_impl
 from astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl import (
     _scipy_supports_floating_mean,
 )
@@ -76,13 +77,8 @@ def test_all_methods(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if errors == "full":
-            pytest.skip("scipy method only supports uniform uncertainties dy")
-        elif errors == "partial" and normalization == "psd":
-            pytest.skip(
-                "scipy method drops the uniform dy, whose scale the psd "
-                "normalization depends on"
-            )
+        if errors == "full" and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for non-uniform uncertainties dy")
 
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -181,8 +177,8 @@ def test_integer_inputs(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if with_errors:
-            pytest.skip("scipy method only supports uniform uncertainties dy")
+        if with_errors and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for non-uniform uncertainties dy")
 
     t, y, dy = data
 
@@ -205,6 +201,27 @@ def test_integer_inputs(
     P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
     assert_allclose(P_float, P_int)
+
+
+def test_scipy_nonuniform_errors_old_scipy(data, monkeypatch):
+    # Non-uniform errors need the weights argument added in scipy 1.15, while
+    # uniform errors work with any scipy version
+    pytest.importorskip("scipy")
+    monkeypatch.setattr(scipy_impl, "_scipy_supports_floating_mean", lambda: False)
+
+    t, y, dy = data
+    frequency = 0.8 + 0.01 * np.arange(40)
+
+    with pytest.raises(ValueError, match="requires scipy 1.15 or later for non-uni"):
+        LombScargle(t, y, dy, fit_mean=False).power(frequency, method="scipy")
+
+    for uniform_dy in (dy[0], np.full_like(dy, dy[0])):
+        ls = LombScargle(t, y, uniform_dy, fit_mean=False, normalization="psd")
+        assert_allclose(
+            ls.power(frequency, method="scipy"),
+            ls.power(frequency, method="slow"),
+            rtol=1e-10,
+        )
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)

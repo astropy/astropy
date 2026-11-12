@@ -194,8 +194,8 @@ def lombscargle(  # ruff: ignore[PLR0917]
           requires evenly-spaced frequencies: by default this will be checked
           unless `assume_regular_frequency` is set to True.
         - `scipy`: use ``scipy.signal.lombscargle``, which is an O[N^2]
-          implementation written in C. Note that this does not support
-          heteroskedastic errors.
+          implementation. Note that this requires Scipy 1.15 or later
+          for heteroskedastic errors.
 
     assume_regular_frequency : bool, optional
         If True, assume that the input frequency is of the form
@@ -247,14 +247,11 @@ def lombscargle(  # ruff: ignore[PLR0917]
         method_kwds=method_kwds,
     )
 
-    # scipy doesn't support a dy array; lombscargle_scipy itself checks the
-    # scipy version requirement for fit_mean=True
+    # lombscargle_scipy takes dy as a keyword argument, and itself checks the
+    # scipy version requirements for fit_mean=True and for non-uniform dy
     if method == "scipy":
-        if dy is not None:
-            dy = np.ravel(np.asarray(dy))
-            if not np.allclose(dy[0], dy):
-                raise ValueError("scipy method only supports uniform uncertainties dy")
         args = (t, y)
+        kwds["dy"] = dy
 
     # fast methods require frequency expressed as a grid
     if method.startswith("fast"):

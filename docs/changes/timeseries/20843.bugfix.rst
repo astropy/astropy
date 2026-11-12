@@ -1,0 +1,4 @@
+Fixed the ``scipy`` method of `~astropy.timeseries.LombScargle` ignoring
+uniform uncertainties ``dy`` when ``normalization='psd'``, which gave powers
+that differed from the other methods by a factor of ``dy**2``, and treating
+uncertainties that differ by less than ``1e-8`` as uniform.

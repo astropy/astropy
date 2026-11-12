@@ -1,0 +1,3 @@
+The ``scipy`` method of `~astropy.timeseries.LombScargle` now supports
+non-uniform uncertainties ``dy`` with newer Scipy versions (1.15+), which are
+passed to `scipy.signal.lombscargle` as ``weights``.
