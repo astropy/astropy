@@ -19,7 +19,7 @@ from astropy.io.votable.exceptions import (
     W54,
     W57,
 )
-from astropy.io.votable.table import parse
+from astropy.io.votable.table import parse, parse_single_table
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.utils.data import get_pkg_data_filename
 
@@ -708,3 +708,25 @@ def test_votablefile_write(tmp_path):
 
     # format kwarg should be accepted and ignored for API compatibility
     vot.write(str(out), format="votable")
+
+
+def test_read_bad_value_with_invalid_mask():
+    """
+    Test that parse_single_table with invalid="mask" on a TABLEDATA row whose
+    middle cell is not an integer masks that cell and keeps the cells after it
+    in their own columns.
+    """
+    content = b"""<?xml version="1.0"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE><TABLE>
+<FIELD name="a" datatype="int"/>
+<FIELD name="b" datatype="int"/>
+<FIELD name="c" datatype="int"/>
+<DATA><TABLEDATA>
+<TR><TD>1</TD><TD>bad</TD><TD>3</TD></TR>
+<TR><TD>4</TD><TD>5</TD><TD>6</TD></TR>
+</TABLEDATA></DATA></TABLE></RESOURCE></VOTABLE>
+"""
+    array = parse_single_table(io.BytesIO(content), invalid="mask").array
+
+    assert array.tolist() == [(1, None, 3), (4, 5, 6)]
