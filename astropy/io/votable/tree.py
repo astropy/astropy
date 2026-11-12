@@ -3056,7 +3056,7 @@ class TableElement(
                                 else:
                                     row[j] = value
                                     row_mask[j] = mask_value
-                                    j += 1
+                                j += 1
                         elif tag == "TR":
                             break
                         else:
