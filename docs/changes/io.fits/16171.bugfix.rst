@@ -1,0 +1,4 @@
+``fits.open`` now detects compression (gzip, bzip2, or xz) from the
+magic bytes at the current position when reading from file-like objects
+such as ``io.BytesIO`` or ``tempfile.SpooledTemporaryFile``, instead of
+failing with a "No SIMPLE card found" error.

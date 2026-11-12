@@ -11,7 +11,7 @@ from textwrap import indent
 
 import numpy as np
 
-from astropy.io.fits.file import FILE_MODES, _File
+from astropy.io.fits.file import FILE_MODES, _File, _wrap_fileobj_if_compressed
 from astropy.io.fits.header import _pad_length
 from astropy.io.fits.util import (
     _free_space_check,
@@ -1189,6 +1189,10 @@ class HDUList(list, _Verify):
         """
         if fileobj is not None:
             if not isinstance(fileobj, _File):
+                # Detect compression in file-like objects (e.g.
+                # io.BytesIO), which _File does not recognize as
+                # files and so does not check for compression
+                fileobj = _wrap_fileobj_if_compressed(fileobj, mode)
                 # instantiate a FITS file object (ffo)
                 fileobj = _File(
                     fileobj,
