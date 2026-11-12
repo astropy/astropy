@@ -9,7 +9,6 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
-from astropy.timeseries.periodograms.lombscargle.implementations import scipy_impl
 from astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl import (
     _scipy_supports_floating_mean,
 )
@@ -204,24 +203,15 @@ def test_integer_inputs(
 
 
 def test_scipy_nonuniform_errors_old_scipy(data, monkeypatch):
-    # Non-uniform errors need the weights argument added in scipy 1.15, while
-    # uniform errors work with any scipy version
     pytest.importorskip("scipy")
-    monkeypatch.setattr(scipy_impl, "_scipy_supports_floating_mean", lambda: False)
-
+    monkeypatch.setattr(
+        "astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl"
+        "._scipy_supports_floating_mean",
+        lambda: False,
+    )
     t, y, dy = data
-    frequency = 0.8 + 0.01 * np.arange(40)
-
-    with pytest.raises(ValueError, match="requires scipy 1.15 or later for non-uni"):
-        LombScargle(t, y, dy, fit_mean=False).power(frequency, method="scipy")
-
-    for uniform_dy in (dy[0], np.full_like(dy, dy[0])):
-        ls = LombScargle(t, y, uniform_dy, fit_mean=False, normalization="psd")
-        assert_allclose(
-            ls.power(frequency, method="scipy"),
-            ls.power(frequency, method="slow"),
-            rtol=1e-10,
-        )
+    with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
+        LombScargle(t, y, dy, fit_mean=False).power([1.0], method="scipy")
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)

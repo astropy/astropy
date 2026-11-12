@@ -83,12 +83,12 @@ def lombscargle_scipy(
     if fit_mean and not _scipy_supports_floating_mean():
         raise ValueError("fit_mean=True requires scipy 1.15 or later")
 
+    t, y, dy = np.broadcast_arrays(t, y, 1 if dy is None else dy)
+
     # Scipy requires floating-point input
-    t, y, dy = np.broadcast_arrays(
-        np.asarray(t, dtype=float),
-        np.asarray(y, dtype=float),
-        np.asarray(1 if dy is None else dy, dtype=float),
-    )
+    t = np.asarray(t, dtype=float)
+    y = np.asarray(y, dtype=float)
+    dy = np.asarray(dy, dtype=float)
     frequency = np.asarray(frequency, dtype=float)
 
     if t.ndim != 1:
@@ -97,6 +97,9 @@ def lombscargle_scipy(
         raise ValueError("frequency should be one-dimensional")
 
     w = dy**-2.0
+
+    if center_data:
+        y = y - np.dot(w, y) / w.sum()
 
     kwargs = {"floating_mean": True} if fit_mean else {}
     if np.any(dy != dy[0]):
@@ -107,13 +110,8 @@ def lombscargle_scipy(
             )
         kwargs["weights"] = w
 
-    if center_data:
-        y = y - np.dot(w, y) / w.sum()
-
-    # Note: scipy `freqs` input is in angular frequencies. Scipy normalizes
-    # the weights to sum to one and then scales the power by the number of
-    # data points, so the weights are restored to inverse variances here to
-    # get the PSD normalization.
+    # Note: scipy `freqs` input is in angular frequencies, and scipy
+    # normalizes the weights to have a mean of one
     p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs) * w.mean()
 
     if normalization == "psd":
