@@ -151,8 +151,6 @@ arguments for `numpy.memmap`::
 An error is raised if the bytes in the file cannot be used directly as the
 data, for example if the data is scaled with ``BSCALE``/``BZERO``, if the file
 is compressed, or if the data has been replaced since the file was read.
-Passing ``raw=True`` gives the arguments for the data as stored in the file,
-before any scaling or conversion.
 
 .. _fits-cloud-files:
 

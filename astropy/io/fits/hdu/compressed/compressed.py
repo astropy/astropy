@@ -546,31 +546,8 @@ class CompImageHDU(ImageHDU):
                 image_header=self.header,
             )
 
-    def memmap_kwargs(self, *, raw=False):
-        """
-        Return the arguments needed to memory-map the compressed data.
-
-        The data of a compressed image is stored as a binary table of
-        compressed tiles, so it cannot be memory-mapped as an image. With
-        ``raw=True``, this returns the arguments for the rows of that binary
-        table (see `BinTableHDU.memmap_kwargs`), which describe the tile
-        descriptors and not the heap holding the compressed bytes.
-
-        .. versionadded:: 8.1
-        """
-        if not raw:
-            raise ValueError(
-                "The data is tile-compressed and cannot be memory-mapped as an "
-                "image. Use raw=True to get the arguments for the binary table "
-                "of compressed tiles."
-            )
-        if self._bintable is None:
-            raise ValueError("The HDU is not associated with a file.")
-        if self._data_replaced:
-            raise ValueError(
-                "The data has been replaced since it was read from the file."
-            )
-        return self._bintable.memmap_kwargs(raw=True)
+    def _memmap_layout(self):
+        raise ValueError("The data is tile-compressed.")
 
     @property
     def compressed_data(self):

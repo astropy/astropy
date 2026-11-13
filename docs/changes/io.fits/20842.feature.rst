@@ -1,7 +1,6 @@
 Added a ``memmap_kwargs()`` method to HDUs, which returns the file name,
 offset, shape, and dtype of the data in the file as a dictionary of arguments
 for ``numpy.memmap``. This makes it possible to memory-map the data
-independently of the HDU, for example in other processes. By default an error
-is raised if the bytes in the file cannot be used directly as the data, and
-``raw=True`` can be used to get the arguments for the data as stored in the
-file, before any scaling or conversion.
+independently of the HDU, for example in other processes. An error is raised
+if the bytes in the file cannot be used directly as the data, for example if
+the data is scaled.

@@ -953,7 +953,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         else:
             return None
 
-    def memmap_kwargs(self, *, raw=False):
+    def memmap_kwargs(self):
         """
         Return the arguments needed to memory-map the data of this HDU.
 
@@ -967,18 +967,6 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         .. versionadded:: 8.1
 
-        Parameters
-        ----------
-        raw : bool, optional
-            By default, the arguments are only returned if the bytes in the
-            file can be interpreted directly as `data`, and an error is
-            raised otherwise, for example if the data needs to be scaled with
-            ``BSCALE``/``BZERO``. If `True`, the arguments describe the data
-            as it is stored in the file, without any scaling or conversion.
-            Interpreting the values is then up to the caller, using the
-            header. For binary tables this covers the main table only and
-            not the heap used by variable-length array columns.
-
         Returns
         -------
         dict
@@ -990,10 +978,11 @@ class _ValidHDU(_BaseHDU, _Verify):
         Raises
         ------
         ValueError
-            If the data cannot be memory-mapped, for example because the HDU
-            is not associated with an uncompressed file on disk, because the
-            data has been replaced since it was read, or, if ``raw=False``,
-            because the stored values need to be converted to obtain `data`.
+            If the bytes in the file cannot be used directly as `data`, for
+            example because the HDU is not associated with an uncompressed
+            file on disk, because the data has been replaced since it was
+            read, or because the stored values need to be scaled or converted
+            to obtain `data`.
 
         Notes
         -----
@@ -1020,7 +1009,7 @@ class _ValidHDU(_BaseHDU, _Verify):
                 "The data has been replaced since it was read from the file."
             )
 
-        shape, dtype = self._memmap_layout(raw=raw)
+        shape, dtype = self._memmap_layout()
 
         if not shape or math.prod(shape) == 0:
             raise ValueError("The HDU does not contain any data.")
@@ -1037,10 +1026,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             "dtype": dtype,
         }
 
-    def _memmap_layout(self, raw):
+    def _memmap_layout(self):
         """
-        Return the shape and dtype of the data as stored in the file for
-        `memmap_kwargs`, raising a `ValueError` if it can't be described.
+        Return the shape and dtype of the data in the file for `memmap_kwargs`,
+        raising a `ValueError` if the bytes can't be used directly as `data`.
         """
         raise ValueError(
             f"Memory-mapping is not supported for {self.__class__.__name__}."
