@@ -1,0 +1,5 @@
+Fixed ``biweight_location`` so that a scalar Python ``float`` or
+``int`` initial location guess (``M``) works with ``axis=None``.
+Previously, an ``AttributeError`` was raised. Also clarified in the
+docstring that when the MAD is zero, ``M`` (the median, or the input
+initial location guess if it was provided) is returned.

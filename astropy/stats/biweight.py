@@ -88,7 +88,8 @@ def biweight_location(
     biweight location tuning constant ``c`` is typically 6.0 (the
     default).
 
-    If :math:`MAD` is zero, then the median will be returned.
+    If :math:`MAD` is zero, then :math:`M` (the median, or the input
+    initial location guess if it was provided) will be returned.
 
     Parameters
     ----------
@@ -150,6 +151,14 @@ def biweight_location(
 
     if M is None:
         M = median_func(data, axis=axis)
+    else:
+        M = np.asanyarray(M)
+        if M.ndim == 0:
+            # Convert a 0-d array to a NumPy scalar so that scalar
+            # (e.g., float) M inputs work with axis=None, where the
+            # code below uses array methods on M and np.isscalar
+            # checks on values derived from it.
+            M = M[()]
     if axis is not None:
         M = np.expand_dims(M, axis=axis)
 
