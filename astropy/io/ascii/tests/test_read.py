@@ -12,7 +12,7 @@ from numpy.testing import assert_allclose
 from astropy import table
 from astropy.io import ascii
 from astropy.io.ascii import core
-from astropy.io.ascii.core import convert_numpy
+from astropy.io.ascii.core import InconsistentTableError, convert_numpy
 from astropy.io.ascii.ui import _probably_html, get_read_trace
 from astropy.table import MaskedColumn, Table
 from astropy.table.table_helpers import simple_table
@@ -71,22 +71,42 @@ def test_convert_overflow(fast_reader):
 
 def test_read_specify_converters_with_names():
     """
-    Exact example from #9701: When using ascii.read with both the names and
-    converters arguments, the converters dictionary ignores the user-supplied
+    Adapted from #9701: When using ascii.read with both the names and
+    converters arguments, the converters dictionary ignores the user-supplied    converters arguments, the converters dictionary ignores the user-supplied
     names and requires that you know the guessed names.
     """
-    csv_text = ["a,b,c", "1,2,3", "4,5,6"]
-    names = ["A", "B", "C"]
+    csv_text = ["a,b,c,d", "1,2,3,4", "5,6,7,8"]
+    names = ["A", "B", "C", "D"]
 
     converters = {
         "A": [ascii.convert_numpy(float)],
         "B": [ascii.convert_numpy(int)],
         "C": [ascii.convert_numpy(str)],
+        "D": [ascii.convert_numpy("T")],  # StringDType
     }
     t = ascii.read(csv_text, format="csv", names=names, converters=converters)
     assert t["A"].dtype.kind == "f"
     assert t["B"].dtype.kind == "i"
     assert t["C"].dtype.kind == "U"
+    assert t["D"].dtype.kind == "T"
+
+
+@pytest.mark.parametrize(
+    "converter",
+    [
+        pytest.param(ascii.convert_numpy(str), id="str"),
+        pytest.param(ascii.convert_numpy("T"), id="StringDType"),
+    ],
+)
+def test_read_specify_converters_invalid_stringdtype(converter):
+    rdb_text = ["a", "N", "1", "2"]
+    with pytest.raises(
+        InconsistentTableError,
+        match=(
+            r"^\nERROR\: Unable to guess table format with the guesses listed below\:\n"
+        ),
+    ):
+        ascii.read(rdb_text, format="rdb", converters={"a": [converter]})
 
 
 def test_read_remove_and_rename_columns():
