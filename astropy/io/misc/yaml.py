@@ -18,6 +18,10 @@ classes to define custom YAML tags for the following astropy classes:
 - `astropy.coordinates.EarthLocation`
 - `astropy.table.SerializedColumn`
 
+NumPy arrays, masked arrays, and the `numpy.ma.masked` singleton are also
+supported. Masked arrays retain their data, mask, fill value, and hard-mask
+setting when serialized.
+
 Examples
 --------
     >>> from astropy.io.misc import yaml
@@ -107,6 +111,25 @@ def _timedelta_constructor(loader, node):
     return TimeDelta.info._construct_from_dict(map)
 
 
+def _dtype_to_yaml(dtype):
+    """Describe a dtype without turning padding into extra fields."""
+    if dtype.subdtype is not None:
+        base, shape = dtype.subdtype
+        return _dtype_to_yaml(base), shape
+    if dtype.names is None:
+        return str(dtype)
+
+    fields = [dtype.fields[name] for name in dtype.names]
+    return {
+        "names": list(dtype.names),
+        "formats": [_dtype_to_yaml(field[0]) for field in fields],
+        "offsets": [field[1] for field in fields],
+        "titles": [field[2] if len(field) == 3 else None for field in fields],
+        "itemsize": dtype.itemsize,
+        "aligned": dtype.isalignedstruct,
+    }
+
+
 def _dtype_from_yaml(dtype):
     """Return numpy dtype from a YAML ``dtype`` value, refusing object dtypes.
 
@@ -116,6 +139,14 @@ def _dtype_from_yaml(dtype):
     Using ``hasobject`` on the resolved dtype catches every spelling (``object``, ``O``)
     as well as object fields nested in a structured dtype.
     """
+    if isinstance(dtype, dict) and "formats" in dtype:
+        dtype = dict(dtype)
+        # Resolve nested dtypes first: otherwise NumPy propagates the outer
+        # alignment setting into fields that can themselves be packed.
+        dtype["formats"] = [_dtype_from_yaml(item) for item in dtype["formats"]]
+    elif isinstance(dtype, tuple):
+        dtype = (_dtype_from_yaml(dtype[0]), dtype[1])
+
     dtype = np.dtype(dtype)
     if dtype.hasobject:
         raise TypeError(f"cannot load numpy array with object dtype {dtype}")
@@ -126,6 +157,7 @@ def _ndarray_representer(dumper, obj):
     if obj.dtype.hasobject:
         raise TypeError(f"cannot serialize numpy object array: {obj}")
 
+    shape = obj.shape
     if obj.flags.c_contiguous:
         order = "C"
     elif obj.flags.f_contiguous:
@@ -139,8 +171,8 @@ def _ndarray_representer(dumper, obj):
 
     out = {
         "buffer": data_b64,
-        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
-        "shape": obj.shape,
+        "dtype": _dtype_to_yaml(obj.dtype),
+        "shape": shape,
         "order": order,
     }
 
@@ -165,7 +197,7 @@ def _void_representer(dumper, obj):
     data_b64 = base64.b64encode(obj.tobytes())
     out = {
         "buffer": data_b64,
-        "dtype": str(obj.dtype) if not obj.dtype.fields else obj.dtype.descr,
+        "dtype": _dtype_to_yaml(obj.dtype),
     }
     return dumper.represent_mapping("!numpy.void", out)
 
@@ -176,6 +208,48 @@ def _void_constructor(loader, node):
     map["buffer"] = base64.b64decode(map["buffer"])
     map["dtype"] = _dtype_from_yaml(map["dtype"])
     return np.ndarray(shape=(), **map)[()]
+
+
+def _masked_constant_representer(dumper, obj):
+    return dumper.represent_scalar("!numpy.ma.masked", "")
+
+
+def _masked_constant_constructor(loader, node):
+    loader.construct_scalar(node)
+    return np.ma.masked
+
+
+def _masked_array_representer(dumper, obj):
+    out = {
+        "data": obj.data,
+        "fill_value": np.asarray(obj.fill_value),
+        "hard_mask": obj.hardmask,
+    }
+    if obj.mask is not np.ma.nomask:
+        out["mask"] = obj.mask
+    return dumper.represent_mapping("!numpy.ma.MaskedArray", out)
+
+
+def _masked_array_constructor(loader, node):
+    map = loader.construct_mapping(node, deep=True)
+    fill_value = np.asarray(map.pop("fill_value"))
+    default_fill = np.asarray(np.ma.array([], dtype=map["data"].dtype).fill_value)
+
+    # NumPy's default fill value can exceed the data dtype's range. Passing
+    # it explicitly to the constructor would cast it to that dtype.
+    if fill_value.dtype != default_fill.dtype:
+        map["fill_value"] = fill_value
+
+    # Array buffers loaded from YAML are read-only. Copy them so that both
+    # the data and the mask can be updated, including by masked assignment.
+    result = np.ma.array(**map, copy=True)
+    if fill_value.dtype == default_fill.dtype:
+        # Serialization initialized the original fill value. Preserve that
+        # state so a later dtype conversion carries the same fill value.
+        result.get_fill_value()
+        if not np.array_equal(fill_value, default_fill):
+            result.fill_value = fill_value
+    return result
 
 
 def _quantity_representer(tag):
@@ -286,6 +360,8 @@ AstropyDumper.add_multi_representer(u.FunctionUnitBase, _unit_representer)
 AstropyDumper.add_multi_representer(u.StructuredUnit, _unit_representer)
 AstropyDumper.add_representer(tuple, AstropyDumper._represent_tuple)
 AstropyDumper.add_representer(np.ndarray, _ndarray_representer)
+AstropyDumper.add_representer(type(np.ma.masked), _masked_constant_representer)
+AstropyDumper.add_representer(np.ma.MaskedArray, _masked_array_representer)
 AstropyDumper.add_representer(np.void, _void_representer)
 AstropyDumper.add_representer(Time, _time_representer)
 AstropyDumper.add_representer(TimeDelta, _timedelta_representer)
@@ -324,6 +400,8 @@ AstropyLoader.add_constructor(
 )
 AstropyLoader.add_constructor("!astropy.units.Unit", _unit_constructor)
 AstropyLoader.add_constructor("!numpy.ndarray", _ndarray_constructor)
+AstropyLoader.add_constructor("!numpy.ma.masked", _masked_constant_constructor)
+AstropyLoader.add_constructor("!numpy.ma.MaskedArray", _masked_array_constructor)
 AstropyLoader.add_constructor("!numpy.void", _void_constructor)
 AstropyLoader.add_constructor("!astropy.time.Time", _time_constructor)
 AstropyLoader.add_constructor("!astropy.time.TimeDelta", _timedelta_constructor)

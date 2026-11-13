@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import pickle
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -38,6 +40,14 @@ class TestRepresentations:
         c, m = get_data_and_mask(self.mc)
         assert_array_equal(m, self.mask)
         assert not c.masked
+
+    def test_pickle(self):
+        mc = pickle.loads(pickle.dumps(self.mc))
+        for component in self.mc.components:
+            original = getattr(self.mc, component)
+            restored = getattr(mc, component)
+            assert_array_equal(restored.unmasked, original.unmasked)
+            assert_array_equal(restored.mask, original.mask)
 
     def test_norm(self):
         # Need stacking and erfa override.
@@ -89,6 +99,12 @@ class TestSkyCoord:
         sc, m = get_data_and_mask(self.msc)
         assert_array_equal(m, self.mask)
         assert not sc.masked
+
+    def test_pickle(self):
+        msc = pickle.loads(pickle.dumps(self.msc))
+        assert_array_equal(msc.data.lon.unmasked, self.msc.data.lon.unmasked)
+        assert_array_equal(msc.data.lat.unmasked, self.msc.data.lat.unmasked)
+        assert_array_equal(msc.mask, self.msc.mask)
 
     def test_transformation(self):
         gcrs = self.sc.gcrs
@@ -152,6 +168,25 @@ class TestTime:
         t, m = get_data_and_mask(self.mt)
         assert_array_equal(m, self.mask)
         assert not t.masked
+
+    @pytest.mark.parametrize("as_delta", [False, True])
+    def test_pickle(self, as_delta):
+        original = self.mt - self.t[0] if as_delta else self.mt
+        mt = pickle.loads(pickle.dumps(original))
+        assert_array_equal(mt.jd1.unmasked, original.jd1.unmasked)
+        assert_array_equal(mt.jd2.unmasked, original.jd2.unmasked)
+        assert_array_equal(mt.jd1.mask, self.mask)
+        assert_array_equal(mt.jd2.mask, self.mask)
+        # Time updates only one JD mask when masking or unmasking an item.
+        # Both internal masks must still share storage after unpickling.
+        mt[2] = np.ma.nomask
+        assert_array_equal(mt._time.jd1.mask, [False, False, False])
+        assert_array_equal(mt._time.jd2.mask, [False, False, False])
+        assert_array_equal(mt.value.mask, [False, False, False])
+        mt[0] = np.ma.masked
+        assert_array_equal(mt._time.jd1.mask, [True, False, False])
+        assert_array_equal(mt._time.jd2.mask, [True, False, False])
+        assert_array_equal(mt.value.mask, [True, False, False])
 
     @pytest.mark.parametrize("format_", ["jd", "cxcsec", "jyear"])
     def test_different_formats(self, format_):

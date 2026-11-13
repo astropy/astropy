@@ -96,7 +96,8 @@ def test_custom_unit(c):
         Longitude("1 2 3", unit="deg"),
         Latitude("1 2 3", unit="deg"),
         [[1], [3]] * u.m,
-        np.array([[1, 2], [3, 4]], order="F"),
+        np.array([[1, 2, 3], [4, 5, 6]], order="F"),
+        np.arange(24).reshape(2, 3, 4, order="F"),
         np.array([[1, 2], [3, 4]], order="C"),
         np.array([1, 2, 3, 4])[::2],
         np.array([(1.0, 2), (3.0, 4)], dtype="f8,i4"),  # array with structured dtype.
@@ -138,6 +139,200 @@ def test_ndarray_subclasses(c):
 
     if hasattr(c, "unit"):
         assert c.unit == cy.unit
+
+
+def test_masked_constant():
+    values = {"masked": np.ma.masked, "nested": [np.ma.masked], "none": None}
+    result = load(dump(values))
+    assert result["masked"] is np.ma.masked
+    assert result["nested"][0] is np.ma.masked
+    assert result["none"] is None
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        np.ma.array([1, 2, 3]),
+        np.ma.array([1, 2, 3], mask=False),
+        np.ma.array(
+            [[1, 2], [3, 4]], mask=[[False, True], [True, False]], fill_value=-99
+        ),
+        np.ma.array(
+            np.arange(6).reshape(2, 3, order="F"),
+            mask=[[False, True, False], [True, False, True]],
+        ),
+        np.ma.array(3.5, mask=True),
+        np.ma.array([], dtype=np.int16),
+        np.ma.array([1.0, 2.0], dtype=np.float16),
+        np.ma.array([1, 2], dtype=np.int32, mask=[False, True], fill_value=999999),
+        np.ma.array(["a", "bc"], mask=[True, False], fill_value="--"),
+        np.ma.array(
+            ["2000-01-01", "2001-01-01"],
+            dtype="datetime64[D]",
+            mask=[False, True],
+            fill_value=np.datetime64("1999-01-01"),
+        ),
+        np.ma.array(
+            [(1, 2.5), (3, 4.5)],
+            dtype=[("a", "i4"), ("b", "f8")],
+            mask=[(False, True), (True, False)],
+            fill_value=(7, 8.5),
+        ),
+        np.ma.array(np.arange(12), mask=np.arange(12) % 3 == 0)[::2],
+    ],
+)
+def test_masked_array(obj):
+    result = load(dump(obj))
+    assert type(result) is np.ma.MaskedArray
+    assert result.shape == obj.shape
+    assert result.dtype == obj.dtype
+    np.testing.assert_array_equal(result.data, obj.data)
+    np.testing.assert_array_equal(result.mask, obj.mask)
+    assert (result.mask is np.ma.nomask) == (obj.mask is np.ma.nomask)
+    np.testing.assert_array_equal(result.fill_value, obj.fill_value)
+    assert np.asarray(result.fill_value).dtype == np.asarray(obj.fill_value).dtype
+    assert result.hardmask == obj.hardmask
+
+
+def test_masked_array_default_fill_survives_astype():
+    obj = np.ma.array([1], dtype=np.int16)
+    result = load(dump(obj))
+    assert result.astype(float).fill_value == obj.astype(float).fill_value
+
+
+def test_masked_array_initialized_fill_value():
+    obj = np.ma.array([1, 2], dtype=np.int16, mask=[False, True])
+    obj.get_fill_value()
+    obj.fill_value = -9
+
+    result = load(dump(obj))
+
+    assert result.fill_value == obj.fill_value
+    assert np.asarray(result.fill_value).dtype == np.asarray(obj.fill_value).dtype
+
+
+@pytest.mark.parametrize("hard_mask", [False, True])
+def test_masked_array_assignment(hard_mask):
+    obj = np.ma.array([1, 2], mask=[False, True], hard_mask=hard_mask)
+    result = load(dump(obj))
+    result[0] = 3
+    result[1] = 4
+    assert result[0] == 3
+    assert result.hardmask == hard_mask
+    assert result.mask[1] == hard_mask
+    assert result.data[1] == (2 if hard_mask else 4)
+
+
+@pytest.mark.parametrize("table_cls", [Table, QTable])
+def test_ecsv_masked_metadata(table_cls):
+    table = table_cls({"a": [1, 2]})
+    values = np.ma.array([1.0, 2.0], mask=[False, True], fill_value=-99.0)
+    table.meta = {"missing": np.ma.masked, "values": values}
+    table["a"].info.meta = {"missing": np.ma.masked, "values": values}
+    out = StringIO()
+    table.write(out, format="ascii.ecsv")
+    result = table_cls.read(out.getvalue(), format="ascii.ecsv")
+
+    for metadata in (result.meta, result["a"].info.meta):
+        assert metadata["missing"] is np.ma.masked
+        np.testing.assert_array_equal(metadata["values"].data, values.data)
+        np.testing.assert_array_equal(metadata["values"].mask, values.mask)
+        assert metadata["values"].fill_value == values.fill_value
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        np.dtype([("a", "i1"), ("b", "i8")], align=True),
+        np.dtype(
+            {
+                "names": ["a", "b"],
+                "formats": ["<i2", ">f8"],
+                "offsets": [2, 16],
+                "titles": [None, "sample"],
+                "itemsize": 32,
+            }
+        ),
+        np.dtype(
+            [
+                ("record", np.dtype([("a", "i1"), ("b", "i8")])),
+                ("samples", "f8", (2,)),
+            ],
+            align=True,
+        ),
+        np.dtype(
+            [("records", np.dtype([("a", "i1"), ("b", "i8")]), (2,))],
+            align=True,
+        ),
+        np.dtype(
+            {
+                "names": ["a", "b"],
+                "formats": ["i4", "i2"],
+                "offsets": [0, 0],
+                "itemsize": 4,
+            }
+        ),
+        np.dtype(
+            {
+                "names": ["b", "a"],
+                "formats": ["i4", "i2"],
+                "offsets": [4, 0],
+                "itemsize": 8,
+            }
+        ),
+    ],
+)
+@pytest.mark.parametrize("kind", ["array", "scalar", "masked"])
+def test_structured_dtype_layout(dtype, kind):
+    data = np.ones(2, dtype=dtype)
+    data[1] = 2
+    if kind == "scalar":
+        obj = data[0]
+    elif kind == "masked":
+        mask = np.zeros(data.shape, dtype=np.ma.make_mask_descr(dtype))
+        mask[dtype.names[-1]][0] = True
+        fill_value = np.zeros((), dtype=dtype)
+        fill_value[()] = -9
+        obj = np.ma.array(data, mask=mask, fill_value=fill_value)
+    else:
+        obj = data
+
+    result = load(dump(obj))
+
+    assert result.dtype == obj.dtype
+    assert result.dtype.isalignedstruct == obj.dtype.isalignedstruct
+    assert result.shape == obj.shape
+    if kind == "masked":
+        np.testing.assert_array_equal(result.data, obj.data)
+        np.testing.assert_array_equal(result.mask, obj.mask)
+        assert result.mask.dtype == obj.mask.dtype
+        np.testing.assert_array_equal(result.fill_value, obj.fill_value)
+        assert result.fill_value.dtype == obj.fill_value.dtype
+    else:
+        np.testing.assert_array_equal(result, obj)
+
+
+@pytest.mark.parametrize("tag", ["ndarray", "void"])
+def test_legacy_structured_dtype_yaml(tag):
+    # The descriptor-list representation written before field layouts were
+    # stored explicitly must remain readable.
+    serialized = f"""!numpy.{tag}
+buffer: !!binary |
+  QVFBQ0FBPT0=
+dtype:
+- !!python/tuple [a, <i2]
+- !!python/tuple [b, <i2]
+"""
+    if tag == "ndarray":
+        serialized += "shape: !!python/tuple [1]\norder: C\n"
+
+    result = load(serialized)
+
+    expected = np.array([(1, 2)], dtype=[("a", "<i2"), ("b", "<i2")])
+    if tag == "void":
+        expected = expected[0]
+    assert result.dtype == expected.dtype
+    np.testing.assert_array_equal(result, expected)
 
 
 def compare_coord(c, cy, has_data=True):

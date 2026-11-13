@@ -256,6 +256,18 @@ class TimeFormat:
             self.jd1 = Masked(self.jd1, copy=False)
             self.jd2 = Masked(self.jd2, mask=self.jd1.mask, copy=False)
 
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        # Pickling arrays does not preserve shared buffers.  Restore the shared
+        # mask that Time and TimeDelta rely on when masking or unmasking items.
+        # Older MaskedNDArray pickles did not store a mask, so cannot recover it.
+        if (
+            isinstance(self.jd1, Masked)
+            and isinstance(self.jd2, Masked)
+            and self.jd1.mask is not None
+        ):
+            self.jd2.mask = self.jd1.mask
+
     @classmethod
     @functools.cache
     def fill_value(cls, subfmt):

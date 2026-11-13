@@ -1,0 +1,2 @@
+Restore the shared mask of the internal Julian date arrays when unpickling
+``Time`` or ``TimeDelta``, so masking and unmasking items continues to work.

@@ -1,0 +1,3 @@
+Preserve masks and column information when pickling ``MaskedNDArray`` and
+``MaskedRecarray``, including masked arrays stored inside ``Time`` objects.
+Existing pickles of masked quantities and angles remain readable.

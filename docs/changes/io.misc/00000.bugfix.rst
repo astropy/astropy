@@ -1,0 +1,6 @@
+NumPy masked values and masked arrays can now be serialized with
+``astropy.io.misc.yaml`` and stored in ECSV table and column metadata.
+Masked arrays preserve their data, mask, fill value, and hard-mask setting.
+The shape and values of non-square Fortran-contiguous arrays are now
+preserved, and structured arrays and scalars retain their field offsets,
+titles, item size, and alignment without adding fields for padding bytes.

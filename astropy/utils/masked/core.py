@@ -724,6 +724,26 @@ class MaskedNDArray(Masked, np.ndarray, base_cls=np.ndarray, data_cls=np.ndarray
         if "info" in obj.__dict__:
             self.info = obj.info
 
+    def __reduce__(self):
+        reconstruct, args, state = super().__reduce__()
+        # ndarray does not store the instance dictionary, which contains our
+        # mask and possibly info.  Subclasses such as Quantity already store
+        # it in their own __reduce__; leave their pickle format unchanged.
+        if type(self).__reduce__ is MaskedNDArray.__reduce__:
+            state = (state, self.__dict__)
+        return reconstruct, args, state
+
+    def __setstate__(self, state):
+        # Quantity.__setstate__ passes on the original ndarray state, including
+        # when reading pickles written before MaskedNDArray had these methods.
+        # Only our own reducer adds an instance dictionary to that state.
+        if len(state) == 2:
+            state, own_state = state
+        else:
+            own_state = {}
+        super().__setstate__(state)
+        self.__dict__.update(own_state)
+
     @property
     def shape(self):
         """The shape of the data and the mask.
