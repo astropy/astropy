@@ -251,6 +251,38 @@ def test_sigma_clip_fast_all_rejected():
     assert np.all(np.isfinite(upper1))
 
 
+def test_sigma_clip_noaxis_all_rejected():
+    # When an iteration of the axis=None python implementation rejects
+    # every remaining value, the bounds from that iteration must be kept
+    # so that the masked output masks all values. Previously, one more
+    # iteration ran on the empty array, giving NaN bounds that masked
+    # nothing (while masked=False correctly returned an empty array).
+    data = np.array([0.0, 100.0])
+    sobj = SigmaClip(sigma=0.1, maxiters=10, cenfunc=np.nanmedian, stdfunc=np.nanstd)
+
+    result, lower, upper = sobj(data, return_bounds=True)
+    assert_equal(result.mask, [True, True])
+    assert np.isfinite(lower)
+    assert np.isfinite(upper)
+
+    # The masked output must agree with the axis-based python
+    # implementation and with the unmasked output
+    result_axis = sobj(data, axis=0)
+    assert_equal(result.mask, result_axis.mask)
+    assert sobj(data, masked=False).size == 0
+
+
+def test_sigma_clip_noaxis_all_masked_input():
+    # An input with no valid values must still return an all-masked
+    # result and NaN bounds, as before.
+    data = np.ma.MaskedArray([1.0, 2.0], mask=[True, True])
+    sobj = SigmaClip(sigma=3, maxiters=5, cenfunc=np.nanmedian, stdfunc=np.nanstd)
+    result, lower, upper = sobj(data, return_bounds=True)
+    assert_equal(result.mask, [True, True])
+    assert np.isnan(lower)
+    assert np.isnan(upper)
+
+
 def test_sigma_clip_invalid_cenfunc_stdfunc():
     with pytest.raises(ValueError):
         SigmaClip(cenfunc="invalid")
