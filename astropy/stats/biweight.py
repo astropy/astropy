@@ -176,9 +176,9 @@ def biweight_location(
     if M is None:
         M = median_func(data, axis=axis)
     else:
-        # Convert a 0-d input to a NumPy scalar so that the early
-        # return for constant data gives a scalar, as with M=None.
-        M = np.asanyarray(M)[()]
+        # Convert a 0-d input to a NumPy float scalar so that the early
+        # return for constant data gives a float, as with M=None.
+        M = np.asanyarray(M, dtype=float)[()]
 
     # Keep M with the reduced (output) shape for the returned values.
     M_out = M

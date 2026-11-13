@@ -80,8 +80,12 @@ def test_biweight_location_scalar_m():
     assert biweight_location(data, M=2.0) == ref
     assert biweight_location(data, M=2) == ref
 
-    # For constant data (zero MAD), the input M is returned
+    # For constant data (zero MAD), the input M is returned as a float
     assert biweight_location(np.ones(10), M=2.0) == 2.0
+    for M in (2, np.array(2)):
+        result = biweight_location(np.ones(10), M=M)
+        assert result == 2.0
+        assert isinstance(result, np.float64)
 
     ref = biweight_scale(data, M=np.float64(2.0))
     assert biweight_scale(data, M=2.0) == ref
