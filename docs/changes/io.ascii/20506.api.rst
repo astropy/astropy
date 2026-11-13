@@ -1,0 +1,6 @@
+The TDAT reader now stores the specified length and format for
+charN field lines. This information is stored in the column meta
+keys ``char_len`` and ``char_fmt``. The TDAT writer keeps the declared
+``char_len`` instead of shrinking to the data's width. A warning is
+given if the data's width exceeds the declared ``char_len`` and the output
+value is changed to the data's width.
