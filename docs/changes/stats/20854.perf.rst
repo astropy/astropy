@@ -1,0 +1,6 @@
+``SigmaClip`` and ``sigma_clip`` now use the fast C implementation
+for ``axis=None`` when ``cenfunc`` and ``stdfunc`` are set to their
+string options, making the default flattened clipping about twice as
+fast for large arrays. With ``masked=False``, the output now contains
+all of the valid values within the final clipping bounds, matching the
+``masked=True`` output.
