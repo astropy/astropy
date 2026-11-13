@@ -1703,6 +1703,31 @@ def test_components_and_classes_cache():
     assert wcs.world_axis_object_components is wcs.world_axis_object_components
 
 
+def test_components_and_classes_cache_obsgeo():
+    # Regression test for the components and classes cache not being
+    # invalidated when the observer location changes
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["FREQ"]
+    wcs.wcs.cunit = ["Hz"]
+    wcs.wcs.specsys = "TOPOCENT"
+    wcs.wcs.mjdobs = 54746.0
+    wcs.wcs.set()
+
+    assert wcs.pixel_to_world(0).observer is None
+
+    wcs.wcs.obsgeo[:3] = [3828764.0, 442449.0, 5064921.0]
+    observer = wcs.pixel_to_world(0).observer
+    assert_allclose(
+        observer.cartesian.xyz.to_value(u.m), [3828764.0, 442449.0, 5064921.0]
+    )
+
+    wcs.wcs.obsgeo[:3] = [-2353621.22, -4641341.47, 3677052.32]
+    observer = wcs.pixel_to_world(0).observer
+    assert_allclose(
+        observer.cartesian.xyz.to_value(u.m), [-2353621.22, -4641341.47, 3677052.32]
+    )
+
+
 @pytest.mark.parametrize("specsys", (None, "TOPOCENT"))
 def test_obsgeo_without_observation_time(specsys):
     """

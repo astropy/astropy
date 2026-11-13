@@ -1,0 +1,3 @@
+Fix a bug that caused ``world_axis_object_classes``, ``pixel_to_world``, and
+``world_to_pixel`` to use a stale observer location if ``obsgeo`` was changed
+on a ``WCS`` after it had already been used.

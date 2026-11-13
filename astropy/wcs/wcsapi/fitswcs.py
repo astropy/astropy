@@ -415,6 +415,7 @@ class FITSWCSAPIMixin(BaseLowLevelWCS, HighLevelWCSMixin):
             self.wcs.lat,
             _nan_to_none(self.wcs.mjdobs),
             _nan_to_none(self.wcs.mjdavg),
+            tuple(_nan_to_none(x) for x in self.wcs.obsgeo),
         )
 
         # If the cache is present, we need to check that the 'hash' matches.
