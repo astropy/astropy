@@ -885,3 +885,78 @@ def test_sigmaclip_pickle():
     result = restored(data)
     expected = sigclip(data)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_sigma_clip_axis_none_fast():
+    """
+    Test that axis=None with the string cenfunc/stdfunc options (which
+    now uses the fast C implementation) matches the previous Python
+    implementation.
+    """
+    with NumpyRNGContext(12345):
+        data = np.random.randn(20, 50) + 5.0
+    data[0, 0:5] = 100.0  # outliers
+
+    sc_fast = SigmaClip(sigma=2.0, maxiters=5)
+    # A NaN-aware callable cenfunc forces the Python code path
+    sc_slow = SigmaClip(sigma=2.0, maxiters=5, cenfunc=np.nanmedian)
+
+    # masked=False: a flattened array with the clipped values removed
+    result = sc_fast(data, masked=False)
+    expected = sc_slow(data, masked=False)
+    assert result.ndim == 1
+    assert_equal(result, expected)
+
+    # masked=True
+    result = sc_fast(data)
+    expected = sc_slow(data)
+    assert_equal(result.mask, expected.mask)
+    assert_equal(result.data, expected.data)
+
+    # return_bounds gives scalar bounds
+    _, lo1, hi1 = sc_fast(data, masked=False, return_bounds=True)
+    _, lo2, hi2 = sc_slow(data, masked=False, return_bounds=True)
+    assert np.isscalar(lo1)
+    assert np.isscalar(hi1)
+    assert_allclose((lo1, hi1), (lo2, hi2))
+
+    # the integer input dtype is preserved
+    idata = np.arange(100)
+    idata[0] = 10000
+    result = sigma_clip(idata, sigma=3, maxiters=5, masked=False)
+    assert result.dtype == idata.dtype
+    assert_equal(result, idata[1:])
+
+    # copy=False with masked=False does not modify the input
+    dcopy = data.copy()
+    _ = sc_fast(data, masked=False, copy=False)
+    assert_equal(data, dcopy)
+
+    # masked-array input
+    marr = np.ma.masked_where(data > 50, data)
+    result = sc_fast(marr, masked=False)
+    expected = sc_slow(marr, masked=False)
+    assert_equal(result, expected)
+
+    # Quantity input
+    quantity = data << u.Jy
+    result = sc_fast(quantity, masked=False)
+    assert isinstance(result, u.Quantity)
+    assert_equal(result.value, sc_fast(data, masked=False))
+
+
+def test_sigma_clip_axis_none_all_clipped():
+    """
+    Test the degenerate case where an iteration rejects every value.
+    The bounds from that iteration are kept, so every value is clipped,
+    consistent with axis-based clipping.
+    """
+    data = np.array([0.0, 100.0])
+    sigclip = SigmaClip(sigma=0.1, maxiters=10)
+    result_unmasked = sigclip(data, masked=False)
+    result_masked, lower, upper = sigclip(data, masked=True, return_bounds=True)
+    assert result_unmasked.size == 0
+    assert_equal(result_masked.mask, [True, True])
+    assert np.isfinite(lower)
+    assert np.isfinite(upper)
+    assert_equal(result_masked.mask, sigclip(data, axis=0).mask)
