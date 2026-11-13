@@ -1,0 +1,4 @@
+Added ``WCS.write_lookup_tables()``, which writes the lookup-table distortions
+of a ``WCS`` (the ``CPDISja`` and ``D2IMDISj`` keywords, and their ``WCSDVARR``
+and ``D2IMARR`` extensions) for any WCS key to an existing ``HDUList``. Tables
+that are already in the file are not written again.

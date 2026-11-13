@@ -1,0 +1,8 @@
+``WCS.to_fits()`` now writes the lookup-table distortion keywords of an
+alternate WCS with its key (``CPDISja``, ``CPERRja`` and ``DPja``), so that the
+tables survive a round trip through ``to_fits()`` and ``WCS(..., key=...)``.
+``to_fits(key=' ')`` still writes the unsuffixed keywords.
+
+Fixed errors raised by WCSLIB when a ``WCS`` is read from a header in which
+only the first axis has a lookup-table distortion, or from which the ``minerr``
+argument rejects a lookup table. Such a ``WCS`` can now also be unpickled.
