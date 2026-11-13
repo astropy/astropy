@@ -7,6 +7,7 @@ Tukey's biweight function.
 from collections.abc import Callable
 
 import numpy as np
+from numpy.lib.array_utils import normalize_axis_tuple
 from numpy.typing import ArrayLike, NDArray
 
 from astropy.stats.funcs import median_absolute_deviation
@@ -54,6 +55,29 @@ def _stat_functions(
         sum_func = np.sum
 
     return median_func, sum_func
+
+
+def _expand_location(M, data, axis):
+    """
+    Expand the location ``M`` so that it broadcasts against ``data``.
+
+    A scalar ``M`` is returned unchanged. Otherwise, ``M`` must have the
+    shape of ``data`` with the ``axis`` dimensions removed.
+    """
+    if np.ndim(M) == 0:
+        return M
+
+    if axis is None:
+        msg = "M must be a scalar when axis is None."
+        raise ValueError(msg)
+
+    axes = normalize_axis_tuple(axis, data.ndim)
+    shape = tuple(size for i, size in enumerate(data.shape) if i not in axes)
+    if np.shape(M) != shape:
+        msg = f"M must be a scalar or an array with shape {shape}, got {np.shape(M)}."
+        raise ValueError(msg)
+
+    return np.expand_dims(M, axis=axis)
 
 
 def biweight_location(
@@ -157,10 +181,8 @@ def biweight_location(
         M = np.asanyarray(M)[()]
 
     # Keep M with the reduced (output) shape for the returned values.
-    # A scalar M broadcasts against the data without expanding dims.
     M_out = M
-    if axis is not None and np.ndim(M) > 0:
-        M = np.expand_dims(M, axis=axis)
+    M = _expand_location(M, data, axis)
 
     # set up the differences
     d = data - M
@@ -171,8 +193,10 @@ def biweight_location(
     # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
     # mad = np.nan means data contains NaNs and ignore_nan=False
-    if np.ndim(mad) == 0 and (mad == 0.0 or np.isnan(mad)):
+    if np.ndim(mad) == 0 and mad == 0.0:
         return M_out
+    if np.ndim(mad) == 0 and np.isnan(mad):
+        return M_out * np.nan  # NaN with the type and units of M
 
     if axis is not None:
         mad = np.expand_dims(mad, axis=axis)
@@ -449,8 +473,7 @@ def biweight_midvariance(
 
     if M is None:
         M = median_func(data, axis=axis)
-    if axis is not None and np.ndim(M) > 0:
-        M = np.expand_dims(M, axis=axis)
+    M = _expand_location(M, data, axis)
 
     # set up the differences
     d = data - M

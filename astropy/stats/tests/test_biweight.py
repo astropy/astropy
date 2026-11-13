@@ -109,6 +109,52 @@ def test_biweight_scalar_m_axis(axis):
         assert biweight_location(data, M=2.0, axis=axis)[2] == 2.0
 
 
+@pytest.mark.parametrize(
+    "func", [biweight_location, biweight_scale, biweight_midvariance]
+)
+def test_biweight_m_shape(func):
+    """
+    Test that an array M with the wrong shape raises an error.
+    """
+    data = np.arange(100.0).reshape(5, 20)
+
+    match = r"M must be a scalar when axis is None\."
+    with pytest.raises(ValueError, match=match):
+        func(data, M=np.ones(20))
+
+    match = r"M must be a scalar or an array with shape \(5,\), got \(20,\)\."
+    with pytest.raises(ValueError, match=match):
+        func(data, M=np.ones(20), axis=1)
+
+    match = r"M must be a scalar or an array with shape \(5,\), got \(5, 1\)\."
+    with pytest.raises(ValueError, match=match):
+        func(data, M=np.ones((5, 1)), axis=1)
+
+    match = r"M must be a scalar or an array with shape \(\), got \(1,\)\."
+    with pytest.raises(ValueError, match=match):
+        func(data, M=np.ones(1), axis=(0, 1))
+
+    # The reduced shape works for int, negative int, and tuple axis
+    ref = func(data, M=np.ones(5), axis=1)
+    assert_equal(func(data, M=np.ones(5), axis=-1), ref)
+    assert_equal(func(data, M=np.ones(5), axis=(1,)), ref)
+
+
+@pytest.mark.parametrize("M", [2.0, 2, np.float64(2.0)])
+def test_biweight_location_nan_with_m(M):
+    """
+    Test that NaN data with ignore_nan=False returns NaN when M is
+    input.
+    """
+    data = np.array([1.0, 3, 5, 500, 2, np.nan])
+    assert np.isnan(biweight_location(data, M=M))
+    assert np.all(np.isnan(biweight_location([data, data], M=[M, M], axis=1)))
+
+    result = biweight_location(data * u.km, M=M * u.km)
+    assert result.unit == u.km
+    assert np.isnan(result)
+
+
 def test_biweight_location_axis():
     """Test a 2D array with the axis keyword."""
     with NumpyRNGContext(12345):
