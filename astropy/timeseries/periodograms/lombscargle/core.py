@@ -9,7 +9,11 @@ from astropy.timeseries.periodograms.base import BasePeriodogram
 
 from . import _statistics
 from .implementations import available_methods, lombscargle
-from .implementations.mle import design_matrix, periodic_fit
+from .implementations.mle import (
+    _least_squares_parameters,
+    design_matrix,
+    periodic_fit,
+)
 
 
 def has_units(obj):
@@ -522,6 +526,9 @@ class LombScargle(BasePeriodogram):
         -------
         theta : np.ndarray (n_parameters,)
             The best-fit model parameters at the given frequency.
+            For real inputs, if the sampled model is rank deficient, return
+            the minimum-norm least-squares solution. Individual coefficients
+            then need not be identifiable from the observations.
 
         See Also
         --------
@@ -537,7 +544,7 @@ class LombScargle(BasePeriodogram):
 
         dy = np.ones_like(y) if dy is None else np.asarray(dy)
         X = self.design_matrix(frequency)
-        parameters = np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y / dy))
+        parameters = _least_squares_parameters(X, y / dy)
         if units:
             parameters = get_unit(self.y) * parameters
         return parameters

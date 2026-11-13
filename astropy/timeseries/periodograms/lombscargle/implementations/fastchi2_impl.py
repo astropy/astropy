@@ -2,6 +2,7 @@ from itertools import chain
 
 import numpy as np
 
+from .mle import design_matrix
 from .utils import trig_sum
 
 
@@ -68,6 +69,15 @@ def lombscargle_fastchi2(  # ruff: ignore[PLR0917]
     power : array-like
         Lomb-Scargle power associated with each frequency.
         Units of the result depend on the normalization.
+
+    Notes
+    -----
+    The FFT trigonometric sums are approximate. At frequencies where the
+    normal matrix is ill-conditioned, the power is instead computed by a
+    direct singular-value decomposition of the weighted design matrix.
+    Numerically unresolved singular vectors are discarded using the same
+    default rank threshold as `numpy.linalg.lstsq`. This can increase the
+    cost for sampling patterns with poor phase coverage.
 
     References
     ----------
@@ -146,14 +156,56 @@ def lombscargle_fastchi2(  # ruff: ignore[PLR0917]
         CS=lambda m, n, i: 0.5 * (np.sign(n - m) * Sw[abs(n - m)][i] + Sw[n + m][i]),
     )
 
-    def compute_power(i):
-        XTX = np.array(
-            [[funcs[A[0] + B[0]](A[1], B[1], i) for A in order] for B in order]
-        )
-        XTy = np.array([funcs[A[0]](A[1], i) for A in order])
-        return np.dot(XTy.T, np.linalg.solve(XTX, XTy))
+    # Assemble and solve several frequencies at a time. Limit the temporary
+    # normal matrices to 2**16 entries, independently of the frequency grid.
+    n_parameters = len(order)
+    block_size = max(1, 2**16 // n_parameters**2)
+    # Avoid amplifying the sum errors enough to lose half their precision.
+    tolerance = np.finfo(float).eps
+    if use_fft and algorithm == "lra":
+        tolerance = max(tolerance, kwargs.get("eps", 5e-13))
+    tolerance = np.sqrt(tolerance)
+    p = np.empty(Nf)
+    for start in range(0, Nf, block_size):
+        stop = min(start + block_size, Nf)
+        i = slice(start, stop)
+        XTX = np.empty((stop - start, n_parameters, n_parameters))
+        for a, A in enumerate(order):
+            for b, B in enumerate(order[: a + 1]):
+                XTX[:, a, b] = XTX[:, b, a] = funcs[A[0] + B[0]](A[1], B[1], i)
+        XTy = np.stack([funcs[A[0]](A[1], i) for A in order], axis=-1)
 
-    p = np.array([compute_power(i) for i in range(Nf)])
+        # Incomplete phase coverage can make the normal equations nearly
+        # singular. Their construction subtracts trigonometric sums, so even
+        # small FFT errors can overwhelm the smallest eigenvalue. First use
+        # Gershgorin bounds, which cheaply certify well-conditioned matrices;
+        # compute eigenvalues only when those bounds are inconclusive.
+        diagonal = XTX.diagonal(axis1=1, axis2=2)
+        radius = np.abs(XTX).sum(axis=2) - np.abs(diagonal)
+        lower = (diagonal - radius).min(axis=1)
+        upper = (diagonal + radius).max(axis=1)
+        uncertain = lower <= tolerance * upper
+        unstable = uncertain.copy()
+        if np.any(uncertain):
+            eigenvalues = np.linalg.eigvalsh(XTX[uncertain])
+            unstable[uncertain] = eigenvalues[:, 0] <= tolerance * eigenvalues[:, -1]
+
+        stable = ~unstable
+        if np.any(stable):
+            rhs = XTy[stable]
+            solution = np.linalg.solve(XTX[stable], rhs[..., np.newaxis])[..., 0]
+            p[start:stop][stable] = np.einsum("ij,ij->i", rhs, solution)
+
+        # Recompute only the affected frequencies from the weighted design
+        # matrix. Projection onto its resolved left singular vectors avoids
+        # both squaring the condition number and cancellation in X @ theta.
+        for j in np.flatnonzero(unstable):
+            frequency = f0 + (start + j) * df
+            X = design_matrix(t, frequency, dy=dy, bias=fit_mean, nterms=nterms)
+            U, singular_values, _ = np.linalg.svd(X, full_matrices=False)
+            cutoff = singular_values[0] * np.finfo(float).eps * max(X.shape)
+            projected = U[:, singular_values > cutoff].T @ yw
+            p[start + j] = np.dot(projected, projected)
 
     if normalization == "psd":
         p *= 0.5

@@ -19,6 +19,133 @@ FAST_METHODS = [method for method in ALL_METHODS if "fast" in method]
 NTERMS_METHODS = [method for method in ALL_METHODS if "chi2" in method]
 NORMALIZATIONS = ["standard", "psd", "log", "model"]
 
+@pytest.mark.parametrize("normalization", NORMALIZATIONS)
+@pytest.mark.parametrize("weighted", [False, True])
+@pytest.mark.parametrize("use_fft", [False, True])
+def test_fastchi2_clustered_sampling(normalization, weighted, use_fft):
+    # Original sampling from gh-20449: almost all observations are near zero.
+    rng = np.random.default_rng(0)
+    t = np.sort(np.r_[rng.normal(0, 1094.6e-8, 154), 1094.6])
+    y = rng.normal(size=t.size)
+    dy = np.linspace(0.5, 1.5, t.size) if weighted else np.ones(t.size)
+    frequency = 0.8 + 0.0037 * np.arange(791)
+    ls = LombScargle(t, y, dy)
+    actual = ls.power(
+        frequency,
+        method="fastchi2",
+        normalization=normalization,
+        method_kwds={"use_fft": use_fft},
+    )
+
+    # QR projects directly on the sinusoidal model; no normal equations or
+    # approximate trigonometric sums enter this independent reference.
+    yw = (y - np.average(y, weights=dy**-2)) / dy
+    expected = []
+    for f in frequency:
+        Q, _ = np.linalg.qr(ls.design_matrix(f))
+        expected.append(np.sum((Q.T @ yw) ** 2))
+    expected = np.array(expected)
+    chi2_ref = np.dot(yw, yw)
+    if normalization == "psd":
+        expected *= 0.5
+    elif normalization == "standard":
+        expected /= chi2_ref
+    elif normalization == "model":
+        expected /= chi2_ref - expected
+    elif normalization == "log":
+        expected = -np.log1p(-expected / chi2_ref)
+    assert_allclose(actual, expected, rtol=1e-8, atol=1e-10)
+
+
+@pytest.mark.parametrize("nterms", [1, 2, 3])
+@pytest.mark.parametrize("use_fft", [False, True])
+def test_fastchi2_aliased_harmonics(nterms, use_fft):
+    t = np.arange(17.0)
+    y = np.array([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2])
+    dy = np.linspace(0.5, 1.5, t.size)
+    w = dy**-2
+    centered = y - np.average(y, weights=w)
+    chi2_ref = np.dot(w, centered**2)
+    parity_power = (
+        sum(
+            w[parity::2].sum()
+            * np.average(centered[parity::2], weights=w[parity::2]) ** 2
+            for parity in [0, 1]
+        )
+        / chi2_ref
+    )
+    actual = LombScargle(t, y, dy, nterms=nterms).power(
+        [0.0, 0.5, 1.0], method="fastchi2", method_kwds={"use_fft": use_fft}
+    )
+    # At Nyquist only the two parity means can be resolved. At integer
+    # frequencies every harmonic is constant on these observation times.
+    assert_allclose(actual, [0.0, parity_power, 0.0], atol=1e-13)
+
+
+def test_fastchi2_many_frequencies(data):
+    t, y, dy = data
+    ls = LombScargle(t, y, dy, nterms=2)
+    frequency = 0.1 + 0.001 * np.arange(3000)
+    actual = ls.power(frequency, method="fastchi2")
+    expected = ls.power(frequency, method="chi2")
+    assert_allclose(actual, expected, rtol=1e-9, atol=1e-11)
+
+
+
+@pytest.mark.parametrize("method", ["chi2", "slow", "cython"])
+@pytest.mark.parametrize("normalization", NORMALIZATIONS)
+def test_singular_sampling(method, normalization):
+    # Reported in gh-20571. At Nyquist the model fits the two parity-group
+    # means; at frequency 1 it can only fit a constant. These give an
+    # independent reference without solving the degenerate design matrix.
+    t = np.arange(5.0)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.0])
+    centered = y - y.mean()
+    phase = 2 * np.pi * 0.2 * t
+    reduction = np.array(
+        [
+            ((centered @ np.sin(phase)) ** 2 + (centered @ np.cos(phase)) ** 2)
+            / 2.5,
+            169 / 120,
+            0,
+        ]
+    )
+    reference = centered @ centered
+    if normalization == "standard":
+        expected = reduction / reference
+    elif normalization == "psd":
+        expected = 0.5 * reduction
+    elif normalization == "model":
+        expected = reduction / (reference - reduction)
+    else:
+        expected = -np.log1p(-reduction / reference)
+    power = LombScargle(t, y).power(
+        [0.2, 0.5, 1.0], method=method, normalization=normalization
+    )
+    assert_allclose(power, expected, rtol=1e-12, atol=1e-28)
+
+
+@pytest.mark.parametrize("method", ["chi2", "slow", "cython"])
+def test_singular_sampling_half_steps(method):
+    # Second reproducer from gh-20571: every phase is an integer multiple
+    # of 2*pi, so fitting the periodic model only fits the mean.
+    t = np.arange(0, 10, 0.5)
+    y = np.sin(t)
+    power = LombScargle(t, y).power([2.0], method=method)
+    assert_allclose(power, 0, atol=1e-28)
+
+
+def test_singular_sampling_model():
+    t = np.arange(5.0)
+    y = np.array([1.0, 2.0, 1.5, 2.5, 1.0])
+    ls = LombScargle(t, y)
+    expected = np.where(t % 2, y[1::2].mean(), y[::2].mean())
+    assert_allclose(ls.model(t, 0.5), expected)
+    assert_allclose(
+        ls.offset() + ls.design_matrix(0.5) @ ls.model_parameters(0.5),
+        expected,
+    )
+
 
 @pytest.fixture
 def data(N=100, period=1, theta=[10, 2, 3], dy=1, rseed=0):

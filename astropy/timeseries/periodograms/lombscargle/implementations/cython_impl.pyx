@@ -2,6 +2,8 @@
 
 import numpy as np
 
+from .chi2_impl import lombscargle_chi2
+
 cimport cython
 cimport numpy as np
 from libc.stdlib cimport malloc, free
@@ -83,7 +85,16 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
         # compute MLE for mean in the presence of noise (w is already normalized)
         y = y - np.dot(w, y)
 
-    _lomb_scargle(t, y, w, 2 * np.pi * frequency, PLS, fit_mean = fit_mean, assume_regular_frequency = assume_regular_frequency)
+    _lomb_scargle(t, y, w, 2 * np.pi * frequency, PLS, fit_mean = fit_mean, assume_regular_frequency = assume_regular_frequency,
+                  variance_threshold=np.sqrt(np.finfo(DTYPE).eps))
+
+    # A negative sentinel marks frequencies whose normal equations lose
+    # precision. Recompute just those using the rank-revealing design matrix.
+    singular = PLS < 0
+    if np.any(singular):
+        PLS[singular] = lombscargle_chi2(
+            t, y, dy, frequency[singular], fit_mean=fit_mean,
+            center_data=False)
 
     if normalization == 'standard':
         pass
@@ -104,7 +115,8 @@ def lombscargle_cython(t, y, dy, frequency, normalization='standard',
 @cython.wraparound(False)
 cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1] w,
                    const DTYPE_t[::1] omega, DTYPE_t[::1] PLS,
-                   const bint fit_mean, const bint assume_regular_frequency):
+                   const bint fit_mean, const bint assume_regular_frequency,
+                   const DTYPE_t variance_threshold):
 
     cdef Py_ssize_t i, j
     cdef ITYPE_t N_freq = omega.shape[0]
@@ -187,7 +199,10 @@ cdef _lomb_scargle(const DTYPE_t[::1] t, const DTYPE_t[::1] y, const DTYPE_t[::1
             CC -= (C * Cw + S * Sw) * (C * Cw + S * Sw)
             SS -= (S * Cw - C * Sw) * (S * Cw - C * Sw)
 
-        PLS[i] = ((YC * YC / CC) + (YS * YS / SS)) / YY
+        if CC > variance_threshold and SS > variance_threshold:
+            PLS[i] = ((YC * YC / CC) + (YS * YS / SS)) / YY
+        else:
+            PLS[i] = -1
 
     free(sin_buffer)
     free(cos_buffer)

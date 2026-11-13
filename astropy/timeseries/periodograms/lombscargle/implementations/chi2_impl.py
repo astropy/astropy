@@ -1,6 +1,6 @@
 import numpy as np
 
-from .mle import design_matrix
+from .mle import _least_squares_power, design_matrix
 
 
 def lombscargle_chi2(  # ruff: ignore[PLR0917]
@@ -74,9 +74,7 @@ def lombscargle_chi2(  # ruff: ignore[PLR0917]
     # compute the unnormalized model chi2 at each frequency
     def compute_power(f):
         X = design_matrix(t, f, dy=dy, bias=fit_mean, nterms=nterms)
-        XTX = np.dot(X.T, X)
-        XTy = np.dot(X.T, yw)
-        return np.dot(XTy.T, np.linalg.solve(XTX, XTy))
+        return _least_squares_power(X, yw)
 
     p = np.array([compute_power(f) for f in frequency])
 

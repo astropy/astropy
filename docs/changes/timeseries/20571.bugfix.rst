@@ -1,0 +1,5 @@
+The ``chi2``, ``slow``, and ``cython`` Lomb-Scargle methods now compute the
+least-squares projection at frequencies with a rank-deficient real sampled model,
+instead of returning inconsistent powers or raising ``LinAlgError``.
+``LombScargle.model`` and ``model_parameters`` use the corresponding
+minimum-norm least-squares solution.

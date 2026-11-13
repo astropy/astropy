@@ -1,5 +1,7 @@
 import numpy as np
 
+from .chi2_impl import lombscargle_chi2
+
 
 def lombscargle_slow(  # ruff: ignore[PLR0917]
     t, y, dy, frequency, normalization="standard", fit_mean=True, center_data=True
@@ -103,7 +105,21 @@ def lombscargle_slow(  # ruff: ignore[PLR0917]
         CCtau -= Ctau * Ctau
         SStau -= Stau * Stau
 
-    p = YCtau * YCtau / CCtau + YStau * YStau / SStau
+    if any(np.iscomplexobj(x) for x in (YCtau, YStau, CCtau, SStau)):
+        # Preserve the legacy complex algebra and its result dtype.
+        regular = np.ones(CCtau.shape, dtype=bool)
+        p = YCtau * YCtau / CCtau + YStau * YStau / SStau
+    else:
+        # Small centered variances lose precision in the normal equations.
+        # This threshold only selects the solver; the SVD determines the rank.
+        regular = (CCtau > np.sqrt(np.finfo(float).eps)) & (
+            SStau > np.sqrt(np.finfo(float).eps)
+        )
+        p = np.zeros_like(CCtau)
+        p[regular] = (
+            YCtau[regular] ** 2 / CCtau[regular]
+            + YStau[regular] ** 2 / SStau[regular]
+        )
     YY = np.dot(w.T, y * y)
 
     if normalization == "standard":
@@ -116,4 +132,14 @@ def lombscargle_slow(  # ruff: ignore[PLR0917]
         p *= 0.5 * (dy**-2.0).sum()
     else:
         raise ValueError(f"normalization='{normalization}' not recognized")
+    if not np.all(regular):
+        p[~regular] = lombscargle_chi2(
+            t.ravel(),
+            y.ravel(),
+            dy.ravel(),
+            frequency[~regular.ravel()],
+            normalization=normalization,
+            fit_mean=fit_mean,
+            center_data=False,
+        )
     return p.ravel()

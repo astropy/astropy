@@ -1,6 +1,38 @@
 import numpy as np
 
 
+def _least_squares_parameters(X, y):
+    """Solve real least squares, preserving the legacy complex algebra."""
+    if np.iscomplexobj(X) or np.iscomplexobj(y):
+        return np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y))
+    return np.linalg.lstsq(X, y, rcond=None)[0]
+
+
+def _least_squares_power(X, y):
+    """Squared projection onto the identifiable real model subspace.
+
+    Work with the design matrix rather than its Gram matrix, which squares
+    the condition number. A deficient design still defines a unique fitted
+    vector, even though its coefficients are not unique. Use the same rank
+    cutoff as ``lstsq(rcond=None)`` when computing that projection.
+    """
+    # Complex periodograms historically use unconjugated squares, including
+    # in their normalization. Preserve that algebra outside the real solver.
+    if np.iscomplexobj(X) or np.iscomplexobj(y):
+        return np.dot(np.dot(X.T, y).T, _least_squares_parameters(X, y))
+    u, s, _ = np.linalg.svd(
+        np.asarray(X, dtype=np.result_type(X.dtype, np.float64)),
+        full_matrices=False,
+    )
+    rank = np.count_nonzero(s > np.finfo(s.dtype).eps * max(X.shape) * s[0])
+    # Singular values are sorted, so a slice avoids copying the retained
+    # columns of U at every frequency (as boolean indexing would).
+    projection = u[:, :rank].T @ y
+    # Roundoff in the orthonormal basis must not produce power above the
+    # norm of the data, including when the sampled model fits it exactly.
+    return min(np.dot(projection, projection), np.dot(y, y))
+
+
 def design_matrix(t, frequency, dy=None, bias=True, nterms=1):
     """Compute the Lomb-Scargle design matrix at the given frequency.
 
@@ -98,7 +130,7 @@ def periodic_fit(t, y, dy, frequency, t_fit, center_data=True, fit_mean=True, nt
         y_mean = 0
 
     X = design_matrix(t, frequency, dy=dy, bias=fit_mean, nterms=nterms)
-    theta_MLE = np.linalg.solve(np.dot(X.T, X), np.dot(X.T, y / dy))
+    theta_MLE = _least_squares_parameters(X, y / dy)
 
     X_fit = design_matrix(t_fit, frequency, bias=fit_mean, nterms=nterms)
 
