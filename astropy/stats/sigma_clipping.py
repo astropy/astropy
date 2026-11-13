@@ -55,6 +55,14 @@ class SigmaClip:
         center = cenfunc(data [, axis=])
         std = stdfunc(data [, axis=])
 
+    Each iteration computes ``center`` and ``std`` from the values kept
+    by the previous iterations. The clipped pixels are those outside
+    the bounds of the final iteration, so a value rejected in an earlier
+    iteration is included again if the final bounds admit it. If an
+    iteration rejects every remaining value, its bounds are the final
+    bounds. With ``grow``, a pixel rejected or grown in any iteration
+    stays rejected.
+
     Invalid data values (i.e., NaN or inf) are automatically clipped.
 
     For a functional interface to sigma clipping, see
@@ -392,7 +400,10 @@ class SigmaClip:
         Sigma clip when ``axis`` is None and ``grow`` is not >0.
 
         In this simple case, we remove clipped elements from the
-        flattened array during each iteration.
+        flattened array during each iteration. The returned values are
+        all of the valid values within the final bounds, so a value
+        rejected in an earlier iteration is included again if the
+        final bounds admit it.
         """
         # remove masked values and convert to ndarray
         filtered_data, mask = get_data_and_mask(data)
@@ -410,6 +421,7 @@ class SigmaClip:
                 "infs), which were automatically clipped.",
                 AstropyUserWarning,
             )
+        valid_data = filtered_data
 
         nchanged = 1
         iteration = 0
@@ -423,6 +435,14 @@ class SigmaClip:
             nchanged = size - filtered_data.size
 
         self._niterations = iteration
+
+        if iteration > 0:
+            # The survivors are all of the valid values within the final
+            # bounds, which may include values rejected in an earlier
+            # iteration when the bounds widened.
+            filtered_data = valid_data[
+                (valid_data >= self._min_value) & (valid_data <= self._max_value)
+            ]
 
         if masked:
             # For masked output, calculate the new mask. Since filtered_data
@@ -459,7 +479,12 @@ class SigmaClip:
         Sigma clip the data when ``axis`` or ``grow`` is specified.
 
         In this case, we replace clipped values with NaNs as placeholder
-        values.
+        values. Without ``grow``, the returned values are all of the
+        valid values within the final bounds, so a value rejected in an
+        earlier iteration is included again if the final bounds admit
+        it. With ``grow``, a value rejected (or grown) in any iteration
+        stays rejected, because grown values are not defined by the
+        bounds.
         """
         data, mask = get_data_and_mask(data)
         if data.dtype.kind != "f":
@@ -516,10 +541,26 @@ class SigmaClip:
         iteration = 0
         while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
+            prev_min_value = self._min_value
+            prev_max_value = self._max_value
             self._compute_bounds(filtered_data, axis=axis)
             if not np.isscalar(self._min_value):
                 self._min_value = self._min_value.reshape(mshape)
                 self._max_value = self._max_value.reshape(mshape)
+            if iteration > 1:
+                # Where the previous iteration rejected every remaining
+                # value, keep its bounds instead of the NaN bounds of the
+                # empty set, so that those values stay rejected
+                if axis is None:
+                    if not np.any(np.isfinite(filtered_data)):
+                        self._min_value = prev_min_value
+                        self._max_value = prev_max_value
+                else:
+                    emptied = ~np.any(
+                        np.isfinite(filtered_data), axis=axis, keepdims=True
+                    )
+                    self._min_value = np.where(emptied, prev_min_value, self._min_value)
+                    self._max_value = np.where(emptied, prev_max_value, self._max_value)
 
             with np.errstate(invalid="ignore"):
                 # Since these comparisons are always False for NaNs, the
@@ -536,6 +577,20 @@ class SigmaClip:
             del new_mask
 
         self._niterations = iteration
+
+        if not self.grow and iteration > 0:
+            # The survivors are all of the valid values within the final
+            # bounds. The values rejected in an earlier iteration that
+            # lie within them are restored. The values kept by the last
+            # iteration already lie within them.
+            with np.errstate(invalid="ignore"):
+                readmit = (
+                    ~bad_mask
+                    & np.isnan(filtered_data)
+                    & (data >= self._min_value)
+                    & (data <= self._max_value)
+                )
+            filtered_data[readmit] = data[readmit]
 
         if masked:
             # create an output masked array
@@ -688,6 +743,14 @@ def sigma_clip(  # ruff: ignore[PLR0917]
 
         center = cenfunc(data [, axis=])
         std = stdfunc(data [, axis=])
+
+    Each iteration computes ``center`` and ``std`` from the values kept
+    by the previous iterations. The clipped pixels are those outside
+    the bounds of the final iteration, so a value rejected in an earlier
+    iteration is included again if the final bounds admit it. If an
+    iteration rejects every remaining value, its bounds are the final
+    bounds. With ``grow``, a pixel rejected or grown in any iteration
+    stays rejected.
 
     Invalid data values (i.e., NaN or inf) are automatically clipped.
 
