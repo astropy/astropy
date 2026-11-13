@@ -9,7 +9,7 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.stats import mad_std
+from astropy.stats import biweight_location, biweight_scale, mad_std
 from astropy.stats.sigma_clipping import (
     SigmaClip,
     SigmaClippedStats,
@@ -281,6 +281,48 @@ def test_sigma_clip_noaxis_all_masked_input():
     assert_equal(result.mask, [True, True])
     assert np.isnan(lower)
     assert np.isnan(upper)
+
+
+def test_sigma_clip_biweight():
+    """
+    Test the 'biweight' cenfunc and stdfunc string options.
+    """
+
+    def nanbiloc(data, axis=None):
+        return biweight_location(data, axis=axis, ignore_nan=True)
+
+    def nanbiscale(data, axis=None):
+        return biweight_scale(data, axis=axis, ignore_nan=True)
+
+    rng = np.random.default_rng(12345)
+    data = rng.normal(5.0, 2.0, (10, 100))
+    data[0, 0:10] = 100.0  # outliers
+
+    # The string options are equivalent to the NaN-aware biweight
+    # callables
+    sobj1 = SigmaClip(sigma=2.5, maxiters=5, cenfunc="biweight", stdfunc="biweight")
+    sobj2 = SigmaClip(sigma=2.5, maxiters=5, cenfunc=nanbiloc, stdfunc=nanbiscale)
+    for axis in (None, 0, 1):
+        assert_equal(sobj1(data, axis=axis), sobj2(data, axis=axis))
+
+    # The outliers are clipped
+    result = sobj1(data, axis=1, masked=False)
+    assert np.all(np.isnan(result[0, 0:10]))
+
+    # 'biweight' can be mixed with the other string options
+    for kwargs in ({"cenfunc": "biweight"}, {"stdfunc": "biweight"}):
+        result = sigma_clip(data, sigma=2.5, maxiters=5, masked=False, axis=1, **kwargs)
+        assert np.all(np.isnan(result[0, 0:10]))
+
+    # The parsed functions are picklable
+    restored = pickle.loads(pickle.dumps(sobj1))
+    assert_equal(restored(data), sobj1(data))
+
+    # sigma_clipped_stats passthrough
+    stats = sigma_clipped_stats(
+        data, cenfunc="biweight", stdfunc="biweight", sigma=2.5, maxiters=5
+    )
+    assert np.all(np.isfinite(stats))
 
 
 def test_sigma_clip_invalid_cenfunc_stdfunc():
