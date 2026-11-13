@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 from matplotlib.patches import Polygon
+from matplotlib.transforms import Affine2D
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord, rotation_matrix
@@ -65,7 +66,40 @@ def _rotate_polygon(lon, lat, lon0, lat0):
     return polygon.lon, polygon.lat
 
 
-class SphericalCircle(Polygon):
+class _AngularPolygon(Polygon):
+    """
+    A polygon with vertices in ``vertex_unit``, scaled to the angular units of
+    the axes it is added to if these are set. For
+    `~astropy.visualization.wcsaxes.WCSAxes` these are the world units of the
+    WCS.
+
+    Parameters
+    ----------
+    vertices : array-like
+        The ``(N, 2)`` polygon vertices, in ``vertex_unit``.
+    vertex_unit : `~astropy.units.Unit`
+        The units of the vertices.
+    **kwargs
+        Additional keyword arguments are passed to
+        `~matplotlib.patches.Polygon`.
+    """
+
+    def __init__(self, vertices, vertex_unit, **kwargs):
+        self._vertex_unit = u.Unit(vertex_unit)
+        super().__init__(vertices, **kwargs)
+
+    def get_patch_transform(self):
+        if self.axes is not None:
+            units = self.axes.xaxis.get_units(), self.axes.yaxis.get_units()
+            if all(
+                isinstance(unit, u.UnitBase) and unit.is_equivalent(u.deg)
+                for unit in units
+            ):
+                return Affine2D().scale(*(self._vertex_unit.to(unit) for unit in units))
+        return super().get_patch_transform()
+
+
+class SphericalCircle(_AngularPolygon):
     """
     Create a patch representing a spherical circle - that is, a circle that is
     formed of all the points that are within a certain angle of the central
@@ -87,10 +121,12 @@ class SphericalCircle(Polygon):
     resolution : int, optional
         The number of points that make up the circle - increase this to get a
         smoother circle.
-    vertex_unit : `~astropy.units.Unit`
-        The units in which the resulting polygon should be defined - this
-        should match the unit that the transformation (e.g. the WCS
-        transformation) expects as input.
+    vertex_unit : `~astropy.units.Unit`, optional
+        The units in which the resulting polygon should be defined. On
+        `~astropy.visualization.wcsaxes.WCSAxes`, the polygon is converted
+        to the world units of the WCS, so this does not need to match them.
+        On other axes, this should match the unit that the transformation
+        expects as input.
     **kwargs
         Additional keyword arguments are passed to
         `~matplotlib.patches.Polygon`.
@@ -127,10 +163,10 @@ class SphericalCircle(Polygon):
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
 
-        super().__init__(vertices, **kwargs)
+        super().__init__(vertices, vertex_unit, **kwargs)
 
 
-class Quadrangle(Polygon):
+class Quadrangle(_AngularPolygon):
     """
     Create a patch representing a latitude-longitude quadrangle.
 
@@ -154,10 +190,12 @@ class Quadrangle(Polygon):
     resolution : int, optional
         The number of points that make up each side of the quadrangle -
         increase this to get a smoother quadrangle.
-    vertex_unit : `~astropy.units.Unit` ['angle']
-        The units in which the resulting polygon should be defined - this
-        should match the unit that the transformation (e.g. the WCS
-        transformation) expects as input.
+    vertex_unit : `~astropy.units.Unit` ['angle'], optional
+        The units in which the resulting polygon should be defined. On
+        `~astropy.visualization.wcsaxes.WCSAxes`, the polygon is converted
+        to the world units of the WCS, so this does not need to match them.
+        On other axes, this should match the unit that the transformation
+        expects as input.
     **kwargs
         Additional keyword arguments are passed to
         `~matplotlib.patches.Polygon`.
@@ -199,4 +237,4 @@ class Quadrangle(Polygon):
         # Create polygon vertices
         vertices = np.array([lon, lat]).transpose()
 
-        super().__init__(vertices, **kwargs)
+        super().__init__(vertices, vertex_unit, **kwargs)
