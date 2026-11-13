@@ -1755,9 +1755,9 @@ class Table:
 
         descr = " ".join(descr_vals)
         if html:
-            from astropy.utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import _html_escape
 
-            descr = f"<i>{xml_escape(descr)}</i>\n"
+            descr = f"<i>{_html_escape(descr)}</i>\n"
         else:
             descr = f"<{descr}>\n"
 

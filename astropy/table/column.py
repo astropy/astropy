@@ -1430,9 +1430,9 @@ class Column(BaseColumn):
         descr = "<" + " ".join(descr_vals) + ">\n"
 
         if html:
-            from astropy.utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import _html_escape
 
-            descr = xml_escape(descr)
+            descr = _html_escape(descr)
 
         data_lines, outs = self._formatter._pformat_col(
             self, show_name=False, show_unit=False, show_length=False, html=html

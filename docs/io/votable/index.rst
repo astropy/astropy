@@ -228,6 +228,19 @@ The serialization format can be selected in two ways:
 
         votable.to_xml("new_votable.xml", tabledata_format="binary")
 
+TABLEDATA writes each value as XML text, so it cannot hold a character that
+XML does not allow anywhere in a document, such as a form feed or another
+control character (see the `XML specification
+<https://www.w3.org/TR/xml/#NT-Char>`__). Writing such a value as TABLEDATA
+raises a `ValueError`. BINARY and BINARY2 store the values base64 encoded, so
+they can hold these characters, with one exception: reading a fixed-length
+string value back stops at the first null (U+0000), as the VOTable standard
+allows, so anything after a null is lost. A string column of an
+`astropy.table.Table` is written as fixed-length unless it has ``object``
+dtype. Field names, descriptions
+and other metadata are XML text in every format, so they cannot hold these
+characters at all.
+
 Converting to/from an `astropy.table.Table`
 -------------------------------------------
 

@@ -322,7 +322,7 @@ class TableFormatter:
             col_width = max(len(x) for x in col_strs)
 
         if html:
-            from astropy.utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import _html_escape
 
             n_header = outs["n_header"]
             for i, col_str in enumerate(col_strs):
@@ -330,7 +330,7 @@ class TableFormatter:
                 if i == n_header - 1:
                     continue
                 td = "th" if i < n_header else "td"
-                val = f"<{td}>{xml_escape(col_str.strip())}</{td}>"
+                val = f"<{td}>{_html_escape(col_str.strip())}</{td}>"
                 row = "<tr>" + val + "</tr>"
                 if i < n_header:
                     row = "<thead>" + row + "</thead>"
@@ -745,7 +745,7 @@ class TableFormatter:
         # row-oriented list.
         rows = []
         if html:
-            from astropy.utils.xml.writer import xml_escape
+            from astropy.utils.xml.writer import _html_escape
 
             if tableid is None:
                 tableid = f"table{id(table)}"
@@ -762,7 +762,7 @@ class TableFormatter:
                 if i == n_header - 1:
                     continue
                 td = "th" if i < n_header else "td"
-                vals = (f"<{td}>{xml_escape(col[i].strip())}</{td}>" for col in cols)
+                vals = (f"<{td}>{_html_escape(col[i].strip())}</{td}>" for col in cols)
                 row = "<tr>" + "".join(vals) + "</tr>"
                 if i < n_header:
                     row = "<thead>" + row + "</thead>"
