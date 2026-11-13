@@ -1,0 +1,4 @@
+Refactored the ``unit_list_proxy`` C-extension to use dependency injection for unit parsing,
+removing circular runtime imports.
+``Wcsprm.cunit`` now correctly returns ``astropy.units.Unit`` objects instead of raw strings,
+ and unrecognized FITS units now properly emit a ``UnitsWarning`` instead of failing.
