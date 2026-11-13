@@ -988,10 +988,25 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         Notes
         -----
-        The arguments describe the data currently stored in the file. Changes
-        made in-place to ``data`` are only reflected once they are written to
-        the file, and are never reflected if the file was opened in
-        ``readonly`` or ``copyonwrite`` mode.
+        The arguments describe where the data is in the file at the time this
+        method is called, and there is no guarantee that they remain valid
+        afterwards. In particular:
+
+        * The file may later be moved, deleted, or overwritten, and the
+          position and size of the data in the file can change if the file was
+          opened in ``update`` mode and is flushed or closed after HDUs have
+          been modified. The arguments should therefore be used promptly, and
+          requested again after any such change.
+
+        * Changes made in-place to ``data`` are only reflected once they are
+          written to the file, and are never reflected if the file was opened
+          in ``readonly`` or ``copyonwrite`` mode.
+
+        * The data is stored in big-endian byte order in FITS files, which is
+          reflected in the ``dtype``.
+
+        * An array memory-mapped with these arguments is independent of the
+          HDU, and remains usable after the file it was read from is closed.
         """
         if self._file is None or self._data_offset is None:
             raise ValueError("The HDU is not associated with a file.")
