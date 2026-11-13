@@ -285,8 +285,8 @@ class LombScargle(BasePeriodogram):
               requires evenly-spaced frequencies: by default this will be checked
               unless ``assume_regular_frequency`` is set to True.
             - 'scipy': use ``scipy.signal.lombscargle``, which is an O[N^2]
-              implementation written in C. Note that this does not support
-              heteroskedastic errors.
+              implementation. Note that this requires Scipy 1.15 or later
+              for heteroskedastic errors.
 
         method_kwds : dict, optional
             Additional keywords to pass to the lomb-scargle method.
@@ -363,8 +363,8 @@ class LombScargle(BasePeriodogram):
               requires evenly-spaced frequencies: by default this will be checked
               unless ``assume_regular_frequency`` is set to True.
             - 'scipy': use ``scipy.signal.lombscargle``, which is an O[N^2]
-              implementation written in C. Note that this does not support
-              heteroskedastic errors.
+              implementation. Note that this requires Scipy 1.15 or later
+              for heteroskedastic errors.
 
         assume_regular_frequency : bool, optional
             If True, assume that the input frequency is of the form

@@ -76,13 +76,8 @@ def test_all_methods(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if errors == "full":
-            pytest.skip("scipy method only supports uniform uncertainties dy")
-        elif errors == "partial" and normalization == "psd":
-            pytest.skip(
-                "scipy method drops the uniform dy, whose scale the psd "
-                "normalization depends on"
-            )
+        if errors == "full" and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for non-uniform uncertainties dy")
 
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -181,8 +176,8 @@ def test_integer_inputs(
     if method == "scipy":
         if fit_mean and not _scipy_supports_floating_mean():
             pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if with_errors:
-            pytest.skip("scipy method only supports uniform uncertainties dy")
+        if with_errors and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for non-uniform uncertainties dy")
 
     t, y, dy = data
 
@@ -205,6 +200,18 @@ def test_integer_inputs(
     P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
     assert_allclose(P_float, P_int)
+
+
+def test_scipy_nonuniform_errors_old_scipy(data, monkeypatch):
+    pytest.importorskip("scipy")
+    monkeypatch.setattr(
+        "astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl"
+        "._scipy_supports_floating_mean",
+        lambda: False,
+    )
+    t, y, dy = data
+    with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
+        LombScargle(t, y, dy, fit_mean=False).power([1.0], method="scipy")
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)
