@@ -953,13 +953,13 @@ class _ValidHDU(_BaseHDU, _Verify):
         else:
             return None
 
-    def memmap_kwargs(self):
+    def memmap_info(self):
         """
         Return the arguments needed to memory-map the data of this HDU.
 
         The returned dictionary can be passed directly to `numpy.memmap`::
 
-            >>> array = np.memmap(**hdu.memmap_kwargs())  # doctest: +SKIP
+            >>> array = np.memmap(**hdu.memmap_info())  # doctest: +SKIP
 
         This makes it possible to access the data without going through the
         HDU, for example to share it with other processes, or to check whether
@@ -974,6 +974,8 @@ class _ValidHDU(_BaseHDU, _Verify):
             ``shape``, and ``dtype`` arguments for `numpy.memmap`. The mode is
             always ``'r'`` (read-only), and can be changed to e.g. ``'r+'`` to
             write to the file through the memory-mapped array.
+            The dictionary only ever contains arguments accepted by
+            `numpy.memmap`.
 
         Raises
         ------
@@ -1028,7 +1030,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     def _memmap_layout(self):
         """
-        Return the shape and dtype of the data in the file for `memmap_kwargs`,
+        Return the shape and dtype of the data in the file for `memmap_info`,
         raising a `ValueError` if the bytes can't be used directly as `data`.
         """
         raise ValueError(

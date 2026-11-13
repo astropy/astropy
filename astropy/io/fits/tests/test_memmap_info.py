@@ -14,15 +14,15 @@ def test_image(tmp_path, mode):
     data = np.arange(12, dtype=">f4").reshape(3, 4)
     fits.PrimaryHDU(data).writeto(filename)
     with fits.open(filename, mode=mode) as hdul:
-        kwargs = hdul[0].memmap_kwargs()
-    assert kwargs == {
+        info = hdul[0].memmap_info()
+    assert info == {
         "filename": str(filename),
         "mode": "r",
         "offset": 2880,
         "shape": (3, 4),
         "dtype": np.dtype(">f4"),
     }
-    np.testing.assert_array_equal(np.memmap(**kwargs), data)
+    np.testing.assert_array_equal(np.memmap(**info), data)
 
 
 def test_bintable(tmp_path):
@@ -34,7 +34,7 @@ def test_bintable(tmp_path):
         ]
     ).writeto(filename)
     with fits.open(filename) as hdul:
-        array = np.memmap(**hdul[1].memmap_kwargs())
+        array = np.memmap(**hdul[1].memmap_info())
         np.testing.assert_array_equal(array, hdul[1].data)
 
 
@@ -48,7 +48,7 @@ def test_random_groups(tmp_path):
     )
     fits.GroupsHDU(data).writeto(filename)
     with fits.open(filename) as hdul:
-        array = np.memmap(**hdul[0].memmap_kwargs())
+        array = np.memmap(**hdul[0].memmap_info())
         np.testing.assert_array_equal(array["DATA"], hdul[0].data.data)
 
 
@@ -84,24 +84,24 @@ def test_not_memmappable(tmp_path, hdu, match):
     hdu.writeto(filename)
     with fits.open(filename) as hdul:
         with pytest.raises(ValueError, match=match):
-            hdul[-1].memmap_kwargs()
+            hdul[-1].memmap_info()
 
 
 def test_not_on_disk(tmp_path):
     with pytest.raises(ValueError, match="not associated with a file"):
-        fits.PrimaryHDU(np.ones(3)).memmap_kwargs()
+        fits.PrimaryHDU(np.ones(3)).memmap_info()
 
     buffer = io.BytesIO()
     fits.PrimaryHDU(np.ones(3)).writeto(buffer)
     buffer.seek(0)
     with fits.open(buffer) as hdul:
         with pytest.raises(ValueError, match="not associated with a file on disk"):
-            hdul[0].memmap_kwargs()
+            hdul[0].memmap_info()
 
     fits.PrimaryHDU(np.ones(3)).writeto(tmp_path / "test.fits.gz")
     with fits.open(tmp_path / "test.fits.gz") as hdul:
         with pytest.raises(ValueError, match="gzip-compressed"):
-            hdul[0].memmap_kwargs()
+            hdul[0].memmap_info()
 
 
 def test_data_replaced(tmp_path):
@@ -109,4 +109,4 @@ def test_data_replaced(tmp_path):
     with fits.open(tmp_path / "test.fits") as hdul:
         hdul[0].data = hdul[0].data * 2
         with pytest.raises(ValueError, match="data has been replaced"):
-            hdul[0].memmap_kwargs()
+            hdul[0].memmap_info()

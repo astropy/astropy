@@ -1,4 +1,4 @@
-Added a ``memmap_kwargs()`` method to HDUs, which returns the file name,
+Added a ``memmap_info()`` method to HDUs, which returns the file name,
 offset, shape, and dtype of the data in the file as a dictionary of arguments
 for ``numpy.memmap``. This makes it possible to memory-map the data
 independently of the HDU, for example in other processes. An error is raised

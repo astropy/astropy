@@ -137,16 +137,16 @@ because by that point you are likely to run out of physical memory anyways), but
     held to the data array.)
 
 If you need to memory-map the data yourself, for example to share it with
-other processes without copying it, the ``memmap_kwargs()`` method of HDUs
+other processes without copying it, the ``memmap_info()`` method of HDUs
 returns the location and layout of the data in the file as a dictionary of
 arguments for `numpy.memmap`::
 
     >>> with fits.open(fits_image_filename) as hdul:
-    ...     kwargs = hdul[1].memmap_kwargs()
-    >>> kwargs["offset"], kwargs["shape"], kwargs["dtype"]
+    ...     info = hdul[1].memmap_info()
+    >>> info["offset"], info["shape"], info["dtype"]
     (17280, (40, 40), dtype('>i2'))
     >>> import numpy as np
-    >>> data = np.memmap(**kwargs)
+    >>> data = np.memmap(**info)
 
 An error is raised if the bytes in the file cannot be used directly as the
 data, for example if the data is scaled with ``BSCALE``/``BZERO``, if the file
