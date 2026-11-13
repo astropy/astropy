@@ -1,0 +1,5 @@
+Fixed ``sigma_clip`` and ``SigmaClip`` with ``axis=None`` so that the
+masked output masks all values when a clipping iteration rejects every
+remaining value. Previously, no values were masked and the returned
+bounds were NaN, unlike the ``masked=False`` output and the output with
+``axis`` set.
