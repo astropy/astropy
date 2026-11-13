@@ -200,6 +200,24 @@ subclasses and ``scalar_inv_efuncs`` for the details.
 
 However, the important point is that it is *not* necessary to do this.
 
+Large catalogues with a common scalar observer or source redshift can share a
+comoving-distance integration. The numerical implementation solves
+:math:`d\chi/dz = 1/E(z)` with :math:`\chi(z_0)=0` using the adaptive DOP853
+integrator. Its dense output evaluates the requested redshifts without
+repeating the integration for each object. Unsorted inputs, duplicate
+redshifts, and arbitrary array shapes are supported. Redshifts on opposite
+sides of the reference redshift use separate integrations.
+
+Small inputs and arrays of independent observer/source pairs use direct
+quadrature. In particular, subtracting two observer-to-zero distances is
+avoided for nearby pairs, where cancellation would reduce accuracy. Custom
+overrides of the scalar interval integrator and existing analytic distance
+implementations continue to take precedence. The shared integration uses
+relative and absolute tolerances of ``1e-11`` and ``1e-13`` respectively, in
+units of the Hubble distance; its error estimates control integration rather
+than a fixed interpolation grid. Non-finite redshifts and unsuccessful ODE
+integrations use the direct quadrature path.
+
 .. _cosmology_mypackage:
 
 Astropy Interoperability: I/O and your Cosmology Package

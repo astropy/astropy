@@ -1,0 +1,4 @@
+Speed up numerical comoving distances for large redshift arrays with a common
+scalar observer or source by sharing an adaptive integration. Array shapes,
+input ordering, and redshift units are preserved. Independent observer/source
+pairs retain direct quadrature to avoid loss of precision for nearby objects.

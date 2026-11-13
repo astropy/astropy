@@ -31,7 +31,7 @@ from astropy.cosmology._src.parameter import (
     validate_non_negative,
     validate_with_unit,
 )
-from astropy.cosmology._src.scipy_compat import quad
+from astropy.cosmology._src.scipy_compat import quad, solve_ivp
 from astropy.cosmology._src.traits import (
     BaryonComponent,
     CriticalDensity,
@@ -903,6 +903,62 @@ class FLRW(  # numpydoc ignore=PR02
         |Quantity| ['length']
             Comoving distance in Mpc between each input redshift.
         """
+        # A catalogue with a common observer needs only one integration in each
+        # direction from that observer. Keep independent intervals for pairwise
+        # distances: subtracting two large cumulative distances would lose
+        # precision for nearby objects.
+        if (
+            (getattr(z1, "size", 0) >= 512 or getattr(z2, "size", 0) >= 512)
+            and (np.ndim(z1) == 0 or np.ndim(z2) == 0)
+            and type(self)._integral_comoving_distance_z1z2_scalar
+            is FLRW._integral_comoving_distance_z1z2_scalar
+        ):
+            if np.ndim(z1) == 0:
+                origin, redshifts, sign = aszarr(z1).item(), aszarr(z2), 1
+            else:
+                origin, redshifts, sign = aszarr(z2).item(), aszarr(z1), -1
+            if (
+                redshifts.dtype.kind in "fiu"
+                and np.isfinite(origin)
+                and origin > -1
+                and np.all(np.isfinite(redshifts) & (redshifts > -1))
+            ):
+                # solve_ivp integrates in double precision. Deduplicate after
+                # conversion, including integer values indistinguishable as doubles.
+                origin = float(origin)
+                redshifts = np.asarray(redshifts, dtype=float)
+                distances = np.zeros(redshifts.shape)
+
+                def derivative(z, distance):
+                    return [self._inv_efunc_scalar(z, *self._inv_efunc_scalar_args)]
+
+                for direction in (-1, 1):
+                    selected = (
+                        redshifts < origin if direction == -1 else redshifts > origin
+                    )
+                    if not np.any(selected):
+                        continue
+                    ordered, inverse = np.unique(
+                        redshifts[selected], return_inverse=True
+                    )
+                    if direction == -1:
+                        ordered = ordered[::-1]
+                        inverse = len(ordered) - 1 - inverse
+                    solution = solve_ivp(
+                        derivative,
+                        (origin, ordered[-1]),
+                        [0.0],
+                        method="DOP853",
+                        t_eval=ordered,
+                        rtol=1e-11,
+                        atol=1e-13,
+                    )
+                    if not solution.success or not np.all(np.isfinite(solution.y)):
+                        break
+                    distances[selected] = solution.y[0, inverse]
+                else:
+                    return self.hubble_distance * (sign * distances)
+
         return self.hubble_distance * self._integral_comoving_distance_z1z2_scalar(z1, z2)  # fmt: skip
 
     @vectorize_redshift_method(nin=2)
