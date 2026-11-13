@@ -750,8 +750,15 @@ class _ImageBaseHDU(_ValidHDU):
         target = _MemmapRegion(
             fileobj.name, initial_position, output.shape, output.dtype
         )
+        # The lock needs to be appropriate for the scheduler being used. Recent
+        # versions of dask do this for lock=True, but older ones always use a
+        # threading lock, which can't be sent to other processes.
+        from dask.utils import get_scheduler_lock
+
         try:
-            output.store(target, lock=True, compute=True)
+            output.store(
+                target, lock=get_scheduler_lock(collection=output), compute=True
+            )
         finally:
             target.close()
 
