@@ -19,7 +19,7 @@ import numpy.typing as npt
 if TYPE_CHECKING:
     import astropy.units
 
-type UnitLike = "astropy.units.UnitBase" | str | "astropy.units.Quantity"
+type UnitLike = "astropy.units.UnitBase | str | astropy.units.Quantity"
 """Type alias for input that can be converted to a Unit.
 
 See :term:`unit-like`. Note that this includes only scalar quantities.
