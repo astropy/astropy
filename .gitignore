@@ -86,7 +86,6 @@ v
 .pytest_cache
 
 # VSCode
-.vscode
 .history
 
 .tmp
@@ -94,3 +93,7 @@ pip-wheel-metadata
 
 # Files generated if figure tests are run
 results
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
