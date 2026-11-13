@@ -1,0 +1,2 @@
+Projections with angular parameters defined as ``Quantity`` pass
+now values to wcslib in degrees.

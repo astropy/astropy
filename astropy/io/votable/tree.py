@@ -128,17 +128,84 @@ RESIZE_AMOUNT = 1.5
 # FACTORY FUNCTIONS
 
 
-def _resize(masked, new_size):
+class _MaskedArrayBuilder:
     """
-    Masked arrays can not be resized inplace, and `np.resize` and
-    `ma.resize` are both incompatible with structured arrays.
-    Therefore, we do all this.
-    """
-    new_array = ma.zeros((new_size,), dtype=masked.dtype)
-    length = min(len(masked), new_size)
-    new_array[:length] = masked[:length]
+    Zeroed data and mask arrays for a table being read and grown in place.
 
-    return new_array
+    Masked arrays can not be resized in place, but these plain arrays own
+    their memory, so ``ndarray.resize`` can grow and trim them without
+    holding a second copy of the table.  Call `to_masked` once they are
+    filled.
+
+    `resize` can move the arrays to new memory, so they never leave this
+    class until `to_masked`, and nothing here keeps a view of them.
+    """
+
+    def __init__(self, dtype, nrows):
+        self._values = np.zeros(nrows, dtype=dtype)
+        self._mask = np.zeros(nrows, dtype=ma.make_mask_descr(dtype))
+
+    def __len__(self):
+        return len(self._values)
+
+    def set_row(self, index, values, mask):
+        """
+        Set one row.
+
+        Parameters
+        ----------
+        index : int
+            The row to set.
+        values : tuple
+            One value per field of the dtype, in field order, as returned
+            by the column converters
+        mask : tuple
+            One mask flag per field, in the same order
+        """
+        self._values[index] = values
+        self._mask[index] = mask
+
+    def set_rows(self, start, values, masks):
+        """
+        Set consecutive rows, starting at row *start*.
+
+        Parameters
+        ----------
+        start : int
+            The first row to set.
+        values : list of tuple
+            One tuple per row, each as the *values* of `set_row`.
+        masks : list of tuple
+            One tuple per row, each as the *mask* of `set_row`, and as
+            many as there are in *values*.
+        """
+        stop = start + len(values)
+        self._values[start:stop] = values
+        self._mask[start:stop] = masks
+
+    def resize(self, nrows):
+        """Grow or trim both arrays to *nrows* rows, keeping their contents."""
+        # refcheck=False: from Python 3.14, numpy's reference count check
+        # rejects a count of 2, which the attribute and this call already
+        # make.  It is safe because no views of these arrays exist.
+        # Resizing while a view exists would leave the view pointing at
+        # freed memory.
+        self._values.resize(nrows, refcheck=False)
+        self._mask.resize(nrows, refcheck=False)
+
+    def to_masked(self):
+        """
+        Wrap the arrays in a masked array without copying them.
+
+        The builder can not be used afterwards, since resizing would free
+        the memory the masked array uses.
+        """
+        values, mask = self._values, self._mask
+        del self._values, self._mask
+        # keep_mask=False: for a structured dtype, MaskedArray starts from
+        # its own all-False mask and, with keep_mask=True, ORs this one into
+        # it, which allocates a second full-size mask.  Unneeded here.
+        return ma.MaskedArray(values, mask=mask, copy=False, keep_mask=False)
 
 
 def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
@@ -2918,6 +2985,9 @@ class TableElement(
                     ) from None
             else:
                 raise TypeError("Invalid columns list")
+            # The array holds each selected column once, in file order, so
+            # they must be read in that order whatever order they were asked for
+            colnumbers = sorted(set(colnumbers))
 
         self.create_arrays(nrows=self._nrows, config=config, colnumbers=colnumbers)
 
@@ -2987,9 +3057,7 @@ class TableElement(
         # allocation is by factors of 1.5.
         invalid = config.get("invalid", "exception")
 
-        # Need to have only one reference so that we can resize the
-        # array
-        array = self.array
+        builder = _MaskedArrayBuilder(self.array.dtype, len(self.array))
         del self.array
 
         fields = self.all_fields
@@ -2997,7 +3065,7 @@ class TableElement(
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
-        alloc_rows = len(array)
+        alloc_rows = len(builder)
         colnumbers_bits = [i in colnumbers for i in range(len(fields))]
         row_default = [field.converter.default for field in self.fields]
         mask_default = [True] * len(self.fields)
@@ -3059,7 +3127,7 @@ class TableElement(
                                 else:
                                     row[j] = value
                                     row_mask[j] = mask_value
-                                    j += 1
+                                j += 1
                         elif tag == "TR":
                             break
                         else:
@@ -3075,10 +3143,9 @@ class TableElement(
                 if len(array_chunk) == chunk_size:
                     while numrows + chunk_size > alloc_rows:
                         alloc_rows = self._resize_strategy(alloc_rows)
-                    if alloc_rows != len(array):
-                        array = _resize(array, alloc_rows)
-                    array[numrows : numrows + chunk_size] = array_chunk
-                    array.mask[numrows : numrows + chunk_size] = mask_chunk
+                    if alloc_rows != len(builder):
+                        builder.resize(alloc_rows)
+                    builder.set_rows(numrows, array_chunk, mask_chunk)
                     numrows += chunk_size
                     array_chunk = []
                     mask_chunk = []
@@ -3090,17 +3157,15 @@ class TableElement(
         # put the last chunk values in there.
         alloc_rows = numrows + len(array_chunk)
 
-        array = _resize(array, alloc_rows)
-        array[numrows:] = array_chunk
-        if alloc_rows != 0:
-            array.mask[numrows:] = mask_chunk
+        builder.resize(alloc_rows)
+        builder.set_rows(numrows, array_chunk, mask_chunk)
         numrows += len(array_chunk)
 
         if self.nrows is not None and self.nrows >= 0 and self.nrows != numrows:
             warn_or_raise(W18, W18, (self.nrows, numrows), config, pos)
         self._nrows = numrows
 
-        return array
+        return builder.to_masked()
 
     def _get_binary_data_stream(self, iterator, config):
         have_local_stream = False
@@ -3170,21 +3235,19 @@ class TableElement(
     def _parse_binary(self, mode, iterator, colnumbers, config, pos):
         careful_read = self._get_binary_data_stream(iterator, config)
 
-        # Need to have only one reference so that we can resize the
-        # array
-        array = self.array
+        builder = _MaskedArrayBuilder(self.array.dtype, len(self.array))
         del self.array
 
         fields = self.all_fields
         binparsers = [field.converter.binparse for field in fields]
 
         numrows = 0
-        alloc_rows = len(array)
+        alloc_rows = len(builder)
         while True:
             # Resize result arrays if necessary
             if numrows >= alloc_rows:
                 alloc_rows = self._resize_strategy(alloc_rows)
-                array = _resize(array, alloc_rows)
+                builder.resize(alloc_rows)
 
             row_data = []
             row_mask_data = []
@@ -3229,11 +3292,11 @@ class TableElement(
                 row[j] = row_data[i]
                 row_mask[j] = row_mask_data[i]
 
-            array[numrows] = tuple(row)
-            array.mask[numrows] = tuple(row_mask)
+            builder.set_row(numrows, tuple(row), tuple(row_mask))
             numrows += 1
 
-        return _resize(array, numrows)
+        builder.resize(numrows)
+        return builder.to_masked()
 
     def _parse_fits(self, iterator, extnum, config):
         for start, tag, data, pos in iterator:

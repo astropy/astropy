@@ -11,7 +11,18 @@ from .core import Parameter
 
 
 def is_parameter_or_field(obj: object, /) -> TypeGuard[Parameter | Field[Parameter]]:
-    """Return if object is a Parameter or dataclass field thereof."""
+    """Return if object is a Parameter or dataclass field thereof.
+
+    Parameters
+    ----------
+    obj : object, positional-only
+        The object to check.
+
+    Returns
+    -------
+    bool
+        Whether ``obj`` is a `Parameter` or a dataclass field thereof.
+    """
     return isinstance(obj, Parameter) or (
         isinstance(obj, Field) and isinstance(obj.default, Parameter)
     )
@@ -22,6 +33,16 @@ def all_parameters(obj: object, /) -> dict[str, Parameter]:
 
     Returns all fields of the object, including those not yet finalized in the class, if
     it's still under construction, e.g. in ``__init_subclass__``.
+
+    Parameters
+    ----------
+    obj : object, positional-only
+        The object (or class) from which to get the parameters.
+
+    Returns
+    -------
+    dict[str, `Parameter`]
+        The parameters of the object, keyed by name.
     """
     cls = obj if isinstance(obj, type) else obj.__class__
     all_cls_vars = functools.reduce(operator.__or__, map(vars, cls.mro()[::-1]))

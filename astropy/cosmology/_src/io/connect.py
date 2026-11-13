@@ -36,7 +36,7 @@ _MT = TypeVar("_MT", bound=Mapping)  # type: ignore[type-arg]
 readwrite_registry = io_registry.UnifiedIORegistry()
 
 
-class CosmologyRead(io_registry.UnifiedReadWrite):
+class CosmologyRead(io_registry.UnifiedReadWrite):  # numpydoc ignore=PR01,PR02
     """Read and parse data to a `~astropy.cosmology.Cosmology`.
 
     This function provides the Cosmology interface to the Astropy unified I/O
@@ -107,7 +107,7 @@ class CosmologyRead(io_registry.UnifiedReadWrite):
             return self.registry.read(self._cls, *args, **kwargs)
 
 
-class CosmologyWrite(io_registry.UnifiedReadWrite):
+class CosmologyWrite(io_registry.UnifiedReadWrite):  # numpydoc ignore=PR01,PR02
     """Write this Cosmology object out in the specified format.
 
     This function provides the Cosmology interface to the astropy unified I/O
@@ -156,7 +156,7 @@ class CosmologyWrite(io_registry.UnifiedReadWrite):
 convert_registry = io_registry.UnifiedIORegistry()
 
 
-class CosmologyFromFormat(io_registry.UnifiedReadWrite):
+class CosmologyFromFormat(io_registry.UnifiedReadWrite):  # numpydoc ignore=PR01,PR02
     """Transform object to a `~astropy.cosmology.Cosmology`.
 
     This function provides the Cosmology interface to the Astropy unified I/O
@@ -182,7 +182,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
     Parameters
     ----------
     obj : object
-        The object to parse according to 'format'
+        The object to parse according to 'format'.
     *args
         Positional arguments passed through to data parser.
     format : str or None, optional keyword-only
@@ -286,7 +286,7 @@ class CosmologyFromFormat(io_registry.UnifiedReadWrite):
             return self.registry.read(self._cls, obj, *args, format=format, **kwargs)
 
 
-class CosmologyToFormat(io_registry.UnifiedReadWrite):
+class CosmologyToFormat(io_registry.UnifiedReadWrite):  # numpydoc ignore=PR01,PR02
     """Transform this Cosmology to another format.
 
     This function provides the Cosmology interface to the astropy unified I/O

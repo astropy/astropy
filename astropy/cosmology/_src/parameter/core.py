@@ -3,6 +3,7 @@
 __all__ = ("MISSING", "Parameter")
 
 import copy
+import sys
 from collections.abc import Sequence
 from dataclasses import KW_ONLY, dataclass, field, fields, is_dataclass, replace
 from enum import Enum, auto
@@ -11,6 +12,9 @@ from typing import TYPE_CHECKING, Any, Union
 import astropy.units as u
 
 from .converter import _REGISTRY_FVALIDATORS, FValidateCallable, _register_validator
+
+if sys.version_info < (3, 13):
+    __doctest_skip__ = ["Parameter.__replace__"]
 
 if TYPE_CHECKING:
     import astropy.cosmology
@@ -72,7 +76,7 @@ class _FValidateField:
 
 
 @dataclass(frozen=True)
-class Parameter:
+class Parameter:  # numpydoc ignore=PR02
     r"""Cosmological parameter (descriptor).
 
     Should only be used with a :class:`~astropy.cosmology.Cosmology` subclass.
@@ -182,6 +186,13 @@ class Parameter:
         """Allows attribute setting once.
 
         Raises AttributeError subsequently.
+
+        Parameters
+        ----------
+        cosmology : `~astropy.cosmology.Cosmology` instance
+            The cosmology on which to set the parameter value.
+        value : Any
+            The parameter value. It is validated before being set.
         """
         # Raise error if setting 2nd time. The built-in Cosmology objects are frozen
         # dataclasses and this is redundant, however user defined cosmology classes do
@@ -218,6 +229,7 @@ class Parameter:
         Parameters
         ----------
         fvalidate : callable[[type, type, Any], Any]
+            Value validation function.
 
         Returns
         -------
@@ -232,6 +244,7 @@ class Parameter:
         Parameters
         ----------
         cosmology : `~astropy.cosmology.Cosmology` instance
+            The cosmology instance.
         value : Any
             The object to validate.
 
@@ -250,13 +263,14 @@ class Parameter:
         Parameters
         ----------
         key : str
+            The name of the validator.
         fvalidate : callable[[object, object, Any], Any] or None, optional
             Value validation function.
 
         Returns
         -------
         ``validator`` or callable[``validator``]
-            if validator is None returns a function that takes and registers a
+            If validator is None returns a function that takes and registers a
             validator. This allows ``register_validator`` to be used as a
             decorator.
         """
@@ -264,14 +278,17 @@ class Parameter:
 
     # -------------------------------------------
 
-    def clone(self, **kw: Any) -> "Parameter":
-        """Clone this `Parameter`, changing any constructor argument.
+    def __replace__(self, /, **changes: Any) -> "Parameter":
+        """Return a copy of this `Parameter`, changing any constructor argument.
+
+        This supports :func:`copy.replace` (Python 3.13+).
 
         Parameters
         ----------
-        **kw
+        **changes
             Passed to constructor. The current values, eg. ``fvalidate`` are
-            used as the default values, so an empty ``**kw`` is an exact copy.
+            used as the default values, so an empty ``**changes`` is an exact
+            copy.
 
         Examples
         --------
@@ -280,17 +297,43 @@ class Parameter:
         Parameter(derived=False, unit=None, equivalencies=[],
                   fvalidate='default', doc=None)
 
+        >>> import copy
+        >>> copy.replace(p, unit="km")
+        Parameter(derived=False, unit=Unit("km"), equivalencies=[],
+                  fvalidate='default', doc=None)
+        """
+        changes.setdefault("fvalidate", self._fvalidate_in)  # prefer the input
+        new = replace(self, **changes)
+        # Transfer over the __set_name__ stuff. If `__replace__` is used to make a
+        # new descriptor, __set_name__ will be called again, overwriting this.
+        new.__set_name__(None, self.name)
+        return new
+
+    def clone(self, **kw: Any) -> "Parameter":
+        """Clone this `Parameter`, changing any constructor argument.
+
+        Equivalent to ``Parameter.__replace__``. This
+        will be deprecated in favor of :func:`copy.replace` once astropy's
+        minimum supported Python is 3.13.
+
+        Parameters
+        ----------
+        **kw
+            Passed to ``Parameter.__replace__``.
+
+        Returns
+        -------
+        Parameter
+            A copy of this `Parameter` with the given changes.
+
+        Examples
+        --------
+        >>> p = Parameter()
         >>> p.clone(unit="km")
         Parameter(derived=False, unit=Unit("km"), equivalencies=[],
                   fvalidate='default', doc=None)
         """
-        kw.setdefault("fvalidate", self._fvalidate_in)  # prefer the input fvalidate
-        cloned = replace(self, **kw)
-        # Transfer over the __set_name__ stuff. If `clone` is used to make a
-        # new descriptor, __set_name__ will be called again, overwriting this.
-        cloned.__set_name__(None, self.name)
-
-        return cloned
+        return self.__replace__(**kw)
 
     def __repr__(self) -> str:
         """Return repr(self)."""

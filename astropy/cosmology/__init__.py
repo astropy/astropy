@@ -72,6 +72,16 @@ from .realizations import available, default_cosmology
 def __getattr__(name: str) -> Cosmology:
     """Get realizations using lazy import from ``PEP 562``.
 
+    Parameters
+    ----------
+    name : str
+        The name of the realization.
+
+    Returns
+    -------
+    `~astropy.cosmology.Cosmology`
+        The realization.
+
     Raises
     ------
     AttributeError

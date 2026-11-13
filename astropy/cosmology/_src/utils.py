@@ -40,7 +40,7 @@ def vectorize_redshift_method(
     Parameters
     ----------
     func : callable or None
-        method to wrap. If `None` returns a :func:`functools.partial`
+        Method to wrap. If `None` returns a :func:`functools.partial`
         with ``nin`` loaded.
     nin : int
         Number of positional redshift arguments.
@@ -56,7 +56,7 @@ def vectorize_redshift_method(
         return functools.partial(vectorize_redshift_method, nin=nin)
 
     @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self, *args, **kwargs):  # numpydoc ignore=PR01
         """Wrapper converting arguments to numpy-compatible inputs.
 
         :func:`functools.wraps` of ``func`` where the first ``nin`` arguments are
@@ -93,6 +93,16 @@ def aszarr(
     """Redshift as an Array duck type.
 
     Allows for any ndarray ducktype by checking for attribute "shape".
+
+    Parameters
+    ----------
+    z : Quantity-like ['redshift'] or array-like, positional-only
+        Input redshift.
+
+    Returns
+    -------
+    ndarray
+        The redshift as a `numpy.ndarray`.
     """
     # Scalars
     if isinstance(z, SCALAR_TYPES):
@@ -120,9 +130,8 @@ def deprecated_keywords[R](
 
     Parameters
     ----------
-    *kws: str
+    *kws : str
         Names of the arguments that will become positional-only.
-
     since : str, float, or tuple of str or float
         The release at which the old argument became deprecated. Can be a single
         version (e.g., "7.0" or 7.0) or a tuple of versions for multiple arguments.

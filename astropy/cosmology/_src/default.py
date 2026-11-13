@@ -45,10 +45,13 @@ class default_cosmology(ScienceState):
         Parameters
         ----------
         value : None, str, or `~astropy.cosmology.Cosmology`
+            The cosmology or the name of a cosmology realization. If `None`, the
+            default cosmology is returned.
 
         Returns
         -------
-        `~astropy.cosmology.Cosmology` instance
+        `~astropy.cosmology.Cosmology` instance or None
+            The cosmology, or `None` if ``value`` is ``"no_default"``.
 
         Raises
         ------

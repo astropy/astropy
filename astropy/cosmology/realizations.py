@@ -46,6 +46,16 @@ available = (
 def __getattr__(name: str) -> Cosmology:
     """Make specific realizations from data files with lazy import from ``PEP 562``.
 
+    Parameters
+    ----------
+    name : str
+        The name of the realization.
+
+    Returns
+    -------
+    `~astropy.cosmology.Cosmology`
+        The realization.
+
     Raises
     ------
     AttributeError

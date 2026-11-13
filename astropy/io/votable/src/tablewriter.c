@@ -39,14 +39,15 @@ static Py_ssize_t next_power_of_2(Py_ssize_t n)
 #define CHAR char
 
 /*
- * Reallocate the write buffer to the requested size
+ * Reallocate the write buffer to the requested size.  No room is kept for a
+ * terminator: rows are passed to write_method with their length.
  */
 static int _buffer_realloc(CHAR **buffer, Py_ssize_t *buffer_size, CHAR **x, Py_ssize_t req_size)
 {
     Py_ssize_t n = req_size;
     CHAR *new_mem = NULL;
 
-    if (req_size < *buffer_size) {
+    if (req_size <= *buffer_size) {
         return 0;
     }
 
@@ -360,8 +361,6 @@ static PyObject *write_tabledata(PyObject *self, PyObject *args, PyObject *kwds)
             goto exit;
         }
 
-        /* NULL-terminate the string */
-        *x = (CHAR)0;
         if ((tmp = PyObject_CallFunction(write_method, "s#", buf, (Py_ssize_t)(x - buf))) == NULL) {
             goto exit;
         }

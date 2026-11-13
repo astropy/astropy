@@ -176,6 +176,47 @@ def test_projection_default(code):
     x, y = tinv(0, 0)
 
 
+ANGLE_PARAMETERS = {"gamma", "phi0", "theta0", "theta_b", "sigma", "delta", "theta1"}
+
+
+@pytest.mark.parametrize(
+    ("direction", "inputs"), [("Pix2Sky", (1.0, 2.0)), ("Sky2Pix", (10.0, 70.0))]
+)
+@pytest.mark.parametrize(
+    ("name", "params"),
+    [
+        ("ZenithalPerspective", {"mu": 2.0, "gamma": 30.0}),
+        ("SlantZenithalPerspective", {"mu": 0.5, "phi0": 170.0, "theta0": 60.0}),
+        ("Airy", {"theta_b": 60.0}),
+        ("ConicPerspective", {"sigma": 40.0, "delta": 10.0}),
+        ("ConicEquidistant", {"sigma": 40.0, "delta": 10.0}),
+        ("ConicEqualArea", {"sigma": 40.0, "delta": 10.0}),
+        ("ConicOrthomorphic", {"sigma": 40.0, "delta": 10.0}),
+        ("BonneEqualArea", {"theta1": 30.0}),
+    ],
+)
+def test_angle_parameter_units(direction, inputs, name, params):
+    """
+    Regression test for https://github.com/astropy/astropy/issues/20704
+
+    Angle parameters given in radians must project like the same angles in degrees.
+    """
+    cls = getattr(projections, f"{direction}_{name}")
+    in_radians = {
+        key: np.deg2rad(value) * u.rad if key in ANGLE_PARAMETERS else value
+        for key, value in params.items()
+    }
+    model = cls(**in_radians)
+    assert_allclose(model(*inputs), cls(**params)(*inputs), atol=1e-12)
+
+    # The inverse keeps the units and still inverts the projection.
+    inverse = model.inverse
+    for key, value in in_radians.items():
+        if key in ANGLE_PARAMETERS:
+            assert_quantity_allclose(getattr(inverse, key).quantity, value)
+    assert_allclose(inverse(*model(*inputs)), inputs, atol=1e-10)
+
+
 class TestZenithalPerspective:
     """Test Zenithal Perspective projection"""
 

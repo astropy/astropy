@@ -141,7 +141,20 @@ from astropy.cosmology._src.typing import _CosmoT
 def _rename_map(
     map: Mapping[str, Any], /, renames: Mapping[str, str]
 ) -> dict[str, Any]:
-    """Apply rename to map."""
+    """Apply rename to map.
+
+    Parameters
+    ----------
+    map : Mapping[str, Any], positional-only
+        The mapping to rename.
+    renames : Mapping[str, str]
+        A mapping of old key to new key.
+
+    Returns
+    -------
+    dict[str, Any]
+        A new dictionary with the renamed keys.
+    """
     if common_names := set(renames.values()).intersection(map):
         raise ValueError(
             "'renames' values must be disjoint from 'map' keys, "
@@ -200,6 +213,7 @@ def from_mapping(
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
+        The cosmology instance.
 
     Examples
     --------
@@ -310,7 +324,7 @@ def to_mapping[T: MutableMapping[str, Any]](
         The cosmology instance to convert to a mapping.
     *args : object
         Not used. Needed for compatibility with
-        `~astropy.io.registry.UnifiedReadWriteMethod`
+        `~astropy.io.registry.UnifiedReadWriteMethod`.
     cls : type (optional, keyword-only)
         `dict` or `collections.Mapping` subclass.
         The mapping type to return. Default is `dict`.
@@ -320,7 +334,7 @@ def to_mapping[T: MutableMapping[str, Any]](
     move_from_meta : bool (optional, keyword-only)
         Whether to add the Cosmology's metadata as an item to the mapping (if
         `False`, default) or to merge with the rest of the mapping, preferring
-        the original values (if `True`)
+        the original values (if `True`).
     rename : Mapping[str, str] or None (optional, keyword-only)
         A mapping of field names of the :class:`~astropy.cosmology.Cosmology` to keys in
         the map.
@@ -412,9 +426,19 @@ def mapping_identify(
 ) -> bool:
     """Identify if object uses the mapping format.
 
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    format : str or None
+        The format specified by the user, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
+
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     itis = False
     if origin == "read":

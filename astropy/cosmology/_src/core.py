@@ -55,6 +55,16 @@ def _with_signature(cls: type["Cosmology"]) -> type["Cosmology"]:
     If it is removed, the worst that will happen is that the signature will be
     computed on the fly, the speedup will be lost, and this decorator can be
     deprecated.
+
+    Parameters
+    ----------
+    cls : type
+        The `~astropy.cosmology.Cosmology` (sub)class.
+
+    Returns
+    -------
+    cls : type
+        The same class, with the signature precomputed.
     """
     cls.__signature__ = None  # clear the signature cache
     cls.__signature__ = inspect.signature(cls)  # add the new signature to the class
@@ -63,6 +73,11 @@ def _with_signature(cls: type["Cosmology"]) -> type["Cosmology"]:
 
 def dataclass_decorator(cls: type["Cosmology"], /) -> type["Cosmology"]:
     """Decorator for the dataclass transform.
+
+    Parameters
+    ----------
+    cls : type
+        The `~astropy.cosmology.Cosmology` (sub)class to transform.
 
     Returns
     -------
@@ -104,7 +119,7 @@ class _NameField:
 
 
 @dataclass_decorator
-class Cosmology(metaclass=ABCMeta):
+class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
     """Base-class for all Cosmologies.
 
     Parameters
@@ -370,7 +385,9 @@ class Cosmology(metaclass=ABCMeta):
             return False
 
     def __equiv__(self, other: Any, /) -> bool:
-        """Cosmology equivalence. Use ``.is_equivalent()`` for actual check!
+        """Cosmology equivalence.
+
+        Use ``.is_equivalent()`` for actual check!
 
         Parameters
         ----------
@@ -503,18 +520,18 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         kls : :class:`astropy.cosmology.Cosmology` class or None, optional
             If `None` (default) this class is searched instead of `kls`.
 
+        Returns
+        -------
+        type
+            A :class:`Cosmology` subclass this class inherits from that is not a
+            :class:`FlatCosmologyMixin` subclass.
+
         Raises
         ------
         TypeError
             If more than one non-flat class is found at the same level of the
             inheritance. This is similar to the error normally raised by Python
             for an inconsistent method resolution order.
-
-        Returns
-        -------
-        type
-            A :class:`Cosmology` subclass this class inherits from that is not a
-            :class:`FlatCosmologyMixin` subclass.
         """
         _kls = cls if kls is None else kls
 

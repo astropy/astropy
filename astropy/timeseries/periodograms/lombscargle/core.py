@@ -55,6 +55,14 @@ class LombScargle(BasePeriodogram):
     normalization : {'standard', 'model', 'log', 'psd'}, optional
         Normalization to use for the periodogram.
 
+    References
+    ----------
+    .. [1] Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Introduction to
+        astroML: Machine learning for astrophysics*. Proceedings of the
+        Conference on Intelligent Data Understanding (2012)
+    .. [2] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
+        Time Series*. ApJ 812.1:18 (2015)
+
     Examples
     --------
     Generate noisy periodic data:
@@ -91,14 +99,6 @@ class LombScargle(BasePeriodogram):
     Note here that the Lomb-Scargle power is always a unitless quantity,
     because it is related to the :math:`\\chi^2` of the best-fit periodic
     model at each frequency.
-
-    References
-    ----------
-    .. [1] Vanderplas, J., Connolly, A. Ivezic, Z. & Gray, A. *Introduction to
-        astroML: Machine learning for astrophysics*. Proceedings of the
-        Conference on Intelligent Data Understanding (2012)
-    .. [2] VanderPlas, J. & Ivezic, Z. *Periodograms for Multiband Astronomical
-        Time Series*. ApJ 812.1:18 (2015)
     """
 
     available_methods = available_methods()
@@ -588,16 +588,16 @@ class LombScargle(BasePeriodogram):
         cumulative : bool, optional
             If True, then return the cumulative distribution.
 
-        See Also
-        --------
-        false_alarm_probability
-        false_alarm_level
-
         Returns
         -------
         dist : np.ndarray
             The probability density or cumulative probability associated with
             the provided powers.
+
+        See Also
+        --------
+        false_alarm_probability
+        false_alarm_level
         """
         dH = 1 if self.fit_mean or self.center_data else 0
         dK = dH + 2 * self.nterms
@@ -645,6 +645,11 @@ class LombScargle(BasePeriodogram):
         false_alarm_probability : np.ndarray
             The false alarm probability
 
+        See Also
+        --------
+        distribution
+        false_alarm_level
+
         Notes
         -----
         The true probability distribution for the largest peak cannot be
@@ -661,11 +666,6 @@ class LombScargle(BasePeriodogram):
 
         Note also that for normalization='psd', the distribution can only be
         computed for periodograms constructed with errors specified.
-
-        See Also
-        --------
-        distribution
-        false_alarm_level
 
         References
         ----------
@@ -741,6 +741,11 @@ class LombScargle(BasePeriodogram):
             The periodogram peak height corresponding to the specified
             false alarm probability.
 
+        See Also
+        --------
+        distribution
+        false_alarm_probability
+
         Notes
         -----
         The true probability distribution for the largest peak cannot be
@@ -758,11 +763,6 @@ class LombScargle(BasePeriodogram):
 
         Note also that for normalization='psd', the distribution can only be
         computed for periodograms constructed with errors specified.
-
-        See Also
-        --------
-        distribution
-        false_alarm_probability
 
         References
         ----------

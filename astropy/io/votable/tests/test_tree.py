@@ -1,10 +1,16 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 import filecmp
 import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+from textwrap import dedent
 
 import numpy as np
 import pytest
 
+import astropy
 from astropy.io.votable import tree
 from astropy.io.votable.exceptions import (
     E26,
@@ -19,8 +25,9 @@ from astropy.io.votable.exceptions import (
     W54,
     W57,
 )
-from astropy.io.votable.table import parse
+from astropy.io.votable.table import parse, parse_single_table
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
+from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -736,3 +743,152 @@ def test_values_repr_keeps_xml_forbidden_chars():
     values = tree.Values(votable, field, ref="NGC\x0c1068")
 
     assert repr(values) == '<VALUES ref="NGC\x0c1068"/>'
+
+
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+)
+def test_write_tabledata_row_as_long_as_buffer():
+    """
+    Test that Table.write to TABLEDATA, for a table whose one row is 256 bytes
+    of XML, exits cleanly in a Python process using the debug memory
+    allocator.
+
+    256 bytes is the size of the C writer's first row buffer. The debug
+    allocator aborts the process if anything was written past the end of a
+    buffer.
+    """
+    code = dedent(
+        """
+        import io
+        import re
+        import sys
+
+        # The astropy under test, which need not come first on this process's
+        # own sys.path.
+        sys.path.insert(0, sys.argv[1])
+
+        from astropy.table import Table
+
+        buffer = io.BytesIO()
+        Table({"a": ["x" * 219]}).write(
+            buffer, format="votable", tabledata_format="tabledata"
+        )
+        (row,) = re.findall(rb" *<TR>.*</TR>\\n", buffer.getvalue(), flags=re.DOTALL)
+        assert len(row) == 256, len(row)
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code, str(Path(astropy.__file__).parents[1])],
+        env=os.environ | {"PYTHONMALLOC": "debug"},
+        timeout=300,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_table_longer_than_first_allocation(tabledata_format):
+    """
+    Test that parse on 1000-row table written in each serialization gives back
+    every value and mask.
+
+    Reading starts with room for 512 rows, so this grows the result arrays and
+    then trims them to the number of rows read.
+    """
+    values = np.ma.array(np.arange(1000.0), mask=np.arange(1000) % 7 == 0)
+    buffer = io.BytesIO()
+    Table({"a": values}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["a"]
+
+    assert np.array_equal(column.mask, values.mask)
+    assert np.array_equal(column.filled(-1), values.filled(-1))
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_variable_length_column_longer_than_first_allocation(tabledata_format):
+    """
+    Test that parse on a 1000-row table with a variable-length int column gives
+    back every row's values.
+    """
+    votable = VOTableFile()
+    resource = Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(tree.Field(votable, name="v", datatype="int", arraysize="*"))
+    table.create_arrays(1000)
+    # Fill the column with a different number of values in each row
+    expected = [list(range(i % 5)) for i in range(1000)]
+    for i, values in enumerate(expected):
+        table.array.data["v"][i] = np.ma.array(
+            values, mask=np.zeros(len(values), bool), dtype=np.int32
+        )
+    buffer = io.BytesIO()
+    votable.to_xml(buffer, tabledata_format=tabledata_format)
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["v"]
+
+    assert [list(values) for values in column] == expected
+
+
+def _votable_with_nrows(tabledata_format, nrows):
+    """
+    Return the bytes of a 1000-row VOTable in *tabledata_format* whose TABLE
+    element falsely says it has *nrows* rows.
+    """
+    values = np.ma.array(np.arange(1000.0), mask=np.arange(1000) % 7 == 0)
+    buffer = io.BytesIO()
+    Table({"a": values}).write(
+        buffer, format="votable", tabledata_format=tabledata_format
+    )
+    content = buffer.getvalue().replace(b"<TABLE>", f'<TABLE nrows="{nrows}">'.encode())
+    return content, values
+
+
+@pytest.mark.parametrize("nrows", [1, 1000, 5000])
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_read_table_with_nrows(tabledata_format, nrows):
+    """
+    Test that parse on a 1000-row table whose TABLE element has an nrows
+    attribute of 1, 1000 or 5000 gives back exactly the 1000 values and masks.
+
+    Reading starts with room for nrows rows, so a too-small value grows the
+    result arrays many times, the correct value never resizes them, and a
+    too-large value only trims them at the end.
+    """
+    content, values = _votable_with_nrows(tabledata_format, nrows)
+
+    column = parse_single_table(io.BytesIO(content)).array["a"]
+
+    assert np.array_equal(column.mask, values.mask)
+    assert np.array_equal(column.filled(-1), values.filled(-1))
+
+
+def test_read_bad_value_with_invalid_mask():
+    """
+    Test that parse_single_table with invalid="mask" on a TABLEDATA row whose
+    middle cell is not an integer masks that cell and keeps the cells after it
+    in their own columns.
+    """
+    content = b"""<?xml version="1.0"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE><TABLE>
+<FIELD name="a" datatype="int"/>
+<FIELD name="b" datatype="int"/>
+<FIELD name="c" datatype="int"/>
+<DATA><TABLEDATA>
+<TR><TD>1</TD><TD>bad</TD><TD>3</TD></TR>
+<TR><TD>4</TD><TD>5</TD><TD>6</TD></TR>
+</TABLEDATA></DATA></TABLE></RESOURCE></VOTABLE>
+"""
+    array = parse_single_table(io.BytesIO(content), invalid="mask").array
+
+    assert array.tolist() == [(1, None, 3), (4, 5, 6)]

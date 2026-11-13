@@ -18,7 +18,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 @dataclass_decorator
-class w0waCDM(FLRW):
+class w0waCDM(FLRW):  # numpydoc ignore=PR02
     r"""FLRW cosmology with a CPL dark energy EoS and curvature.
 
     The equation for the dark energy equation of state (EoS) uses the
@@ -73,6 +73,14 @@ class w0waCDM(FLRW):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    References
+    ----------
+    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
+           Scaling Dark Matter. International Journal of Modern Physics D,
+           10(2), 213-223.
+    .. [2] Linder, E. (2003). Exploring the Expansion History of the
+           Universe. Phys. Rev. Lett., 90, 091301.
+
     Examples
     --------
     >>> from astropy.cosmology import w0waCDM
@@ -82,14 +90,6 @@ class w0waCDM(FLRW):
 
     >>> z = 0.5
     >>> dc = cosmo.comoving_distance(z)
-
-    References
-    ----------
-    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
-           Scaling Dark Matter. International Journal of Modern Physics D,
-           10(2), 213-223.
-    .. [2] Linder, E. (2003). Exploring the Expansion History of the
-           Universe. Phys. Rev. Lett., 90, 091301.
     """
 
     w0: Parameter = Parameter(
@@ -206,7 +206,7 @@ class w0waCDM(FLRW):
 
 
 @dataclass_decorator
-class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
+class Flatw0waCDM(FlatFLRWMixin, w0waCDM):  # numpydoc ignore=PR02
     """FLRW cosmology with a CPL dark energy EoS and no curvature.
 
     The equation for the dark energy equation of state (EoS) uses the CPL form as
@@ -257,6 +257,14 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
     meta : mapping or None (optional, keyword-only)
         Metadata for the cosmology, e.g., a reference.
 
+    References
+    ----------
+    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
+           Scaling Dark Matter. International Journal of Modern Physics D,
+           10(2), 213-223.
+    .. [2] Linder, E. (2003). Exploring the Expansion History of the
+           Universe. Phys. Rev. Lett., 90, 091301.
+
     Examples
     --------
     >>> from astropy.cosmology import Flatw0waCDM
@@ -272,14 +280,6 @@ class Flatw0waCDM(FlatFLRWMixin, w0waCDM):
 
     >>> print(cosmo.nonflat)
     w0waCDM(H0=70.0 km / (Mpc s), Om0=0.3, Ode0=0.7, ...
-
-    References
-    ----------
-    .. [1] Chevallier, M., & Polarski, D. (2001). Accelerating Universes with
-           Scaling Dark Matter. International Journal of Modern Physics D,
-           10(2), 213-223.
-    .. [2] Linder, E. (2003). Exploring the Expansion History of the
-           Universe. Phys. Rev. Lett., 90, 091301.
     """
 
     def __post_init__(self) -> None:

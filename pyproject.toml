@@ -44,7 +44,7 @@ keywords = [
 # When adding a dependency here, make sure to preserve alphabetical sorting
 # so that cycling a dependency with uv add/uv remove doesn't change their order
 dependencies = [
-    "astropy-iers-data>=0.2026.9.21.0.56.25",
+    "astropy-iers-data>=0.2026.10.19.0.52.1",
     "configobj>=5.0.9",
     "numpy>=2.0",
     "packaging>=25.0",
@@ -108,7 +108,7 @@ test = [
     "setuptools>=77.0.0",  # can be removed once the astropy.wcs C API tests are removed
     "coverage>=7.2.7",
     "hypothesis>=6.84.0",
-    "pytest>=8.0.1",
+    "pytest>=9.0.0",
     "pytest-astropy-header>=0.2.2",
     "pytest-cov>=2.3.1",
     "pytest-doctestplus>=1.4.0",
@@ -253,8 +253,8 @@ namespaces = true
 [tool.setuptools_scm]
 version_file = "astropy/_version.py"
 
-[tool.pytest.ini_options]
-minversion = "8.0"
+[tool.pytest]
+minversion = "9.0"
 testpaths = [
     "astropy",
     "docs",
@@ -819,7 +819,6 @@ exclude_files = [ # don't process filepaths that match these regex
     '^astropy/constants/.*',
     '^astropy/convolution/.*',
     '^astropy/coordinates/.*',
-    '^astropy/cosmology/.*',
     '^astropy/extern/.*',
     '^astropy/io/ascii/.*',
     '^astropy/io/fits/.*',
@@ -847,10 +846,11 @@ exclude_files = [ # don't process filepaths that match these regex
 preview-features = [
     "index-exclude-newer",
 ]
-# ensure that uv resolves envs that are compatible with macOS arm64,
+# ensure that uv resolves envs that are compatible with envs used in development
 # even in drastic conditions like --resolution=lowest[-direct],
 # taking into account tool.uv.no-build-package
 required-environments = [
+    "sys_platform == 'linux' and platform_machine == 'x86_64'",
     "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 

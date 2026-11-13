@@ -99,9 +99,19 @@ def cosmology_identify(
     This checks if the 2nd argument is a |Cosmology| instance and the format is
     "astropy.cosmology" or `None`.
 
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    format : str or None
+        The format specified by the user, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
+
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     itis = False
     if origin == "read":

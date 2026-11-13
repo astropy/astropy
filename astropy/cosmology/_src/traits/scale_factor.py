@@ -2,7 +2,6 @@
 """Scale factor.
 
 This is private API. See `~astropy.cosmology.traits` for public API.
-
 """
 
 __all__ = ("ScaleFactor",)
@@ -18,7 +17,6 @@ class ScaleFactor:
     """The trait for computing the cosmological scale factor.
 
     The scale factor is defined as :math:`a = a_0 / (1 + z)`.
-
     """
 
     @property

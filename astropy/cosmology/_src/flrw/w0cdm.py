@@ -19,7 +19,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 @dataclass_decorator
-class wCDM(FLRW):
+class wCDM(FLRW):  # numpydoc ignore=PR02
     """FLRW cosmology with a constant dark energy EoS and curvature.
 
     This has one additional attribute beyond those of FLRW.
@@ -238,7 +238,7 @@ class wCDM(FLRW):
 
 
 @dataclass_decorator
-class FlatwCDM(FlatFLRWMixin, wCDM):
+class FlatwCDM(FlatFLRWMixin, wCDM):  # numpydoc ignore=PR02
     """FLRW cosmology with a constant dark energy EoS and no spatial curvature.
 
     This has one additional attribute beyond those of FLRW.

@@ -15,7 +15,7 @@ from .chi2_impl import lombscargle_chi2
 from .cython_impl import lombscargle_cython
 from .fast_impl import lombscargle_fast
 from .fastchi2_impl import lombscargle_fastchi2
-from .scipy_impl import lombscargle_scipy
+from .scipy_impl import _scipy_supports_floating_mean, lombscargle_scipy
 from .slow_impl import lombscargle_slow
 
 METHODS = {
@@ -75,7 +75,16 @@ def _get_frequency_grid(frequency, assume_regular_frequency=False):
     return frequency[0], frequency[1] - frequency[0], len(frequency)
 
 
-def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_frequency):  # ruff: ignore[PLR0917]
+def validate_method(  # ruff: ignore[PLR0917]
+    method,
+    dy,
+    fit_mean,
+    nterms,
+    frequency,
+    assume_regular_frequency,
+    *,
+    method_kwds=None,
+):
     """
     Validate the method argument, and if method='auto'
     choose the appropriate method.
@@ -95,6 +104,10 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     assume_regular_frequency : bool
         If True, assume that the frequencies are regularly spaced rather than
         checking.
+    method_kwds : dict, optional, keyword-only
+        Additional keywords to pass to the implementation, or None if none
+        were specified. The scipy method accepts no additional keywords, so
+        it is never chosen automatically when this is not None.
 
     Returns
     -------
@@ -105,7 +118,14 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
     prefer_fast = len(frequency) > 200 and (
         assume_regular_frequency or _is_regular(frequency)
     )
-    prefer_scipy = "scipy" in methods and dy is None and not fit_mean
+    # the scipy method accepts no additional keywords, so never select it
+    # automatically when method_kwds are passed
+    can_use_scipy = (
+        "scipy" in methods
+        and dy is None
+        and method_kwds is None
+        and (not fit_mean or _scipy_supports_floating_mean())
+    )
 
     # automatically choose the appropriate method
     if method == "auto":
@@ -116,7 +136,7 @@ def validate_method(method, dy, fit_mean, nterms, frequency, assume_regular_freq
                 method = "chi2"
         elif prefer_fast:
             method = "fast"
-        elif prefer_scipy:
+        elif can_use_scipy:
             method = "scipy"
         else:
             method = "cython"
@@ -224,12 +244,12 @@ def lombscargle(  # ruff: ignore[PLR0917]
         nterms=nterms,
         frequency=frequency,
         assume_regular_frequency=assume_regular_frequency,
+        method_kwds=method_kwds,
     )
 
-    # scipy doesn't support dy or fit_mean=True
+    # scipy doesn't support a dy array; lombscargle_scipy itself checks the
+    # scipy version requirement for fit_mean=True
     if method == "scipy":
-        if kwds.pop("fit_mean"):
-            raise ValueError("scipy method does not support fit_mean=True")
         if dy is not None:
             dy = np.ravel(np.asarray(dy))
             if not np.allclose(dy[0], dy):
