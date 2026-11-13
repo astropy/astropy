@@ -14,6 +14,7 @@ from astropy.coordinates.representation import (
 from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.coordinates.spectral_quantity import SpectralQuantity
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.shapes import NDArrayShapeMethods, ShapedLikeNDArray
 
 __all__ = ["SpectralCoord"]
 
@@ -102,9 +103,11 @@ def update_differentials_to_match(
         CartesianRepresentation, CartesianDifferential
     ).differentials
 
-    data_with_differentials = original_icrs.data.represent_as(
-        CartesianRepresentation
-    ).with_differentials(differentials)
+    position = original_icrs.data.represent_as(CartesianRepresentation)
+    shape = np.broadcast_shapes(position.shape, differentials["s"].shape)
+    position = np.broadcast_to(position.without_differentials(), shape)
+    differentials = {"s": np.broadcast_to(differentials["s"], shape)}
+    data_with_differentials = position.with_differentials(differentials)
 
     final_icrs = original_icrs.realize_frame(data_with_differentials)
 
@@ -123,7 +126,9 @@ def attach_zero_velocities(coord):
     """
     Set the differentials to be stationary on a coordinate object.
     """
-    new_data = coord.cartesian.with_differentials(ZERO_VELOCITIES)
+    new_data = coord.cartesian.with_differentials(
+        np.broadcast_to(ZERO_VELOCITIES, coord.shape)
+    )
     return coord.realize_frame(new_data)
 
 
@@ -134,7 +139,7 @@ def _get_velocities(coord):
         return ZERO_VELOCITIES
 
 
-class SpectralCoord(SpectralQuantity):
+class SpectralCoord(NDArrayShapeMethods, SpectralQuantity):
     """
     A spectral coordinate with its corresponding unit.
 
@@ -145,6 +150,15 @@ class SpectralCoord(SpectralQuantity):
         combined with multiple target frames as an N * M dimensional |SpectralCoord|
         has also not yet been finalised. It is possible that there will be API changes in future
         versions of Astropy based on user feedback.
+
+    For slicing and shape-changing operations, array-valued observer, target,
+    radial velocity and rest values are broadcast to the spectral-value shape
+    before applying the operation. Scalar metadata remains scalar. Concatenating
+    or stacking coordinates combines this metadata along with the spectral values.
+    In-place item assignment changes spectral values only; use slicing and
+    concatenation or ``numpy.sort`` to rearrange complete observations.
+    In-place sorting and partitioning with array-valued metadata are unsupported.
+    Other ndarray mutators, such as flat assignment, change spectral values only.
 
     Parameters
     ----------
@@ -239,6 +253,164 @@ class SpectralCoord(SpectralQuantity):
         self._radial_velocity = getattr(obj, "_radial_velocity", None)
         self._observer = getattr(obj, "_observer", None)
         self._target = getattr(obj, "_target", None)
+
+    _coordinate_attributes = (
+        "_observer",
+        "_target",
+        "_radial_velocity",
+        "_doppler_rest",
+    )
+
+    def _apply(self, method, *args, **kwargs):
+        """Apply an array operation to values and their broadcast metadata."""
+
+        def apply(value):
+            if isinstance(value, BaseCoordinateFrame):
+                return value._apply(method, *args, **kwargs)
+            if callable(method):
+                return method(value, *args, **kwargs)
+            return getattr(value, method)(*args, **kwargs)
+
+        result = apply(self.view(SpectralQuantity)).view(type(self))
+        result.__array_finalize__(self)
+        for name in self._coordinate_attributes:
+            value = getattr(self, name)
+            if value is not None:
+                if value.shape:
+                    if value.shape != self.shape:
+                        value = np.broadcast_to(value, self.shape, subok=True)
+                    value = apply(value)
+                elif method in ("copy", "flatten"):
+                    value = value.copy()
+                setattr(result, name, value)
+        return result
+
+    @property
+    def shape(self):
+        return np.ndarray.shape.__get__(self)
+
+    @shape.setter
+    def shape(self, shape):
+        # Check the no-copy constraint before changing any of our attributes.
+        view = self.view(np.ndarray)
+        view.shape = shape
+        reshaped = self.reshape(view.shape)
+        np.ndarray.shape.__set__(self, view.shape)
+        for name in self._coordinate_attributes:
+            setattr(self, name, getattr(reshaped, name))
+
+    def repeat(self, *args, **kwargs):
+        return self._apply("repeat", *args, **kwargs)
+
+    def compress(self, condition, axis=None, out=None):
+        if out is not None:
+            raise NotImplementedError("SpectralCoord.compress does not support out")
+        return self._apply("compress", condition, axis=axis)
+
+    def _sorted(self, axis=-1, kind=None, order=None, *, stable=None):
+        coordinate = self.ravel() if axis is None else self
+        axis = -1 if axis is None else axis
+        indices = np.argsort(
+            coordinate.value, axis=axis, kind=kind, order=order, stable=stable
+        )
+        return coordinate._apply(np.take_along_axis, indices, axis=axis)
+
+    def sort(self, axis=-1, kind=None, order=None, *, stable=None):
+        if any(
+            value is not None and value.shape
+            for name in self._coordinate_attributes
+            for value in (getattr(self, name),)
+        ):
+            raise NotImplementedError(
+                "In-place sorting with array-valued metadata is not supported; "
+                "use np.sort instead"
+            )
+        return super().sort(axis=axis, kind=kind, order=order, stable=stable)
+
+    def partition(self, *args, **kwargs):
+        if any(
+            value is not None and value.shape
+            for name in self._coordinate_attributes
+            for value in (getattr(self, name),)
+        ):
+            raise NotImplementedError(
+                "Partitioning with array-valued metadata is not supported"
+            )
+        return super().partition(*args, **kwargs)
+
+    def __array_function__(self, function, types, args, kwargs):
+        if function is np.sort:
+            return self._sorted(*args[1:], **kwargs)
+        if function in (np.concatenate, np.stack):
+            return self._combine(function, *args, **kwargs)
+        if function in ShapedLikeNDArray._APPLICABLE_FUNCTIONS or function is np.copy:
+            if args[0] is not self:
+                return NotImplemented
+            if function is np.copy:
+                function = "copy"
+                kwargs = {
+                    "order": args[1] if len(args) > 1 else kwargs.get("order", "K")
+                }
+                args = (self,)
+            elif function is np.broadcast_to:
+                kwargs = dict(kwargs, subok=True)
+            elif (
+                function in (np.atleast_1d, np.atleast_2d, np.atleast_3d)
+                and len(args) > 1
+            ):
+                return tuple(function(arg, **kwargs) for arg in args)
+            return self._apply(function, *args[1:], **kwargs)
+        return super().__array_function__(function, types, args, kwargs)
+
+    @classmethod
+    def _combine(cls, function, arrays, axis=0, out=None, **kwargs):
+        arrays = tuple(arrays)
+        if not arrays or any(not isinstance(array, cls) for array in arrays):
+            raise TypeError("All inputs must be SpectralCoord instances")
+        if out is not None:
+            raise NotImplementedError("SpectralCoord combination does not support out")
+        first = arrays[0]
+        if any(
+            array.doppler_convention != first.doppler_convention for array in arrays
+        ):
+            raise ValueError(
+                "SpectralCoord inputs must have the same Doppler convention"
+            )
+
+        attributes = {}
+        for name in cls._coordinate_attributes:
+            values = [getattr(array, name) for array in arrays]
+            if all(value is None for value in values):
+                attributes[name] = None
+                continue
+            if any(value is None for value in values):
+                raise ValueError(f"SpectralCoord inputs must all define {name[1:]}")
+            # Shared scalar metadata describes the entire spectrum, so keep it
+            # scalar when joining spectral segments of the same observation.
+            if all(not value.shape for value in values) and all(
+                value == values[0] for value in values[1:]
+            ):
+                attributes[name] = values[0]
+            else:
+                values = [
+                    np.broadcast_to(value, array.shape, subok=True)
+                    for value, array in zip(values, arrays)
+                ]
+                if axis is None:
+                    values = [value.ravel() for value in values]
+                attributes[name] = function(values, axis=0 if axis is None else axis)
+
+        quantities = [
+            array.quantity
+            if array.unit == first.unit
+            else array.to(first.unit).quantity
+            for array in arrays
+        ]
+        result = function(quantities, axis=axis, **kwargs).view(cls)
+        result.__array_finalize__(first)
+        for name, value in attributes.items():
+            setattr(result, name, value)
+        return result
 
     @staticmethod
     def _validate_coordinate(coord, label=""):
@@ -717,12 +889,18 @@ class SpectralCoord(SpectralQuantity):
         target_velocity = CartesianDifferential(target_velocity.xyz)
         observer_velocity = CartesianDifferential(observer_velocity.xyz)
 
+        target_position = np.broadcast_to(
+            target_icrs.cartesian.without_differentials(), target_velocity.shape
+        )
+        observer_position = np.broadcast_to(
+            observer_icrs.cartesian.without_differentials(), observer_velocity.shape
+        )
         new_target = target_icrs.realize_frame(
-            target_icrs.cartesian.with_differentials(target_velocity)
+            target_position.with_differentials(target_velocity)
         ).transform_to(self._target)
 
         new_observer = observer_icrs.realize_frame(
-            observer_icrs.cartesian.with_differentials(observer_velocity)
+            observer_position.with_differentials(observer_velocity)
         ).transform_to(self._observer)
 
         init_obs_vel = self._calculate_radial_velocity(observer_icrs, target_icrs)

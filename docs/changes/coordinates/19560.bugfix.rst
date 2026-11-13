@@ -1,0 +1,1 @@
+SpectralCoord array operations now keep target, observer, radial velocity, and Doppler metadata aligned with their spectral values.
