@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from itertools import combinations
 
 import numpy as np
@@ -7,6 +9,7 @@ import pytest
 
 from astropy import units as u
 from astropy.coordinates import HCRS, Angle, EarthLocation, SkyCoord
+from astropy.coordinates.baseframe import frame_transform_graph
 from astropy.coordinates.builtin_frames import (
     FK5,
     ICRS,
@@ -14,6 +17,7 @@ from astropy.coordinates.builtin_frames import (
     Galactic,
     SkyOffsetFrame,
 )
+from astropy.coordinates.builtin_frames.skyoffset import make_skyoffset_cls
 from astropy.coordinates.distances import Distance
 from astropy.tests.helper import assert_quantity_allclose as assert_allclose
 from astropy.time import Time
@@ -376,3 +380,35 @@ def test_skyoffset_wrapping_vs_broadcasting():
     origin = HCRS(0 * u.deg, 0 * u.deg, obstime=time)
     frame = SkyOffsetFrame(origin=origin)
     SkyCoord(240 * u.deg, 0 * u.deg, frame=frame)
+
+
+@pytest.fixture
+def new_frame_cls():
+    # A frame class whose sky offset frame class has not been created yet.
+    # The transforms registered for it are removed afterward so that the
+    # global transform graph is left unchanged.
+    framecls = type("ICRSThreadTest", (ICRS,), {"name": "icrs_thread_test"})
+    yield framecls
+    offset_cls = make_skyoffset_cls(framecls)
+    for fromsys, tosys in (
+        (offset_cls, offset_cls),
+        (framecls, offset_cls),
+        (offset_cls, framecls),
+    ):
+        frame_transform_graph.remove_transform(fromsys, tosys, None)
+
+
+def test_make_skyoffset_cls_concurrent(new_frame_cls):
+    # Concurrent first calls for the same frame class must create (and
+    # register the transforms of) exactly one sky offset frame class.
+    n_threads = 8
+    barrier = threading.Barrier(n_threads)
+
+    def make_cls(framecls):
+        barrier.wait()
+        return make_skyoffset_cls(framecls)
+
+    with ThreadPoolExecutor(max_workers=n_threads) as executor:
+        results = list(executor.map(make_cls, [new_frame_cls] * n_threads))
+    assert len(set(results)) == 1
+    assert results[0] is make_skyoffset_cls(new_frame_cls)
