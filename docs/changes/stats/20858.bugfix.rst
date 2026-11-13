@@ -1,0 +1,7 @@
+Fixed ``biweight_location``, ``biweight_scale``, and
+``biweight_midvariance`` so that a scalar initial location guess
+(``M``) works with ``axis=None`` and with an integer ``axis`` on
+multidimensional data. Previously, an ``AttributeError`` or
+``AxisError`` was raised. Also clarified in the ``biweight_location``
+docstring that when the MAD is zero, ``M`` (the median, or the input
+initial location guess if it was provided) is returned.

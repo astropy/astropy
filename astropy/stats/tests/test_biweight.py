@@ -73,8 +73,7 @@ def test_biweight_location_small():
 def test_biweight_location_scalar_m():
     """
     Regression test that scalar (e.g., float or int) M values work
-    with axis=None. Previously, a Python float or int M raised
-    AttributeError ("'float' object has no attribute 'squeeze'").
+    with axis=None.
     """
     data = np.arange(10.0)
     ref = biweight_location(data, M=np.float64(2.0))
@@ -84,9 +83,30 @@ def test_biweight_location_scalar_m():
     # For constant data (zero MAD), the input M is returned
     assert biweight_location(np.ones(10), M=2.0) == 2.0
 
-    # biweight_scale already accepted a scalar M with axis=None
     ref = biweight_scale(data, M=np.float64(2.0))
     assert biweight_scale(data, M=2.0) == ref
+
+
+@pytest.mark.parametrize("axis", [0, 1, -1])
+def test_biweight_scalar_m_axis(axis):
+    """
+    Test that a scalar M with an integer axis gives the same result as
+    an array M filled with that value.
+    """
+    data = np.arange(50.0).reshape(5, 10) ** 1.5
+    data[2] = 3.0  # constant row (zero MAD along axis=1)
+    m_array = np.full(np.delete(data.shape, axis), 2.0)
+
+    for func in (biweight_location, biweight_scale, biweight_midvariance):
+        ref = func(data, M=m_array, axis=axis)
+        for M in (2.0, 2, np.float64(2.0)):
+            result = func(data, M=M, axis=axis)
+            assert result.shape == ref.shape
+            assert_allclose(result, ref)
+
+    # Along rows, the constant row returns the input M
+    if axis != 0:
+        assert biweight_location(data, M=2.0, axis=axis)[2] == 2.0
 
 
 def test_biweight_location_axis():
