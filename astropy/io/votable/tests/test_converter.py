@@ -141,6 +141,38 @@ def test_float_mask_permissive():
     assert c.parse("null", config=config) == (c.null, True)
 
 
+def test_float_mask_empty_permissive():
+    """
+    Test that the float converter's parse with verify="ignore", given an empty
+    string, returns the null value masked.
+    """
+    config = {"verify": "ignore"}
+    field = tree.Field(None, name="c", datatype="float", config=config)
+    c = converters.get_converter(field, config=config)
+    assert c.parse("", config=config) == (c.null, True)
+
+
+def test_double_parse_zero_number():
+    """
+    Test that the double converter's parse, given the number 0.0 rather than
+    a string, returns 0.0 unmasked.  MIN and MAX values reach parse this way.
+    """
+    field = tree.Field(None, name="c", datatype="double")
+    c = converters.get_converter(field)
+    assert c.parse(0.0) == (0.0, False)
+
+
+def test_float_parse_null_value():
+    """
+    Test that the float converter's parse, given "-999.9" on a field whose
+    null is -999.9, returns -999.9 masked.  -999.9 is not exact in float32.
+    """
+    field = tree.Field(None, name="c", datatype="float")
+    field.values.null = "-999.9"
+    c = converters.get_converter(field)
+    assert c.parse("-999.9") == (-999.9, True)
+
+
 def test_double_array():
     config = {"verify": "exception", "version_1_3_or_later": True}
     field = tree.Field(None, name="c", datatype="double", arraysize="3", config=config)
@@ -282,6 +314,39 @@ def test_integer_overflow():
     c = converters.get_converter(field, config=config)
     with pytest.raises(exceptions.W51):
         c.parse("-2208988800", config=config)
+
+
+@pytest.mark.parametrize("value", [np.iinfo(np.int32).min, np.iinfo(np.int32).max])
+def test_int_parse_range_limits(value):
+    """
+    Test that the int converter's parse, given the smallest or the largest
+    32-bit int as a string, returns that value unmasked.
+    """
+    field = tree.Field(None, name="c", datatype="int")
+    c = converters.get_converter(field)
+    assert c.parse(str(value)) == (value, False)
+
+
+def test_int_parse_null_value():
+    """
+    Test that the int converter's parse, given "-1" on a field whose null is
+    -1, returns -1 masked.
+    """
+    field = tree.Field(None, name="c", datatype="int")
+    field.values.null = "-1"
+    c = converters.get_converter(field)
+    assert c.parse("-1") == (-1, True)
+
+
+def test_int_parse_empty():
+    """
+    Test that the int converter's parse for VOTable 1.3 or later, given an
+    empty string, returns 0 masked.
+    """
+    config = {"version_1_3_or_later": True}
+    field = tree.Field(None, name="c", datatype="int", config=config)
+    c = converters.get_converter(field, config=config)
+    assert c.parse("", config=config) == (0, True)
 
 
 def test_float_default_precision():

@@ -8,7 +8,7 @@ to/from TABLEDATA_ and BINARY_ formats.
 import re
 import struct
 import sys
-from math import prod
+from math import isnan, prod
 
 # THIRD-PARTY
 import numpy as np
@@ -736,9 +736,14 @@ class FloatingPoint(Numeric):
         if self.null is not None:
             self._fast_null_param = float(self.null)
             self._fast_has_null = True
+            # Compares in the column's dtype, so a float32 null such as -999.9
+            # matches the parsed Python float; float(self.null) would not.
+            self._is_null_scalar = self.is_null
         else:
             self._fast_null_param = 0.0
             self._fast_has_null = False
+            # np.isnan on a Python float costs about 30 times math.isnan
+            self._is_null_scalar = isnan
 
         precision = field.precision
         width = field.width
@@ -786,12 +791,16 @@ class FloatingPoint(Numeric):
         if value.strip() == "":
             return self.null, True
         f = float(value)
-        return f, self.is_null(f)
+        return f, self._is_null_scalar(f)
 
     def _parse_permissive(self, value, config=None, pos=None):
+        # Same result as the except branch below, without raising: empty
+        # cells are common in large tables
+        if value == "":
+            return self.null, True
         try:
             f = float(value)
-            return f, self.is_null(f)
+            return f, self._is_null_scalar(f)
         except ValueError:
             # IRSA VOTables use the word 'null' to specify empty values,
             # but this is not defined in the VOTable spec.
@@ -880,6 +889,22 @@ class Integer(Numeric):
             self._fast_has_null = False
 
     def parse(self, value, config=None, pos=None):
+        # Fast path for plain in-range integers; _parse_general handles the
+        # rest.  Empty cells skip the fast path because a failed int() is slow.
+        if value != "":
+            try:
+                ivalue = int(value)
+            except (TypeError, ValueError):
+                pass
+            else:
+                low, high = self.val_range
+                if low <= ivalue <= high:
+                    return ivalue, (
+                        self._fast_has_null and ivalue == self._fast_null_param
+                    )
+        return self._parse_general(value, config, pos)
+
+    def _parse_general(self, value, config=None, pos=None):
         if config is None:
             config = {}
         mask = False

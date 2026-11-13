@@ -3079,8 +3079,13 @@ class TableElement(
                 j = 0  # index of the column being written in array (not necessarily == i)
                 for start, tag, data, pos in iterator:
                     if start:
-                        binary = data.get("encoding", None) == "base64"
-                        warn_unknown_attrs(tag, data.keys(), config, pos, ["encoding"])
+                        if data:
+                            binary = data.get("encoding", None) == "base64"
+                            warn_unknown_attrs(
+                                tag, data.keys(), config, pos, ["encoding"]
+                            )
+                        else:
+                            binary = False
                     else:
                         if tag == "TD":
                             if i >= len(fields):
