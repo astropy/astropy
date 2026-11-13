@@ -28,7 +28,7 @@ See :term:`unit-like`. Note that this includes only scalar quantities.
 # Note: Quantity is technically covered by npt.ArrayLike, but we want to
 # explicitly include it here so that it is clear that we are also including
 # Quantity objects in the definition of QuantityLike.
-type QuantityLike = "astropy.units.Quantity" | npt.ArrayLike
+type QuantityLike = "astropy.units.Quantity | npt.ArrayLike"
 """Type alias for a quantity-like object.
 
 This is an object that can be converted to a :class:`~astropy.units.Quantity` object
