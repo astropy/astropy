@@ -6,17 +6,31 @@ This is private API. See `~astropy.cosmology.traits` for public API.
 
 __all__ = ("HubbleParameter",)
 
+from abc import abstractmethod
 from collections.abc import Callable
 from functools import cached_property
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
 
 import astropy.units as u
 from astropy import constants as const
 from astropy.cosmology._src.typing import FArray
 from astropy.units import Quantity
+
+
+class _HasHoverH0(Protocol):  # noqa: PYI046
+    """Protocol for objects that have method ``efunc``."""
+
+    def efunc(self, z: Quantity | ArrayLike, /) -> FArray: ...
+
+
+class _HasH0overH(Protocol):  # noqa: PYI046
+    """Protocol for objects that have method ``inv_efunc``."""
+
+    @abstractmethod
+    def inv_efunc(self, z: Quantity | ArrayLike, /) -> FArray: ...
 
 
 class HubbleParameter:
@@ -25,7 +39,7 @@ class HubbleParameter:
     H0: Quantity
     """Hubble Parameter at redshift 0."""
 
-    efunc: Callable[[Any], NDArray[Any]]
+    efunc: Callable[[Any], FArray]
 
     inv_efunc: Callable[[Any], FArray | float]
 
