@@ -978,16 +978,16 @@ class _ValidHDU(_BaseHDU, _Verify):
         Raises
         ------
         ValueError
-            If the bytes in the file cannot be used directly as `data`, for
+            If the bytes in the file cannot be used directly as ``data``, for
             example because the HDU is not associated with an uncompressed
             file on disk, because the data has been replaced since it was
             read, or because the stored values need to be scaled or converted
-            to obtain `data`.
+            to obtain ``data``.
 
         Notes
         -----
         The arguments describe the data currently stored in the file. Changes
-        made in-place to `data` are only reflected once they are written to
+        made in-place to ``data`` are only reflected once they are written to
         the file, and are never reflected if the file was opened in
         ``readonly`` or ``copyonwrite`` mode.
         """
