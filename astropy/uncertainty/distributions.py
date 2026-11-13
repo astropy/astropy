@@ -24,7 +24,7 @@ def normal(
     Parameters
     ----------
     center : `~astropy.units.Quantity`
-        The center of this distribution
+        The center of this distribution.
     std : `~astropy.units.Quantity` or None
         The standard deviation/σ of this distribution. Shape must match and unit
         must be compatible with ``center``, or be `None` (if ``var`` or ``ivar``
@@ -37,7 +37,7 @@ def normal(
         must be compatible with ``center``, or be `None` (if ``std`` or ``var``
         are set).
     n_samples : int
-        The number of Monte Carlo samples to use with this distribution
+        The number of Monte Carlo samples to use with this distribution.
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
@@ -49,7 +49,6 @@ def normal(
     distr : `~astropy.uncertainty.Distribution` or object
         The sampled Gaussian distribution.
         The type will be the same as the parameter ``cls``.
-
     """
     center = np.asanyarray(center)
     if var is not None:
@@ -95,7 +94,7 @@ def poisson(center, n_samples, cls=Distribution, **kwargs):
     center : `~astropy.units.Quantity`
         The center value of this distribution (i.e., λ).
     n_samples : int
-        The number of Monte Carlo samples to use with this distribution
+        The number of Monte Carlo samples to use with this distribution.
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
@@ -169,7 +168,7 @@ def uniform(
         The width of the distribution.  Must have the same shape and compatible
         units with ``center`` (if any).
     n_samples : int
-        The number of Monte Carlo samples to use with this distribution
+        The number of Monte Carlo samples to use with this distribution.
     cls : class
         The class to use to create this distribution.  Typically a
         `Distribution` subclass.
