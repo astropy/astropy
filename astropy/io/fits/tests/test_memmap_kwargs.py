@@ -17,7 +17,7 @@ def test_image(tmp_path, mode):
         kwargs = hdul[0].memmap_kwargs()
     assert kwargs == {
         "filename": str(filename),
-        "mode": "r+" if mode == "update" else "r",
+        "mode": "r",
         "offset": 2880,
         "shape": (3, 4),
         "dtype": np.dtype(">f4"),

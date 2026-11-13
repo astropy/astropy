@@ -972,8 +972,8 @@ class _ValidHDU(_BaseHDU, _Verify):
         dict
             Dictionary with the ``filename``, ``mode``, ``offset``,
             ``shape``, and ``dtype`` arguments for `numpy.memmap`. The mode is
-            ``'r+'`` if the file was opened in ``update`` mode and ``'r'``
-            otherwise.
+            always ``'r'`` (read-only), and can be changed to e.g. ``'r+'`` to
+            write to the file through the memory-mapped array.
 
         Raises
         ------
@@ -1020,7 +1020,7 @@ class _ValidHDU(_BaseHDU, _Verify):
 
         return {
             "filename": os.path.abspath(filename),
-            "mode": "r+" if self._file.mode == "update" else "r",
+            "mode": "r",
             "offset": self._data_offset,
             "shape": shape,
             "dtype": dtype,
