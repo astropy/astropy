@@ -68,13 +68,15 @@ class _WorldUnitConverter(ConversionInterface):
     def convert(val, unit, axis):
         # Pixel coordinates are plotted with the default transform, which does
         # not use the world units
-        if isinstance(val, u.Quantity) and val.unit == u.pix:
-            return val.value
+        if isinstance(val, u.Quantity) and val.unit.is_equivalent(u.pix):
+            return val.to_value(u.pix)
         return MplQuantityConverter.convert(val, unit, axis)
 
 
-# A single instance, since Matplotlib refuses to replace an explicitly set
-# converter with a different one when the WCS is reset
+# A single instance, since Matplotlib raises an error if an explicitly set
+# converter is replaced by one that is not equal to it, and converters only
+# compare equal by identity, so a new instance could not be set when the WCS
+# is reset
 _WORLD_UNIT_CONVERTER = _WorldUnitConverter()
 
 

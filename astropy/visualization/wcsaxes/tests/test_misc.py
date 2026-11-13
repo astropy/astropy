@@ -749,6 +749,9 @@ def test_plot_pixel_quantity():
     assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
     points = ax.scatter(1 * u.pix, 3 * u.pix)
     assert_allclose(points.get_offsets(), [[1, 3]])
+    # Including with prefixed pixel units
+    (line,) = ax.plot([0.001, 0.002] * u.kpix, [3, 4] * u.pix)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
 
 
 def test_world_units_converter_survives_clear():
