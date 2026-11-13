@@ -9,7 +9,7 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.stats import mad_std
+from astropy.stats import biweight_location, biweight_scale, mad_std
 from astropy.stats.sigma_clipping import (
     SigmaClip,
     SigmaClippedStats,
@@ -249,6 +249,92 @@ def test_sigma_clip_fast_all_rejected():
     assert_equal(result1.mask, result2.mask)
     assert np.all(np.isfinite(lower1))
     assert np.all(np.isfinite(upper1))
+
+
+# Integer-valued data for which the clipping bounds widen between
+# iterations. With sigma=1.5 and a median center, the third iteration
+# drops -1 at a lower bound of -0.84. The median then falls from 1.5 to
+# 1 while the standard deviation shrinks only a little, so the final
+# lower bound is -1.03 and -1 lies within the final bounds.
+READMIT_DATA = np.array(
+    [-1] + [0] * 8 + [1] * 2 + [2] * 2 + [3] * 7 + [4] * 2 + [8, 29],
+    dtype=float,
+)
+
+
+def _nanbiweight_location(data, axis=None):
+    return biweight_location(data, axis=axis, ignore_nan=True)
+
+
+def _nanbiweight_scale(data, axis=None):
+    return biweight_scale(data, axis=axis, ignore_nan=True)
+
+
+@pytest.mark.parametrize(
+    "funcs",
+    [
+        ("median", "std"),
+        (np.nanmedian, np.nanstd),
+        (_nanbiweight_location, _nanbiweight_scale),
+    ],
+)
+def test_sigma_clip_final_bounds_survivors(funcs):
+    # The survivors are all of the values within the final clipping
+    # bounds, including a value rejected in an earlier iteration, for
+    # every code path and output type.
+    cenfunc, stdfunc = funcs
+    if cenfunc is _nanbiweight_location:
+        # The biweight bounds widen from an upper bound of 3.87 in the
+        # second iteration to 4.14 in the final one, so 4 is included
+        # again
+        data = np.array(
+            [-2, 1, -2, 1, -5, 1, 1, -6, -3, -3, 2, -4]
+            + [-2, -3, -2, -1, 6, 2, 4, 2, 0, 1, 1, 3],
+            dtype=float,
+        )
+        readmitted = 4.0
+    else:
+        data = READMIT_DATA
+        readmitted = -1.0
+    sobj = SigmaClip(sigma=1.5, maxiters=20, cenfunc=cenfunc, stdfunc=stdfunc)
+    _, lower, upper = sobj(data, return_bounds=True)
+    expected = data[(data >= lower) & (data <= upper)]
+    assert readmitted in expected
+
+    result = sobj(data, axis=None, masked=False)
+    assert_equal(np.sort(result), np.sort(expected))
+    result = sobj(data, axis=None, masked=True)
+    assert_equal(np.sort(result.compressed()), np.sort(expected))
+
+    data2d = np.stack([data, data[::-1]])
+    result = sobj(data2d, axis=1, masked=False)
+    for row in result:
+        assert_equal(np.sort(row[np.isfinite(row)]), np.sort(expected))
+    for copy in (True, False):
+        result = sobj(data2d.copy(), axis=1, masked=True, copy=copy)
+        for row in result:
+            assert_equal(np.sort(row.compressed()), np.sort(expected))
+
+
+def test_sigma_clip_axis_row_all_rejected():
+    # When an iteration of the axis-based python implementation rejects
+    # every remaining value of one row, that row keeps the bounds from
+    # that iteration, so all of its values stay clipped, and the other
+    # rows are unaffected.
+    # The constant second row has a zero standard deviation, so its
+    # bounds keep every value
+    data = np.array([[0.0, 1.0] * 5, [3.0] * 10])
+    sobj = SigmaClip(sigma=0.1, maxiters=10, cenfunc=np.nanmedian, stdfunc=np.nanstd)
+    result, lower, upper = sobj(data, axis=1, return_bounds=True)
+    assert_equal(result.mask[0], True)
+    assert np.all(np.isfinite(lower))
+    assert np.all(np.isfinite(upper))
+    assert_equal(result.mask[1], False)
+
+    result_fast = SigmaClip(sigma=0.1, maxiters=10)(data, axis=1)
+    assert_equal(result.mask[0], result_fast.mask[0])
+    result = sobj(data, axis=1, masked=False)
+    assert np.all(np.isnan(result[0]))
 
 
 def test_sigma_clip_invalid_cenfunc_stdfunc():
