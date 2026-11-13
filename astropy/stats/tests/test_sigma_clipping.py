@@ -917,3 +917,65 @@ def test_sigmaclip_pickle():
     result = restored(data)
     expected = sigclip(data)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_sigma_clip_bounds_empty_after_call():
+    """
+    The bounds returned for empty or fully masked input should not
+    leak from a previous call on the same instance.
+    """
+    sigclip = SigmaClip(sigma=3.0)
+    _ = sigclip(np.arange(10.0))
+
+    result, lo, hi = sigclip(np.array([]), return_bounds=True)
+    assert result.size == 0
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+    marr = np.ma.MaskedArray(np.arange(10.0), mask=True)
+    result, lo, hi = sigclip(marr, return_bounds=True)
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+
+@pytest.mark.parametrize("mode", ["noaxis", "withaxis"])
+def test_sigma_clip_shared_instance_thread_safety(mode):
+    """
+    A single SigmaClip instance must be safe to call concurrently from
+    multiple threads. The clipping bounds were previously stored as
+    instance attributes and could be overwritten by concurrent calls.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    rng = np.random.default_rng(0)
+    scales = (1.0, 1e3, 1e6, 1e9)
+    datasets = []
+    for scale in scales:
+        data = rng.normal(0.0, scale, (40, 100))
+        data[0, :10] += 30 * scale  # outliers to clip
+        datasets.append(data)
+
+    if mode == "noaxis":
+        # axis=None exercises the _sigmaclip_noaxis code path
+        sigclip = SigmaClip(sigma=2.0, maxiters=5)
+        kwargs = {"axis": None}
+    else:
+        # a callable cenfunc with an axis exercises the (Python)
+        # _sigmaclip_withaxis code path
+        sigclip = SigmaClip(sigma=2.0, maxiters=5, cenfunc=np.nanmedian)
+        kwargs = {"axis": 1}
+
+    def clip(data):
+        return sigclip(data, masked=False, return_bounds=True, **kwargs)
+
+    expected = [clip(data) for data in datasets]
+
+    n_repeats = 25
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(clip, datasets * n_repeats))
+
+    for i, (filtered, lo, hi) in enumerate(results):
+        exp_filtered, exp_lo, exp_hi = expected[i % len(datasets)]
+        assert_equal(filtered, exp_filtered)
+        assert_equal(lo, exp_lo)
+        assert_equal(hi, exp_hi)
