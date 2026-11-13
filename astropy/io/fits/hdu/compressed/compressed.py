@@ -546,6 +546,9 @@ class CompImageHDU(ImageHDU):
                 image_header=self.header,
             )
 
+    def _memmap_layout(self):
+        raise ValueError("The data is tile-compressed.")
+
     @property
     def compressed_data(self):
         return None if self._bintable is None else self._bintable.data

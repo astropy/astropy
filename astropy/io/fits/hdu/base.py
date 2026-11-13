@@ -2,6 +2,7 @@
 
 
 import datetime
+import math
 import numbers
 import os
 import sys
@@ -951,6 +952,105 @@ class _ValidHDU(_BaseHDU, _Verify):
             }
         else:
             return None
+
+    def memmap_info(self):
+        """
+        Return the arguments needed to memory-map the data of this HDU.
+
+        The returned dictionary can be passed directly to `numpy.memmap`::
+
+            >>> array = np.memmap(**hdu.memmap_info())  # doctest: +SKIP
+
+        This makes it possible to access the data without going through the
+        HDU, for example to share it with other processes, or to check whether
+        two arrays are backed by the same file.
+
+        .. versionadded:: 8.1
+
+        Returns
+        -------
+        dict
+            Dictionary with the ``filename``, ``mode``, ``offset``,
+            ``shape``, and ``dtype`` arguments for `numpy.memmap`. The mode is
+            always ``'r'`` (read-only), and can be changed to e.g. ``'r+'`` to
+            write to the file through the memory-mapped array.
+            The dictionary only ever contains arguments accepted by
+            `numpy.memmap`.
+
+        Raises
+        ------
+        ValueError
+            If the bytes in the file cannot be used directly as ``data``, for
+            example because the HDU is not associated with an uncompressed
+            file on disk, because the data has been replaced since it was
+            read, or because the stored values need to be scaled or converted
+            to obtain ``data``.
+
+        Notes
+        -----
+        The arguments describe where the data is in the file at the time this
+        method is called, and there is no guarantee that they remain valid
+        afterwards. In particular:
+
+        * The file may later be moved, deleted, or overwritten, and the
+          position and size of the data in the file can change if the file was
+          opened in ``update`` mode and is flushed or closed after HDUs have
+          been modified. The arguments should therefore be used promptly, and
+          requested again after any such change.
+
+        * Changes made in-place to ``data`` are only reflected once they are
+          written to the file, and are never reflected if the file was opened
+          in ``readonly`` or ``copyonwrite`` mode.
+
+        * The data is stored in big-endian byte order in FITS files, which is
+          reflected in the ``dtype``.
+
+        * An array memory-mapped with these arguments is independent of the
+          HDU, and remains usable after the file it was read from is closed.
+        """
+        if self._file is None or self._data_offset is None:
+            raise ValueError("The HDU is not associated with a file.")
+
+        filename = getattr(self._file, "name", None)
+        if not isinstance(filename, str) or not os.path.isfile(filename):
+            raise ValueError("The HDU is not associated with a file on disk.")
+
+        if self._file.compression is not None:
+            raise ValueError(
+                f"The file is {self._file.compression}-compressed and cannot be "
+                "memory-mapped."
+            )
+
+        if self._data_replaced:
+            raise ValueError(
+                "The data has been replaced since it was read from the file."
+            )
+
+        shape, dtype = self._memmap_layout()
+
+        if not shape or math.prod(shape) == 0:
+            raise ValueError("The HDU does not contain any data.")
+
+        nbytes = math.prod(shape) * dtype.itemsize
+        if self._data_offset + nbytes > os.path.getsize(filename):
+            raise ValueError("The file is too small to contain the data.")
+
+        return {
+            "filename": os.path.abspath(filename),
+            "mode": "r",
+            "offset": self._data_offset,
+            "shape": shape,
+            "dtype": dtype,
+        }
+
+    def _memmap_layout(self):
+        """
+        Return the shape and dtype of the data in the file for `memmap_info`,
+        raising a `ValueError` if the bytes can't be used directly as `data`.
+        """
+        raise ValueError(
+            f"Memory-mapping is not supported for {self.__class__.__name__}."
+        )
 
     def copy(self):
         """
