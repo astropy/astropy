@@ -1,0 +1,5 @@
+``SigmaClip`` and ``sigma_clip`` now return all of the valid values
+within the final clipping bounds on every code path. Previously, a
+value rejected in an earlier iteration could be left out of the output
+even when the final bounds included it, depending on ``axis``,
+``masked``, and whether ``cenfunc`` or ``stdfunc`` was a callable.
