@@ -202,7 +202,7 @@ class TestTimeDelta:
         assert not out.isscalar
 
     @pytest.mark.parametrize(
-        "values", [(2455197.5, 2455198.5), ([2455197.5], [2455198.5])]
+        "values", [(2.4551975e6, 2.4551985e6), ([2.4551975e6], [2.4551985e6])]
     )
     def test_copy_timedelta(self, values):
         """Test copying the values of a TimeDelta object by passing it into the
@@ -327,7 +327,7 @@ class TestTimeDelta:
     def test_from_non_float(self):
         dt = TimeDelta("1.000000000000001", format="jd")
         assert dt != TimeDelta(1.000000000000001, format="jd")  # precision loss.
-        assert dt == TimeDelta(1, 0.000000000000001, format="jd")
+        assert dt == TimeDelta(1, 1.0e-15, format="jd")
         dt2 = TimeDelta(Decimal("1.000000000000001"), format="jd")
         assert dt2 == dt
 
@@ -719,13 +719,13 @@ quantity_str_basic_cases = [
     # Float hours
     ("2.5hr", "2hr 30min", 2.5 * 3600),
     # Variations on single input component with exponent to multiple output components
-    ("3.000001e7s", "347d 5hr 20min 10.0s", 30000010.0),
-    ("3.e7s", "347d 5hr 20min", 30000000.0),
-    ("3e7s", "347d 5hr 20min", 30000000.0),
+    ("3.000001e7s", "347d 5hr 20min 10.0s", 3.000001e7),
+    ("3.e7s", "347d 5hr 20min", 3.0e7),
+    ("3e7s", "347d 5hr 20min", 3.0e7),
     # High precision seconds
-    ("1.0123456789012345s", "1.012s", 1.0123456789012345),
+    ("1.0123456789012345s", "1.012s", 1.0123456789012344),
     # High precision seconds, random/missing white space and a longer time interval
-    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012345),
+    ("  100.0 d1.0123456789012345 s ", "100d 1.012s", 100 * 86400 + 1.0123456789012344),
     # All possible components
     (
         "2yr 3d 4hr 5min 6.789s",
@@ -822,15 +822,15 @@ def test_quantity_str_out_subfmt_to_value_subfmt():
 
 
 def test_quantity_str_out_subfmt_from_non_quantity_str():
-    dt = TimeDelta(30000010.0 * u.s)
+    dt = TimeDelta(3.000001e7 * u.s)
     for subfmt, exp in quantity_str_subfmt_exps.items():
         assert dt.to_value(format="quantity_str", subfmt=subfmt) == exp
 
 
 def test_quantity_str_internal_precision():
     dt = TimeDelta("100000000d 1.0123456789012345s")
-    assert dt.jd1 == 100000000
-    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012345)
+    assert dt.jd1 == 100_000_000
+    assert allclose_sec(dt.jd2 * 86400, 1.0123456789012344)
 
 
 def test_time_delta_to_value_validation_error():
