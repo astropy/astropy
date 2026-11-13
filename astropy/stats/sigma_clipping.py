@@ -319,7 +319,13 @@ class SigmaClip:
         else:
             unit = None
 
-        if copy is False and masked is False and data.dtype.kind != "f":
+        axis_none = axis is None
+        if (
+            copy is False
+            and masked is False
+            and not axis_none
+            and data.dtype.kind != "f"
+        ):
             raise Exception(
                 "cannot mask non-floating-point array with NaN "
                 "values, set copy=True or masked=True to avoid "
@@ -348,10 +354,8 @@ class SigmaClip:
             )
             axis = -1
 
-        if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
-            data_reshaped = data_reshaped.astype(float)
-
-        # Any unmasked infinities or nans?
+        # Any unmasked infinities or nans? This check comes before the
+        # float conversion so that non-numeric input raises a TypeError.
         mask = ~np.isfinite(data_reshaped)
         if np.any(mask):
             warnings.warn(
@@ -359,6 +363,9 @@ class SigmaClip:
                 "infs), which were automatically clipped.",
                 AstropyUserWarning,
             )
+
+        if data_reshaped.dtype.kind != "f" or data_reshaped.dtype.itemsize > 8:
+            data_reshaped = data_reshaped.astype(float)
 
         # Get unmasked data and its possible mask.
         data_reshaped, mask_reshaped = get_data_and_mask(data_reshaped)
@@ -390,6 +397,12 @@ class SigmaClip:
 
         if masked:
             result = _make_masked(data, mask, copy=copy)
+        elif axis_none:
+            # Match the documented axis=None, masked=False behavior:
+            # return a flattened array with the clipped values removed.
+            # The input data are never modified in this case.
+            data, _ = get_data_and_mask(data)
+            result = data[~mask]
         else:
             data, _ = get_data_and_mask(data)
             if data.dtype.kind != "f":
@@ -401,6 +414,11 @@ class SigmaClip:
                 else:
                     result = data
             result[mask] = np.nan
+
+        if axis_none:
+            # Match the scalar bounds of the axis=None Python code path
+            bound_lo = bound_lo[()]
+            bound_hi = bound_hi[()]
 
         if unit is not None:
             result = result << unit
@@ -666,7 +684,6 @@ class SigmaClip:
         if (
             self.cenfunc in ("mean", "median")
             and self.stdfunc in ("std", "mad_std")
-            and axis is not None
             and not self.grow
         ):
             return self._sigmaclip_fast(
