@@ -1,0 +1,3 @@
+Reduced evaluation memory for ``Chebyshev2D``, ``Legendre2D`` and ``Hermite2D``
+by evaluating their series with nested Clenshaw recurrences. Working arrays are
+released after evaluation instead of being retained on the model.

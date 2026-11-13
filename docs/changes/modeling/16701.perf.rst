@@ -1,0 +1,4 @@
+Compound models now defer parameter metadata until it is used, reducing memory
+and construction time for large expressions. Arithmetic evaluation, additive
+analytic derivatives, copying, and subtree indexing avoid recursive or repeated
+intermediate work for deeply nested sums.

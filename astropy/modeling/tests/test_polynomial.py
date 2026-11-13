@@ -694,6 +694,84 @@ def test_ortho_polynomial_2d_against_numpy(
     assert_allclose(model(x, y), numpy_val2d(x, y, coeffs))
 
 
+@pytest.mark.parametrize("model_class", [Chebyshev2D, Legendre2D, Hermite2D])
+def test_ortho_polynomial_2d_evaluation_storage(model_class):
+    model = model_class(3, 4, c0_0=2, c2_3=1)
+    x = np.linspace(-1, 1, 1000)
+    result = model(x, x)
+    assert_allclose(result, model.fit_deriv(x, x) @ model.parameters)
+    # Evaluating a model must not leave full-size working arrays attached to it.
+    assert not any(
+        isinstance(value, np.ndarray) and value.size >= x.size
+        for value in vars(model).values()
+    )
+
+
+@pytest.mark.parametrize("model_class", [Chebyshev2D, Legendre2D, Hermite2D])
+@pytest.mark.parametrize("zero_axis", ["x", "y", "both"])
+def test_ortho_polynomial_2d_zero_degree_nonfinite(model_class, zero_axis):
+    x = np.array([0.0, np.nan, np.inf])
+    y = np.array([1.0, 2.0, 3.0])
+    if zero_axis == "both":
+        model = model_class(0, 0, c0_0=2)
+        assert_allclose(model(x, x), np.full(3, 2))
+    elif zero_axis == "x":
+        model = model_class(0, 3, c0_0=2, c0_3=1)
+        assert_allclose(model(x, y), model(np.zeros(3), y))
+    else:
+        model = model_class(3, 0, c0_0=2, c3_0=1)
+        assert_allclose(model(y, x), model(y, np.zeros(3)))
+
+    # An unused coordinate's mask, like its non-finite values, is ignored.
+    masked = np.ma.array([0.0, 1.0, 2.0], mask=[False, True, False])
+    if zero_axis == "both":
+        masked_result = model(masked, masked)
+    elif zero_axis == "x":
+        masked_result = model(masked, y)
+    else:
+        masked_result = model(y, masked)
+    assert not np.any(np.ma.getmaskarray(masked_result))
+
+
+@pytest.mark.parametrize("model_class", [Chebyshev2D, Legendre2D, Hermite2D])
+def test_ortho_polynomial_2d_domain_and_model_set(model_class):
+    params = {
+        f"c{i}_{j}": [[[i + 2 * j + 1, 2 * i - j + 1]]]
+        for j in range(4)
+        for i in range(3)
+    }
+    model = model_class(
+        2, 3, n_models=2, model_set_axis=2, x_domain=(0, 2), y_domain=(-4, 0), **params
+    )
+    x = np.linspace(0, 2, 12).reshape(3, 4)
+    y = np.linspace(-4, 0, 12).reshape(3, 4)
+    result = model(x, y, model_set_axis=False)
+    assert result.shape == (3, 4, 2)
+    xm, ym = x.ravel() - 1, y.ravel() / 2 + 1
+    for index in range(2):
+        coeffs = np.array([params[name][0][0][index] for name in model.param_names])
+        expected = (model.fit_deriv(xm, ym) @ coeffs).reshape(x.shape)
+        assert_allclose(result[..., index], expected, atol=1e-12)
+
+
+def test_ortho_polynomial_2d_subclass_hooks():
+    class CustomBasis(OrthoPolynomialBase):
+        _fcache = Chebyshev2D._fcache
+
+    class CustomHorner(Chebyshev2D):
+        def imhorner(self, x, y, coeff):
+            return np.full_like(x, 42)
+
+    x = np.linspace(-1, 1, 1000)
+    custom = CustomBasis(3, 2, c3_2=2)
+    assert_allclose(custom(x, x), Chebyshev2D(3, 2, c3_2=2)(x, x))
+    assert not any(
+        isinstance(value, np.ndarray) and value.size >= x.size
+        for value in vars(custom).values()
+    )
+    assert_allclose(CustomHorner(3, 2)(x, x), np.full_like(x, 42))
+
+
 def test_fit_deriv_shape_error():
     model = Hermite2D(x_degree=2, y_degree=2)
     MESSAGE = r"x and y must have the same shape"

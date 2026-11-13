@@ -889,9 +889,10 @@ class Model(metaclass=_ModelMeta):
     def __setattr__(self, attr, value):
         if isinstance(self, CompoundModel):
             param_names = self._param_names
-        param_names = self.param_names
+        else:
+            param_names = self.param_names
 
-        if param_names is not None and attr in self.param_names:
+        if param_names is not None and attr in param_names:
             param = self.__dict__[attr]
             value = _tofloat(value)
             if param._validator is not None:
@@ -1699,6 +1700,8 @@ class Model(metaclass=_ModelMeta):
         return units
 
     def strip_units_from_tree(self):
+        if self._leaflist is None:
+            self._make_leaflist()
         for item in self._leaflist:
             for parname in item.param_names:
                 par = getattr(item, parname)
@@ -3169,8 +3172,21 @@ class CompoundModel(Model):
             self.linear = False
         self.eqcons = []
         self.ineqcons = []
-        self.n_left_params = len(self.left.parameters)
-        self._map_parameters()
+        self.n_left_params = (
+            left._n_parameters
+            if isinstance(left, CompoundModel) and "_n_parameters" in left.__dict__
+            else len(left.param_names)
+        )
+        self._n_parameters = self.n_left_params + (
+            0
+            if op == "fix_inputs"
+            else right._n_parameters
+            if isinstance(right, CompoundModel) and "_n_parameters" in right.__dict__
+            else len(right.param_names)
+        )
+        self._n_submodels = left.n_submodels + (
+            1 if op == "fix_inputs" else right.n_submodels
+        )
 
         # Initialize the cache for the constraints (used primarily when
         # sync_constraints is False)
@@ -3260,6 +3276,30 @@ class CompoundModel(Model):
     def evaluate(self, *args, **kw):
         op = self.op
         args, kw = self._get_kwarg_model_parameters_as_positional(args, kw)
+        if type(self) is CompoundModel and op in ("+", "-", "*", "/", "**"):
+            inputs = args[: self.n_inputs]
+            parameters = args[self.n_inputs :]
+            pending = [(self, 0, False)]
+            values = []
+            while pending:
+                node, offset, visited = pending.pop()
+                if (
+                    type(node) is CompoundModel
+                    and node.op in ("+", "-", "*", "/", "**")
+                ):
+                    if visited:
+                        right = values.pop()
+                        left = values.pop()
+                        values.append(node._apply_operators_to_value_lists(left, right))
+                    else:
+                        pending.append((node, offset, True))
+                        pending.append((node.right, offset + node.n_left_params, False))
+                        pending.append((node.left, offset, False))
+                else:
+                    stop = offset + len(node.param_names)
+                    values.append(node.evaluate(*inputs, *parameters[offset:stop]))
+            return values[0]
+
         left_inputs = self._get_left_inputs_from_args(args)
         left_params = self._get_left_params_from_args(args)
 
@@ -3294,6 +3334,42 @@ class CompoundModel(Model):
 
     @property
     def fit_deriv(self):
+        if type(self) is CompoundModel and self.op in ("+", "-"):
+            # The columns for a sum are the constituent columns, with signs
+            # for subtraction. Assemble them once rather than repeatedly
+            # copying the growing Jacobian at each intermediate sum.
+            terms = []
+            pending = [(self, 0, 1)]
+            while pending:
+                node, offset, sign = pending.pop()
+                if type(node) is CompoundModel and node.op in ("+", "-"):
+                    pending.append(
+                        (node.right, offset + node.n_left_params,
+                         sign if node.op == "+" else -sign)
+                    )
+                    pending.append((node.left, offset, sign))
+                else:
+                    deriv = node.fit_deriv
+                    if deriv is None:
+                        return None
+                    terms.append((node, deriv, offset, sign))
+
+            def _calc_sum_deriv(*args, **kwargs):
+                args, kw = self._get_kwarg_model_parameters_as_positional(args, kwargs)
+                inputs = args[: self.n_inputs]
+                parameters = args[self.n_inputs :]
+                columns = []
+                for node, deriv, offset, sign in terms:
+                    stop = offset + len(node.param_names)
+                    values = np.asanyarray(deriv(*inputs, *parameters[offset:stop]))
+                    if not node.col_fit_deriv:
+                        values = np.moveaxis(values, -1, 0)
+                    values = values.reshape((values.shape[0], -1))
+                    columns.append(values if sign == 1 else -values)
+                return np.concatenate(columns, axis=0)
+
+            return _calc_sum_deriv
+
         # If either side of the model is missing analytical derivative then we can't compute one
         if self.left.fit_deriv is None or self.right.fit_deriv is None:
             return None
@@ -3396,9 +3472,12 @@ class CompoundModel(Model):
 
     @property
     def n_submodels(self):
-        if self._leaflist is None:
-            self._make_leaflist()
-        return len(self._leaflist)
+        # Older serialized compound models did not cache this count.
+        if self.__dict__.get("_n_submodels") is None:
+            if self._leaflist is None:
+                self._make_leaflist()
+            self._n_submodels = len(self._leaflist)
+        return self._n_submodels
 
     @property
     def submodel_names(self):
@@ -3463,6 +3542,34 @@ class CompoundModel(Model):
         return outputs
 
     def _evaluate(self, *args, **kw):
+        if (
+            type(self) is CompoundModel
+            and not kw
+            and self.op in ("+", "-", "*", "/", "**")
+        ):
+            # Preserve the expression's order without a Python call stack for
+            # every arithmetic node. Leaves retain their normal Model call,
+            # including input broadcasting and unit handling.
+            pending = [(self, False)]
+            values = []
+            while pending:
+                node, visited = pending.pop()
+                if (
+                    type(node) is CompoundModel
+                    and node.op in ("+", "-", "*", "/", "**")
+                ):
+                    if visited:
+                        right = values.pop()
+                        left = values.pop()
+                        values.append(node._apply_operators_to_value_lists(left, right))
+                    else:
+                        pending.append((node, True))
+                        pending.append((node.right, False))
+                        pending.append((node.left, False))
+                else:
+                    values.append(node(*args))
+            return values[0]
+
         op = self.op
         if op != "fix_inputs":
             if op != "&":
@@ -3530,14 +3637,90 @@ class CompoundModel(Model):
     @property
     def param_names(self):
         """An ordered list of parameter names."""
+        if self._param_names is None:
+            self._map_parameters()
         return self._param_names
 
     def _make_leaflist(self):
-        tdict = {}
         leaflist = []
-        make_subtree_dict(self, "", tdict, leaflist)
+        pending = [self]
+        while pending:
+            node = pending.pop()
+            if isinstance(node, CompoundModel):
+                pending.append(node.right)
+                pending.append(node.left)
+            else:
+                leaflist.append(node)
         self._leaflist = leaflist
-        self._tdict = tdict
+
+    def __setattr__(self, name, value):
+        # Compound parameter names always end in their leaf index. Ordinary
+        # attribute assignments, including construction of a parent compound,
+        # must not materialize the parameter tables of intermediate nodes.
+        if (
+            self.__dict__.get("_param_names") is None
+            and name.rpartition("_")[2].isdigit()
+        ):
+            self._map_parameters()
+        super().__setattr__(name, value)
+
+    def __deepcopy__(self, memo):
+        def restore_state(clone, state):
+            if state is None:
+                return
+            state = copy.deepcopy(state, memo)
+            if hasattr(clone, "__setstate__"):
+                clone.__setstate__(state)
+            else:
+                if isinstance(state, tuple):
+                    state, slots = state
+                else:
+                    slots = None
+                if state is not None:
+                    clone.__dict__.update(state)
+                if slots is not None:
+                    for name, value in slots.items():
+                        object.__setattr__(clone, name, value)
+
+        if type(self) is not CompoundModel:
+            # Subclasses may customize reconstruction (including __new__ and
+            # slots). Honor their normal copy protocol rather than allocating
+            # them as plain compound nodes.
+            reduced = self.__reduce_ex__(4)
+            if isinstance(reduced, str):
+                return self
+            factory, args, *tail = reduced
+            clone = factory(*copy.deepcopy(args, memo))
+            memo[id(self)] = clone
+            if tail:
+                restore_state(clone, tail[0])
+            if len(tail) > 1 and tail[1] is not None:
+                for item in tail[1]:
+                    clone.append(copy.deepcopy(item, memo))
+            if len(tail) > 2 and tail[2] is not None:
+                for key, value in tail[2]:
+                    clone[copy.deepcopy(key, memo)] = copy.deepcopy(value, memo)
+            return clone
+
+        # Allocate the compound graph before copying its state. The default
+        # deepcopy descends through left/right recursively, so a model that
+        # evaluates successfully can otherwise fail when a fitter copies it.
+        pending = [self]
+        originals = []
+        while pending:
+            original = pending.pop()
+            if id(original) in memo:
+                continue
+            memo[id(original)] = object.__new__(type(original))
+            originals.append(original)
+            for child in (original.left, original.right):
+                if type(child) is CompoundModel:
+                    pending.append(child)
+
+        for original in reversed(originals):
+            clone = memo[id(original)]
+            restore_state(clone, original.__getstate__())
+        return memo[id(self)]
 
     def __getattr__(self, name):
         """
@@ -3547,8 +3730,10 @@ class CompoundModel(Model):
         """
         # The following test is needed to avoid infinite recursion
         # caused by deepcopy. There may be other such cases discovered.
-        if name == "__setstate__":
-            raise AttributeError
+        if not name.rpartition("_")[2].isdigit():
+            raise AttributeError(f'Attribute "{name}" not found')
+        if self._param_names is None:
+            self._map_parameters()
         if name in self._param_names:
             return self.__dict__[name]
         else:
@@ -3558,8 +3743,11 @@ class CompoundModel(Model):
         if self._leaflist is None:
             self._make_leaflist()
         leaflist = self._leaflist
-        tdict = self._tdict
         if isinstance(index, slice):
+            if self._tdict is None:
+                self._tdict = {}
+                make_subtree_dict(self, None, self._tdict, [])
+            tdict = self._tdict
             if index.step:
                 raise ValueError("Steps in slices not supported for compound models")
             if index.start is not None:
@@ -3650,18 +3838,17 @@ class CompoundModel(Model):
     def traverse_postorder(self, include_operator=False):
         """Postorder traversal of the CompoundModel tree."""
         res = []
-        if isinstance(self.left, CompoundModel):
-            res = res + self.left.traverse_postorder(include_operator)
-        else:
-            res = res + [self.left]
-        if isinstance(self.right, CompoundModel):
-            res = res + self.right.traverse_postorder(include_operator)
-        else:
-            res = res + [self.right]
-        if include_operator:
-            res.append(self.op)
-        else:
-            res.append(self)
+        pending = [(self, False)]
+        while pending:
+            node, visited = pending.pop()
+            if not isinstance(node, CompoundModel):
+                res.append(node)
+            elif visited:
+                res.append(node.op if include_operator else node)
+            else:
+                pending.append((node, True))
+                pending.append((node.right, False))
+                pending.append((node.left, False))
         return res
 
     def _format_expression(self, format_leaf=None):
@@ -3738,7 +3925,7 @@ class CompoundModel(Model):
         """Set the fittable attribute on a compound model."""
         if self._fittable is None:
             if self._leaflist is None:
-                self._map_parameters()
+                self._make_leaflist()
             self._fittable = all(m.fittable for m in self._leaflist)
         return self._fittable
 
@@ -3874,7 +4061,7 @@ class CompoundModel(Model):
         self._unit_change_composition = value
 
     def _parameter_units_for_data_units(self, input_units, output_units):
-        if self._leaflist is None:
+        if self._parameters is None:
             self._map_parameters()
         units_for_data = {}
         for imodel, model in enumerate(self._leaflist):
@@ -4346,16 +4533,22 @@ def make_subtree_dict(tree, nodepath, tdict, leaflist):
     - left most index contained within that subtree
        (relative to all indices for the whole tree)
     - right most index contained within that subtree
+
+    Passing ``nodepath=None`` uses compact integer keys instead of path strings.
+    This avoids quadratic path storage for highly unbalanced compound trees.
     """
-    # if this is a leaf, just append it to the leaflist
-    if not hasattr(tree, "isleaf"):
-        leaflist.append(tree)
-    else:
-        leftmostind = len(leaflist)
-        make_subtree_dict(tree.left, nodepath + "l", tdict, leaflist)
-        make_subtree_dict(tree.right, nodepath + "r", tdict, leaflist)
-        rightmostind = len(leaflist) - 1
-        tdict[nodepath] = (tree, leftmostind, rightmostind)
+    pending = [(tree, nodepath, None)]
+    while pending:
+        node, path, leftmostind = pending.pop()
+        if not hasattr(node, "isleaf"):
+            leaflist.append(node)
+        elif leftmostind is not None:
+            key = len(tdict) if path is None else path
+            tdict[key] = (node, leftmostind, len(leaflist) - 1)
+        else:
+            pending.append((node, path, len(leaflist)))
+            pending.append((node.right, None if path is None else path + "r", None))
+            pending.append((node.left, None if path is None else path + "l", None))
 
 
 _ORDER_OF_OPERATORS = [("fix_inputs",), ("|",), ("&",), ("+", "-"), ("*", "/"), ("**",)]
@@ -4830,3 +5023,4 @@ def compose_models_with_units(left, right):
     model.unit_change_composition = True
 
     return model
+

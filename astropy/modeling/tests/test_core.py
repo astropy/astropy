@@ -563,6 +563,7 @@ def test_n_submodels_in_single_models():
 
 def test_compound_deepcopy():
     model = (models.Gaussian1D(10, 2, 3) | models.Shift(2)) & models.Rotation2D(21.3)
+    model.submodel_names  # Materialize the lazily constructed leaf cache.
     new_model = model.deepcopy()
     assert id(model) != id(new_model)
     assert id(model._leaflist) != id(new_model._leaflist)
@@ -1645,3 +1646,4 @@ def test_reset_parameters_compound():
         ),
     ):
         c._reset_parameters(amplitude_0=np.ones((2, 3, 4)), stddev_0=np.ones((8,)))
+

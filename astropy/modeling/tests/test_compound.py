@@ -34,6 +34,73 @@ from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
+def test_large_compound_model():
+    # The Gaussian2D construction reported in gh-16701 must not allocate
+    # parameter tables for every retained intermediate compound.
+    model = Gaussian2D()
+    for _ in range(1200):
+        model = model + Gaussian2D()
+    assert model.n_submodels == 1201
+    assert model._parameters is None
+    assert model.left._parameters is None
+    assert model(0, 0) == 1201
+    assert model.evaluate(0, 0, *model.parameters) == 1201
+    assert model.left._parameters is None
+    assert model.fit_deriv(0, 0, *model.parameters).shape == (7206, 1)
+    assert model[:1000].n_submodels == 1000
+
+    copied = model.copy()
+    copied.amplitude_0 = 2
+    assert copied(0, 0) == 1202
+    assert model(0, 0) == 1201
+
+
+def test_lazy_compound_parameter_state():
+    leaf = Gaussian1D()
+    branch = leaf + leaf
+    model = branch + branch
+    copied = model.copy()
+    assert copied.left is copied.right
+    assert copied[0] is copied[1]
+    assert copied[0] is not leaf
+    copied.amplitude_0 = 2
+    assert copied(0) == 8
+    assert model(0) == 4
+    assert model._parameters is None
+    assert_array_equal(pickle.loads(pickle.dumps(copied)).parameters, copied.parameters)
+
+    # Restore the counts when loading state created before they were cached.
+    del copied.__dict__["_n_submodels"]
+    del copied.__dict__["_n_parameters"]
+    assert (copied + Gaussian1D()).n_submodels == 5
+
+
+def test_lazy_compound_units_and_subclass_state():
+    class SlottedCompound(CompoundModel):
+        __slots__ = ("tag",)
+
+    model = SlottedCompound("+", Gaussian1D(), Gaussian1D())
+    model.tag = "retained"
+    copied = model.copy()
+    assert copied.tag == "retained"
+    assert copied(0) == 2
+    assert copied.evaluate(0, *copied.parameters) == 2
+    assert copied.fit_deriv(0, *copied.parameters).shape == (6, 1)
+
+    class ReducedCompound(CompoundModel):
+        def __reduce_ex__(self, protocol):
+            return type(self), (self.op, self.left, self.right), {"tag": "reduced"}
+
+    reduced = ReducedCompound("+", Gaussian1D(), Gaussian1D()).copy()
+    assert reduced.tag == "reduced"
+
+    model = Gaussian1D(1 * u.Jy, 1 * u.m, 1 * u.m) + Gaussian1D(
+        2 * u.Jy, 2 * u.m, 1 * u.m
+    )
+    model.strip_units_from_tree()
+    assert model[0].amplitude.unit is None
+
+
 @pytest.mark.parametrize(
     ("expr", "result"),
     [
@@ -1313,3 +1380,4 @@ def test_fit_compound_polynomial2d():
 
     # We just make sure the fitting works, as it previously crashed
     fit_p(p_init, x, y, z)
+

@@ -204,6 +204,27 @@ class _PolyDomainWindow1D(PolynomialModel):
         )
 
 
+class _ClenshawRows:
+    """Evaluate coefficient rows only as the outer Clenshaw recurrence needs them."""
+
+    def __init__(self, clenshaw, x, coeffs, row_size):
+        self.clenshaw = clenshaw
+        self.x = x
+        self.coeffs = coeffs
+        self.row_size = row_size
+
+    def __len__(self):
+        return len(self.coeffs) // self.row_size
+
+    def __getitem__(self, index):
+        index = range(len(self))[index]
+        start = index * self.row_size
+        coeffs = self.coeffs[start : start + self.row_size]
+        if self.row_size == 1:
+            return coeffs[0] + np.zeros(np.shape(self.x))
+        return self.clenshaw(self.x, coeffs)
+
+
 class OrthoPolynomialBase(PolynomialBase):
     """
     This is a base class for the 2D Chebyshev and Legendre models.
@@ -234,6 +255,9 @@ class OrthoPolynomialBase(PolynomialBase):
 
     n_inputs = 2
     n_outputs = 1
+
+    # The built-in bases reuse their one-dimensional Clenshaw evaluator.
+    _clenshaw = None
 
     def __init__(  # ruff: ignore[PLR0917]
         self,
@@ -391,6 +415,17 @@ class OrthoPolynomialBase(PolynomialBase):
         return alpha
 
     def imhorner(self, x, y, coeff):
+        if type(self) in (Chebyshev2D, Legendre2D, Hermite2D):
+            # Reverse the inverse-lexicographic coefficients so x varies
+            # fastest within each row.  Evaluate rows only when needed by the
+            # outer recurrence, keeping a fixed number of input-sized arrays.
+            rows = _ClenshawRows(self._clenshaw, x, coeff[::-1], self.x_degree + 1)
+            if self.y_degree == 0:
+                return rows[0] + np.zeros(np.shape(y))
+            return self._clenshaw(y, rows)
+
+        # Preserve the _fcache path for custom bases, with local accumulators
+        # so evaluation does not retain input-sized arrays on the model.
         _coeff = list(coeff)
         _coeff.extend([0, 0, 0])
         alpha = self._alpha()
@@ -402,22 +437,21 @@ class OrthoPolynomialBase(PolynomialBase):
         x_terms = self.x_degree + 1
         y_terms = self.y_degree + 1
         nterms = x_terms + y_terms
-        for n in range(1, nterms + 1 + 3):
-            setattr(self, "r" + str(n), 0.0)
+        r = [0.0] * (nterms + 4)
 
         for n in range(1, nalpha):
             k = karr[n - 1].nonzero()[0].max() + 1
             rsum = 0
             for i in range(1, k + 1):
-                rsum = rsum + getattr(self, "r" + str(i))
+                rsum = rsum + r[i]
             val = kfunc[k - 1] * (r0 + rsum)
-            setattr(self, "r" + str(k), val)
+            r[k] = val
             r0 = _coeff[n]
             for i in range(1, k):
-                setattr(self, "r" + str(i), 0.0)
+                r[i] = 0.0
         result = r0
         for i in range(1, nterms + 1 + 3):
-            result = result + getattr(self, "r" + str(i))
+            result = result + r[i]
         return result
 
     def _generate_coeff_names(self):
@@ -742,6 +776,7 @@ class Hermite2D(OrthoPolynomialBase):
     """
 
     _separable = False
+    _clenshaw = staticmethod(Hermite1D.clenshaw)
 
     def __init__(  # ruff: ignore[PLR0917]
         self,
@@ -1400,6 +1435,7 @@ class Chebyshev2D(OrthoPolynomialBase):
     """
 
     _separable = False
+    _clenshaw = staticmethod(Chebyshev1D.clenshaw)
 
     def __init__(  # ruff: ignore[PLR0917]
         self,
@@ -1555,6 +1591,7 @@ class Legendre2D(OrthoPolynomialBase):
     """
 
     _separable = False
+    _clenshaw = staticmethod(Legendre1D.clenshaw)
 
     def __init__(  # ruff: ignore[PLR0917]
         self,
