@@ -1,0 +1,1 @@
+Added ``nearest_neighbour_sky`` function and ``SkyCoord.nearest_neighbour_sky`` method to find the nearest on-sky neighbours of each coordinate.
