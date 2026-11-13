@@ -6,6 +6,7 @@ reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
+import re
 from io import StringIO
 
 import numpy as np
@@ -15,12 +16,120 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
+from astropy.io.ascii.mrt import Description
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyWarning
 from astropy.utils.masked import Masked
+
+
+class TestDescription:
+    def test_init_defaults(self) -> None:
+        d = Description()
+        assert d.body is None
+        assert d.limits is None
+        assert d.null_flag is None
+        assert d.normalize() == ""
+
+    @pytest.mark.parametrize("body", ["", " ", "\t", " \t ", "\t \t"])
+    def test_empty_body(self, body: str) -> None:
+        d = Description.from_str(body)
+        assert d.body is None
+
+    def test_multiline_body(self) -> None:
+        d1 = Description(body="a\nb\nc")
+        assert d1.body == "a b c"
+        d2 = Description.from_str("a\nb\nc")
+        assert d2 == d1
+
+    @pytest.mark.parametrize("limits", ["", " ", "[", "]", "[[", "]]", "{1/2}"])
+    def test_invalid_limits(self, limits: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid limits expression {limits!r}")
+        ):
+            Description(limits=limits)
+
+    @pytest.mark.parametrize(
+        "nf",
+        [
+            "",
+            " ",
+            "??",
+            " ?",
+            "? ",
+            "!!",
+            "?!",
+            "!?",
+        ],
+    )
+    def test_invalid_null_flag(self, nf: str) -> None:
+        with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
+            Description(null_flag=nf)
+
+    @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
+    def test_invalid_body(self, body: str) -> None:
+        with pytest.raises(ValueError, match=re.escape(f"invalid body {body!r}")):
+            Description(body=body)
+
+    def test_multiple_exceptions(self) -> None:
+        with pytest.RaisesGroup(
+            pytest.RaisesExc(ValueError, match=r"invalid limits expression"),
+            pytest.RaisesExc(ValueError, match=r"invalid null flag"),
+            pytest.RaisesExc(ValueError, match=r"invalid body"),
+            match=r"^multiple issues with description fields$",
+        ):
+            Description(limits="[[", null_flag="/", body="[body]")
+
+    @pytest.mark.parametrize(
+        "s, d",
+        [
+            ("", Description()),
+            ("[1/2[", Description(limits="[1/2[")),
+            ("?", Description(null_flag="?")),
+            ("!", Description(null_flag="!")),
+            ("body", Description(body="body")),
+            ("]1/2]?", Description(limits="]1/2]", null_flag="?")),
+            ("[1/2] body", Description(limits="[1/2]", body="body")),
+            ("? body", Description(null_flag="?", body="body")),
+            ("[1/2]? body", Description(limits="[1/2]", null_flag="?", body="body")),
+        ],
+    )
+    def test_stable_roundtrip(
+        self, s: str, d: Description, subtests: pytest.Subtests
+    ) -> None:
+        with subtests.test("forward"):
+            assert Description.from_str(s) == d
+        with subtests.test("backward"):
+            assert d.normalize() == s
+
+    @pytest.mark.parametrize(
+        "s, expected",
+        [
+            (" [1/2]", Description(limits="[1/2]")),
+            ("[1/2] ", Description(limits="[1/2]")),
+            (" [1/2] ", Description(limits="[1/2]")),
+            (" ?", Description(null_flag="?")),
+            ("? ", Description(null_flag="?")),
+            (" ? ", Description(null_flag="?")),
+            ("body\t", Description(body="body")),
+            ("\tbody", Description(body="body")),
+            ("\tbody\t", Description(body="body")),
+            ("[1/2]?", Description(limits="[1/2]", null_flag="?")),
+            ("[1/2]body", Description(limits="[1/2]", body="body")),
+            ("[1/2]?body", Description(limits="[1/2]", null_flag="?", body="body")),
+            ("[1/2] ?body", Description(limits="[1/2]", null_flag="?", body="body")),
+            ("[1/2] ? body", Description(limits="[1/2]", null_flag="?", body="body")),
+            ("?body", Description(null_flag="?", body="body")),
+            ("?  body", Description(null_flag="?", body="body")),
+            ("?\tbody", Description(null_flag="?", body="body")),
+            ("?\nbody", Description(null_flag="?", body="body")),
+        ],
+    )
+    def test_from_str(self, s: str, expected: Description) -> None:
+        assert Description.from_str(s) == expected
+
 
 test_dat = [
     "names e d s i",
@@ -646,3 +755,18 @@ def test_qtable_masked_invalid_quantity(val):
     t_r = QTable(data={"B": Masked(Quantity(data[::-1], "m"), mask=mask[::-1])})
     t_r.write(out_r, format="ascii.mrt")
     assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
+
+
+def test_masked_col_with_description():
+    # regression test for a bug where the null flag would be prepended
+    # to the user-specified description instead of inserting
+    col = MaskedColumn(
+        [1.5, 2.5],
+        description="[0/10] desc",
+        mask=[0, 1],
+    )
+    t = Table({"a": col})
+    buffer = StringIO()
+    t.write(buffer, format="ascii.mrt")
+    lines = [L.rstrip() for L in buffer.getvalue().splitlines()]
+    assert "1-3  F3.1   ---    a       [0/10]? desc" in lines
