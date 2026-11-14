@@ -336,25 +336,34 @@ def test_set_position_invalid():
     ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], aspect="equal")
     fig.add_axes(ax)
 
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=r"Ignoring unrecognized position\(s\): \['x'\], should be one of b/r/t/l",
+    with pytest.raises(
+        ValueError,
+        match=r"Unrecognized position\(s\): \['x'\], should be one of b/r/t/l",
     ):
         ax.coords[0].set_ticks_position("xl")
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=r"Ignoring unrecognized position\(s\): \['o'\], should be one of b/r/t/l",
+    with pytest.raises(
+        ValueError,
+        match=r"Unrecognized position\(s\): \['o'\], should be one of b/r/t/l",
     ):
         ax.coords[1].set_ticklabel_position("to")
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=r"Ignoring unrecognized position\(s\): \['q', 'p'\], should be one of b/r/t/l",
+    with pytest.raises(
+        ValueError,
+        match=r"Unrecognized position\(s\): \['q', 'p'\], should be one of b/r/t/l",
     ):
         ax.coords[1].set_axislabel_position("qbp")
 
-    assert ax.coords[0].get_ticks_position() == ["l"]
-    assert ax.coords[1].get_ticklabel_position() == ["t"]
-    assert ax.coords[1].get_axislabel_position() == ["b"]
+    # Invalid input should not have changed the positions
+    assert ax.coords[0].get_ticks_position() == ["b", "r", "t", "l"]
+    assert ax.coords[1].get_ticklabel_position() == ["#"]
+    assert ax.coords[1].get_axislabel_position() == ["#"]
+
+    # Passing a word rather than single-character position codes should raise
+    # an error identifying the invalid characters (issue 11929)
+    with pytest.raises(
+        ValueError,
+        match=r"Unrecognized position\(s\): \['i', 'g', 'h'\], should be one of b/r/t/l",
+    ):
+        ax.coords[1].set_axislabel_position("right")
 
 
 def test_set_position_invalid_gridline():
@@ -365,14 +374,14 @@ def test_set_position_invalid_gridline():
 
     ax.coords[0].add_tickable_gridline("my-grid-line", -30 * u.one)
 
-    with pytest.warns(
-        AstropyDeprecationWarning,
-        match=r"Ignoring unrecognized position\(s\): \['my-parrot-line'\]",
+    with pytest.raises(
+        ValueError,
+        match=r"Unrecognized position\(s\): \['my-parrot-line'\]",
     ):
         ax.coords[1].set_ticks_position(["my-grid-line", "my-parrot-line"])
 
-    with pytest.warns(
-        AstropyDeprecationWarning,
+    with pytest.raises(
+        ValueError,
         match=r"It looks like 'my-grid-line' matches the name of a single axis. If "
         r"you are trying to specify a multi-character axis name, use a list "
         r"or a tuple, e.g. \('my-grid-line',\).",
