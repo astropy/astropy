@@ -520,6 +520,48 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert "DATASUM" in hdul[1].header
                 assert hdul[1].header["DATASUM"] == ref[1].header["DATASUM"]
 
+    def test_open_update_mode_preserve_custom_checksum_comments(self):
+        """
+        Regression test for #20789.
+        Ensure that custom comments set via add_checksum(when=...) are preserved
+        when flushing or closing an HDU opened in update mode.
+        """
+        testfile = self.temp("custom_checksum.fits")
+        hdu = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32))
+        hdu.add_checksum(when="custom initial comment")
+        hdu.writeto(testfile, overwrite=True)
+
+        with fits.open(testfile, mode="update") as hdul:
+            hdul[0].data[0] = 42
+            hdul[0].add_checksum(when="custom updated comment")
+
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[0].header.comments["CHECKSUM"] == "custom updated comment"
+            assert hdul[0].header.comments["DATASUM"] == "custom updated comment"
+            assert hdul[0].verify_checksum() == 1
+            assert hdul[0].verify_datasum() == 1
+
+    def test_open_update_mode_preserve_existing_custom_comments_on_auto_update(self):
+        """
+        Regression test for #20789.
+        Ensure that when data is modified in update mode, existing custom comments
+        on CHECKSUM and DATASUM are not overwritten by default timestamp comments.
+        """
+        testfile = self.temp("custom_auto_update.fits")
+        hdu = fits.PrimaryHDU(data=np.arange(100, dtype=np.int32))
+        hdu.add_checksum(when="custom csum comment", datasum_when="custom dsum comment")
+        hdu.writeto(testfile, overwrite=True)
+
+        with fits.open(testfile, mode="update") as hdul:
+            # Modify data without explicitly calling add_checksum
+            hdul[0].data[0] = 99
+
+        with fits.open(testfile, checksum=True) as hdul:
+            assert hdul[0].header.comments["CHECKSUM"] == "custom csum comment"
+            assert hdul[0].header.comments["DATASUM"] == "custom dsum comment"
+            assert hdul[0].verify_checksum() == 1
+            assert hdul[0].verify_datasum() == 1
+
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, "_datasum") and hdu._datasum):
             pytest.fail("Missing DATASUM keyword")

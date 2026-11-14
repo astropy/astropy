@@ -166,6 +166,8 @@ class _BaseHDU:
         self._data_needs_rescale = False
         self._new = True
         self._output_checksum = False
+        self._checksum_when = None
+        self._datasum_when = None
 
         if "DATASUM" in self._header and "CHECKSUM" not in self._header:
             self._output_checksum = "datasum"
@@ -1210,6 +1212,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         value in the card to remain consistent.  This will enable the
         generation of a ``CHECKSUM`` card with a consistent value.
         """
+        self._datasum_when = when
         cs = self._calculate_datasum()
 
         if when is None:
@@ -1224,6 +1227,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         override_datasum=False,
         checksum_keyword="CHECKSUM",
         datasum_keyword="DATASUM",
+        datasum_when=None,
     ):
         """
         Add the ``CHECKSUM`` and ``DATASUM`` cards to this HDU with
@@ -1242,9 +1246,10 @@ class _ValidHDU(_BaseHDU, _Verify):
             The name of the header keyword to store the checksum value in; this
             is typically 'CHECKSUM' per convention, but there exist use cases
             in which a different keyword should be used
-
         datasum_keyword : str, optional
             See ``checksum_keyword``
+        datasum_when : str, optional
+            Comment string for the ``DATASUM`` card if different from ``when``.
 
         Notes
         -----
@@ -1254,9 +1259,16 @@ class _ValidHDU(_BaseHDU, _Verify):
         comments for both cards and enable the generation of a ``CHECKSUM``
         card with a consistent value.
         """
+        self._checksum_when = when
+        if datasum_when is not None:
+            self._datasum_when = datasum_when
+        elif when is not None:
+            self._datasum_when = when
+
         if not override_datasum:
             # Calculate and add the data checksum to the header.
-            data_cs = self.add_datasum(when, datasum_keyword=datasum_keyword)
+            d_when = datasum_when if datasum_when is not None else when
+            data_cs = self.add_datasum(d_when, datasum_keyword=datasum_keyword)
         else:
             # Just calculate the data checksum
             data_cs = self._calculate_datasum()
@@ -1370,11 +1382,27 @@ class _ValidHDU(_BaseHDU, _Verify):
                 )
             )
         ):
+            checksum_when = self._checksum_when
+            if checksum_when is None and checksum_keyword in self._header:
+                comment = self._header.comments[checksum_keyword]
+                if comment and not comment.startswith("HDU checksum updated "):
+                    checksum_when = comment
+
+            datasum_when = self._datasum_when
+            if datasum_when is None and datasum_keyword in self._header:
+                comment = self._header.comments[datasum_keyword]
+                if comment and not comment.startswith("data unit checksum updated "):
+                    datasum_when = comment
+
             if self._output_checksum == "datasum":
-                self.add_datasum(datasum_keyword=datasum_keyword)
+                self.add_datasum(when=datasum_when, datasum_keyword=datasum_keyword)
             elif self._output_checksum:
                 self.add_checksum(
-                    checksum_keyword=checksum_keyword, datasum_keyword=datasum_keyword
+                    when=checksum_when,
+                    override_datasum=False,
+                    checksum_keyword=checksum_keyword,
+                    datasum_keyword=datasum_keyword,
+                    datasum_when=datasum_when,
                 )
 
     def _get_timestamp(self):
