@@ -149,9 +149,201 @@ class Conf(_config.ConfigNamespace):
         "If True, temporary download files created when the cache is "
         "inaccessible will be deleted at the end of the python session.",
     )
+    max_decompressed_size = _config.ConfigItem(
+        4 * 1024**3,  # 4 GiB
+        "Maximum number of bytes that may be read from a single compressed "
+        "(gzip, bzip2, xz, LZW) file or stream before an error is raised. "
+        "This protects against decompression bombs. Set to 0 to disable.",
+    )
+    max_decompression_ratio = _config.ConfigItem(
+        20,
+        "Maximum allowed ratio of decompressed to compressed bytes while "
+        "reading a compressed file. Only enforced once at least 1 MiB has "
+        "been decompressed. This protects against decompression bombs. "
+        "Set to 0 to disable.",
+    )
 
 
 conf = Conf()
+
+# The compression ratio is only meaningful (and only enforced) after this many
+# decompressed bytes, so that small, highly redundant files do not trip it.
+_MIN_BYTES_FOR_RATIO_CHECK = 1024**2
+# Upper bound on how much a single read request may decompress before the
+# limits are re-checked.
+_MAX_DECOMPRESS_CHUNK = 1024**2
+
+
+class _LimitedDecompressedReader(io.RawIOBase):
+    """Read-only raw stream that enforces decompression limits incrementally.
+
+    It wraps any decompressing binary file object (e.g. `gzip.GzipFile`) and
+    never lets more than ``max_size`` (or more than the allowed
+    decompressed-to-compressed ratio) be decompressed: the check happens on
+    every read, *before* more data is requested, so the failure occurs long
+    before memory is exhausted. Seeking is routed through the same accounting,
+    since seeking forward in a decompressor silently decompresses data.
+
+    Use `_limit_decompression` rather than instantiating this directly.
+    """
+
+    def __init__(self, decompressor, compressed, name, max_size, max_ratio):
+        super().__init__()
+        self._decompressor = decompressor
+        self._compressed = compressed
+        self._name = name
+        self._max_size = max_size
+        self._max_ratio = max_ratio
+        self._pos = 0
+        self._high_water = 0  # furthest decompressed offset ever reached
+
+    @property
+    def name(self):
+        return self._name
+
+    def readable(self):
+        return True
+
+    def seekable(self):
+        return True
+
+    def tell(self):
+        return self._pos
+
+    def _error(self, which):
+        if which == "size":
+            item, value, what = (
+                "max_decompressed_size",
+                self._max_size,
+                f"more than {self._max_size} bytes",
+            )
+        else:
+            item, value, what = (
+                "max_decompression_ratio",
+                self._max_ratio,
+                f"a decompressed-to-compressed size ratio above {self._max_ratio}",
+            )
+        return ValueError(
+            f"Decompressing {self._name!r} would produce {what}, which exceeds "
+            f"the limit set by the configuration item "
+            f"`astropy.utils.data.conf.{item}` ({value}). This could be a "
+            "decompression bomb. If you trust this file, you can temporarily "
+            "disable the limit with:\n\n"
+            f"    with astropy.utils.data.conf.set_temp({item!r}, 0):\n"
+            "        ...\n\n"
+            "or change it permanently in the astropy configuration file "
+            f"(section [utils.data], key {item}). A value of 0 disables the "
+            "limit."
+        )
+
+    def _check_ratio(self):
+        if (
+            self._max_ratio
+            and self._high_water >= _MIN_BYTES_FOR_RATIO_CHECK
+            and self._high_water / max(self._compressed.tell(), 1) > self._max_ratio
+        ):
+            raise self._error("ratio")
+
+    def readinto(self, b):
+        size = min(len(b), _MAX_DECOMPRESS_CHUNK)
+        if self._max_size:
+            # Ask for at most one byte beyond the limit, so that it is detected
+            # without ever decompressing more than that.
+            size = min(size, self._max_size - self._pos + 1)
+            if size <= 0:
+                raise self._error("size")
+        view = memoryview(b)[:size]
+        try:
+            readinto = self._decompressor.readinto
+        except AttributeError:
+            data = self._decompressor.read(size)
+            n = len(data)
+            view[:n] = data
+        else:
+            n = readinto(view)
+        self._pos += n
+        self._high_water = max(self._high_water, self._pos)
+        if self._max_size and self._pos > self._max_size:
+            raise self._error("size")
+        self._check_ratio()
+        return n
+
+    def readall(self):
+        # The default implementation starts with small chunks; use big ones
+        # (the limits are still checked after each).
+        chunks = []
+        while True:
+            chunk = self.read(_MAX_DECOMPRESS_CHUNK)
+            if not chunk:
+                return b"".join(chunks)
+            chunks.append(chunk)
+
+    def _discard(self, n):
+        while n > 0:
+            chunk = self.read(min(n, _MAX_DECOMPRESS_CHUNK))
+            if not chunk:
+                break
+            n -= len(chunk)
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        if whence == io.SEEK_END:
+            self._discard(float("inf"))  # counts toward the limits
+            target = self._pos + offset
+        elif whence == io.SEEK_CUR:
+            target = self._pos + offset
+        elif whence == io.SEEK_SET:
+            target = offset
+        else:
+            raise ValueError(f"invalid whence ({whence})")
+        if target < 0:
+            raise ValueError("negative seek position")
+        if target < self._pos:
+            # Rewinding only re-decompresses data that was already counted.
+            self._decompressor.seek(target)
+            self._pos = target
+        else:
+            self._discard(target - self._pos)
+        return self._pos
+
+    def close(self):
+        if not self.closed:
+            try:
+                self._decompressor.close()
+            finally:
+                super().close()
+
+
+def _limit_decompression(decompressor, compressed, name):
+    """Wrap a decompressing file object so that decompression is bounded.
+
+    Parameters
+    ----------
+    decompressor : file-like
+        Binary file object that decompresses on ``read`` and supports ``seek``
+        (e.g. `gzip.GzipFile`, `lzma.LZMAFile`, `bz2.BZ2File`).
+    compressed : file-like
+        The underlying compressed stream that ``decompressor`` reads from. Its
+        ``tell`` is used to measure how much compressed data was consumed.
+    name : str
+        Used in the error message.
+
+    Returns
+    -------
+    `io.BufferedReader`
+        A buffered reader whose reads raise `ValueError` as soon as
+        ``conf.max_decompressed_size`` or ``conf.max_decompression_ratio`` is
+        exceeded. The limits are read from the configuration when this is
+        called.
+    """
+    return io.BufferedReader(
+        _LimitedDecompressedReader(
+            decompressor,
+            compressed,
+            name,
+            conf.max_decompressed_size,
+            conf.max_decompression_ratio,
+        )
+    )
 
 
 class CacheMissingWarning(AstropyWarning):
@@ -361,6 +553,9 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
     if isinstance(name_or_obj, os.PathLike):
         name_or_obj = os.fspath(name_or_obj)
 
+    # Used in error messages only
+    filename = name_or_obj if isinstance(name_or_obj, str) else repr(name_or_obj)
+
     # Get a file object to the content
     if isinstance(name_or_obj, str):
         # Use fsspec to open certain cloud-hosted files (e.g., AWS S3, Google Cloud Storage)
@@ -429,7 +624,7 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
             fileobj_new.close()
         else:
             fileobj_new.seek(0)
-            fileobj = fileobj_new
+            fileobj = _limit_decompression(fileobj_new, fileobj, filename)
     elif signature[:3] == b"BZh":  # bzip2
         if not HAS_BZ2:
             for fd in close_fds:
@@ -440,12 +635,7 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
         import bz2
 
         try:
-            # bz2.BZ2File does not support file objects, only filenames, so we
-            # need to write the data to a temporary file
-            with NamedTemporaryFile("wb", delete=False) as tmp:
-                tmp.write(fileobj.read())
-                tmp.close()
-                fileobj_new = bz2.BZ2File(tmp.name, mode="rb")
+            fileobj_new = bz2.BZ2File(fileobj, mode="rb")
             fileobj_new.read(1)  # need to check that the file is really bzip2
         except OSError:  # invalid bzip2 file
             fileobj.seek(0)
@@ -453,8 +643,7 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
             # raise
         else:
             fileobj_new.seek(0)
-            close_fds.append(fileobj_new)
-            fileobj = fileobj_new
+            fileobj = _limit_decompression(fileobj_new, fileobj, filename)
     elif signature[:6] == b"\xfd7zXZ\x00":  # xz
         if not HAS_LZMA:
             for fd in close_fds:
@@ -474,7 +663,7 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
             # raise ValueError(e)
         else:
             fileobj_new.seek(0)
-            fileobj = fileobj_new
+            fileobj = _limit_decompression(fileobj_new, fileobj, filename)
     elif signature[:2] == b"\x1f\x9d":  # LZW
         if not HAS_UNCOMPRESSPY:
             for fd in close_fds:
@@ -494,10 +683,11 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
         else:
             fileobj_new.seek(0)
             close_fds.append(fileobj)
-            fileobj = fileobj_new
+            fileobj = _limit_decompression(fileobj_new, fileobj, filename)
 
-    # By this point, we have a file, io.FileIO, gzip.GzipFile, bz2.BZ2File,
-    # lzma.LZMAFile or uncompresspy.LZWFile instance opened in binary mode (that
+    # By this point, we have a file, io.FileIO, or a buffered reader that
+    # enforces the decompression limits around a gzip.GzipFile, bz2.BZ2File,
+    # lzma.LZMAFile or uncompresspy.LZWFile, opened in binary mode (that
     # is, read returns bytes). Now we need to, if requested, wrap it in a
     # io.TextIOWrapper so read will return unicode based on the
     # encoding parameter.
@@ -505,22 +695,6 @@ def get_readable_fileobj(  # ruff: ignore[PLR0917]
     needs_textio_wrapper = encoding != "binary"
 
     if needs_textio_wrapper:
-        # A bz2.BZ2File can not be wrapped by a TextIOWrapper,
-        # so we decompress it to a temporary file and then
-        # return a handle to that.
-        if HAS_BZ2:
-            import bz2
-
-            if isinstance(fileobj, bz2.BZ2File):
-                tmp = NamedTemporaryFile("wb", delete=False)
-                data = fileobj.read()
-                tmp.write(data)
-                tmp.close()
-                delete_fds.append(tmp)
-
-                fileobj = io.FileIO(tmp.name, "r")
-                close_fds.append(fileobj)
-
         fileobj = _NonClosingBufferedReader(fileobj)
         fileobj = _NonClosingTextIOWrapper(fileobj, encoding=encoding)
 

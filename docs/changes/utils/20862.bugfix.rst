@@ -1,0 +1,4 @@
+Add configuration items ``astropy.utils.data.conf.max_decompressed_size`` and
+``astropy.utils.data.conf.max_decompression_ratio`` to limit how much a compressed file
+can expand on reading. Values are set to allow "normal" files, but
+prevent maliciously crafted files from consuming too much memory.
