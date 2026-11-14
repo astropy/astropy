@@ -4,12 +4,14 @@
 # STDLIB
 import base64
 import binascii
+import bisect
 import codecs
 import gzip
 import io
 import json
 import os
 import re
+import struct
 import urllib.request
 
 # THIRD-PARTY
@@ -204,6 +206,305 @@ class _MaskedArrayBuilder:
         # its own all-False mask and, with keep_mask=True, ORs this one into
         # it, which allocates a second full-size mask.  Unneeded here.
         return ma.MaskedArray(values, mask=mask, copy=False, keep_mask=False)
+
+
+# The field types `_BinaryColumnReader` handles. A table with any other
+# type, such as an array or a complex number, is read value by value.
+_ONE_BYTE_BINARY_CONVERTERS = (converters.Bit, converters.Boolean)
+_NUMBER_BINARY_CONVERTERS = (
+    converters.Double,
+    converters.Float,
+    converters.Int,
+    converters.Long,
+    converters.Short,
+    converters.UnsignedByte,
+)
+# Bytes per character: unicodeChar is stored as UTF-16
+_BINARY_CHAR_SIZES = {converters.Char: 1, converters.UnicodeChar: 2}
+
+# Strings are never masked, even where the BINARY2 null bitmap marks them as
+# null (see https://github.com/astropy/astropy/issues/8995)
+_NEVER_MASKED_DATATYPES = ("char", "unicodeChar")
+
+# Rows are converted in chunks of at most this many bytes and rows, to limit
+# temporary memory. A chunk always holds at least one row.
+_BINARY_CHUNK_BYTES = 1 << 24
+_BINARY_CHUNK_ROWS = 1 << 16
+
+
+class _ReadValueByValue(Exception):
+    """
+    The rows of a BINARY stream need the value-by-value reader in
+    `TableElement._parse_binary`, which gives the warnings and errors for them.
+    """
+
+
+def _scan_binary_rows(buffer, run_sizes, var_item_sizes):
+    """
+    Find the end of each row of a BINARY or BINARY2 stream, and how many
+    items each of its variable-length fields holds.
+
+    A row is a run of fixed-size fields (starting with the BINARY2 null
+    bitmap), then a variable-length field, then another run, and so on,
+    ending with a run.  A variable-length field is a 4-byte big-endian count
+    of items, followed by the items.
+
+    Parameters
+    ----------
+    buffer : bytes
+        The whole decoded stream.
+    run_sizes : list of int
+        The size in bytes of each run, one more than there are
+        variable-length fields.
+    var_item_sizes : list of int
+        The size in bytes of one item of each variable-length field.
+
+    Returns
+    -------
+    row_ends : `range` or `~numpy.ndarray`
+        The offset in *buffer* of the end of each row.
+    counts : list of `~numpy.ndarray`
+        The item count of each variable-length field, in each row.
+
+    Raises
+    ------
+    _ReadValueByValue
+        If the stream ends partway through a row, since the value-by-value
+        reader decodes the values in it before it stops.
+    """
+    end = len(buffer)
+    if not var_item_sizes:
+        # No variable-length strings, so all rows have the same size
+        row_size = run_sizes[0]
+        if row_size == 0:
+            # Only when every field is a zero-length string (arraysize="0").
+            # The value-by-value reader never stops on such rows.
+            return range(0), []
+        if end % row_size:
+            raise _ReadValueByValue()
+        return range(row_size, end + 1, row_size), []
+
+    # Each row starts where the strings of the row before it end, so the
+    # rows have to be stepped through one by one
+    from array import array
+
+    unpack_count = struct.Struct(">I").unpack_from
+    counts = [array("q") for _ in var_item_sizes]
+    row_ends = array("q")
+    end_row = row_ends.append
+    fields = list(zip(run_sizes, var_item_sizes, [c.append for c in counts]))
+    last_run_size = run_sizes[-1]
+    pos = 0
+    try:
+        while pos < end:
+            for run_size, item_size, append_count in fields:
+                (count,) = unpack_count(buffer, pos + run_size)
+                append_count(count)
+                pos += run_size + 4 + count * item_size
+            pos += last_run_size
+            end_row(pos)
+    except struct.error:
+        # The stream ends partway through a count
+        raise _ReadValueByValue() from None
+    if pos != end:
+        raise _ReadValueByValue()
+
+    return np.frombuffer(row_ends, dtype=np.int64), [
+        np.frombuffer(c, dtype=np.int64) for c in counts
+    ]
+
+
+class _BinaryColumnReader:
+    """
+    Read every row of a BINARY or BINARY2 stream a column at a time, for
+    `TableElement._parse_binary_columns`.
+
+    Each row is runs of fixed-size fields, the first starting with the
+    BINARY2 null bitmap, separated by variable-length strings: a 4-byte count
+    of characters, then the characters.  Without the strings, the fixed-size
+    fields of a row make up one numpy record.
+
+    Each row is handled as parts: for each string, the run of fixed-size
+    fields before it, its count and its characters; then the last run.  So
+    the characters of string ``k`` are part ``3 * k + 2``.
+
+    The converter of each field turns its values into a column, with
+    ``_binparse_column`` for fixed-size values and ``_binparse_var_column``
+    for variable-length strings.
+
+    Parameters
+    ----------
+    fields : list of `~astropy.io.votable.tree.Field`
+        All the fields of the table.
+    mode : int
+        1 for BINARY, 2 for BINARY2.
+
+    Raises
+    ------
+    _ReadValueByValue
+        If a field has a datatype read only value by value.
+    """
+
+    def __init__(self, fields, mode):
+        self.fields = fields
+        self.mode = mode
+        nbitmap = (len(fields) + 7) // 8 if mode == 2 else 0
+        self.run_sizes = [nbitmap]  # bytes in each run of fixed-size fields
+        self.var_fields = []  # field index of each variable-length string
+        self.var_item_sizes = []  # bytes per character of each of those strings
+        self.var_max_counts = []  # their arraysize limit, or -1 for none
+        self.record_fields = [("bitmap", np.dtype(("u1", (nbitmap,))))]
+        for i, field in enumerate(fields):
+            self._add_field(i, field.converter)
+        self.record_dtype = np.dtype(self.record_fields)
+        self.is_fixed_part = np.arange(3 * len(self.var_fields) + 1) % 3 == 0
+
+    def _add_field(self, i, converter):
+        """Add field *i* to the layout of a row."""
+        kind = type(converter)
+        if kind in _ONE_BYTE_BINARY_CONVERTERS:
+            self._add_fixed_size(i, np.dtype("u1"))
+        elif kind in _NUMBER_BINARY_CONVERTERS:
+            self._add_fixed_size(i, np.dtype(converter._bigendian_format))
+        elif kind not in _BINARY_CHAR_SIZES:
+            raise _ReadValueByValue()
+        elif converter.binparse == converter._binparse_var:
+            self.var_fields.append(i)
+            self.var_item_sizes.append(_BINARY_CHAR_SIZES[kind])
+            self.var_max_counts.append(
+                -1 if converter.arraysize == "*" else converter.arraysize
+            )
+            self.run_sizes.append(0)
+        else:
+            size = converter.arraysize * _BINARY_CHAR_SIZES[kind]
+            self._add_fixed_size(i, np.dtype(("u1", (size,))))
+
+    def _add_fixed_size(self, i, stored):
+        """Add fixed-size field *i*, stored as *stored*, to the current run."""
+        self.record_fields.append((f"f{i}", stored))
+        self.run_sizes[-1] += stored.itemsize
+
+    def read(self, buffer, colnumbers, dtype):
+        """
+        Return the selected fields of every row, as a masked array.
+
+        Parameters
+        ----------
+        buffer : bytes
+            The whole decoded stream.
+        colnumbers : list of int
+            The indices of the fields to read.
+        dtype : `~numpy.dtype`
+            The dtype of the array, which holds the selected fields in file
+            order.
+
+        Raises
+        ------
+        _ReadValueByValue
+            If the stream ends partway through a row.  A value that does not
+            convert raises the exception of its converter.
+        """
+        row_ends, self.counts = _scan_binary_rows(
+            buffer, self.run_sizes, self.var_item_sizes
+        )
+        nrows = len(row_ends)
+        self.array = np.zeros(nrows, dtype=dtype)
+        self.mask = np.zeros(nrows, dtype=ma.make_mask_descr(dtype))
+        selected = dict(zip(sorted(set(colnumbers)), dtype.names))
+        self.names = [selected.get(i) for i in range(len(self.fields))]
+        # Unselected strings are decoded too: the value-by-value reader
+        # decodes every string, so a bad one must raise the same error here
+        self.fixed_fields = [
+            i
+            for i, (field, name) in enumerate(zip(self.fields, self.names))
+            if i not in self.var_fields
+            and (name is not None or type(field.converter) in _BINARY_CHAR_SIZES)
+        ]
+
+        first = low = 0
+        while first < nrows:
+            last = bisect.bisect_right(
+                row_ends,
+                low + _BINARY_CHUNK_BYTES,
+                first + 1,
+                min(nrows, first + _BINARY_CHUNK_ROWS),
+            )
+            self._read_rows(buffer, first, last, low)
+            first, low = last, int(row_ends[last - 1])
+
+        self._warn_too_long()
+        return ma.MaskedArray(self.array, mask=self.mask, copy=False, keep_mask=False)
+
+    def _warn_too_long(self):
+        """
+        Warn W46 for each string over its limit, in the order of the
+        value-by-value reader: row by row, and field by field in a row.
+
+        This is left until every row is read, since the value-by-value reader
+        warns again if the column reader stops.
+        """
+        rows = []
+        strings = []
+        for k, (count, max_count) in enumerate(zip(self.counts, self.var_max_counts)):
+            if max_count >= 0:
+                (over,) = np.nonzero(count > max_count)
+                rows.append(over)
+                strings.append(np.full(len(over), k))
+        if not rows:
+            return
+        rows = np.concatenate(rows)
+        strings = np.concatenate(strings)
+        for k in strings[np.lexsort((strings, rows))].tolist():
+            self.fields[self.var_fields[k]].converter._warn_too_long()
+
+    def _read_rows(self, buffer, first, last, low):
+        """Read rows *first* to *last*, which start at byte *low* of *buffer*."""
+        nrows = last - first
+        if not self.var_fields:
+            records = np.ndarray(nrows, self.record_dtype, buffer=buffer, offset=low)
+        else:
+            sizes = np.empty((nrows, len(self.is_fixed_part)), dtype=np.int64)
+            sizes[:, 0::3] = self.run_sizes
+            sizes[:, 1::3] = 4
+            for k, (item_size, count) in enumerate(
+                zip(self.var_item_sizes, self.counts)
+            ):
+                sizes[:, 3 * k + 2] = count[first:last] * item_size
+            ends = low + np.cumsum(sizes).reshape(sizes.shape)
+            data = np.frombuffer(buffer, np.uint8, ends[-1, -1] - low, low)
+            # Drop each string's count and characters, so that the fixed-size
+            # fields of the rows lie back to back and can be viewed as records
+            fixed = data[np.repeat(np.tile(self.is_fixed_part, nrows), sizes.ravel())]
+            records = np.ndarray(nrows, self.record_dtype, buffer=fixed)
+
+        rows = slice(first, last)
+        bitmap = records["bitmap"]
+        for i in self.fixed_fields:
+            converter = self.fields[i].converter
+            values, mask = converter._binparse_column(records[f"f{i}"])
+            self._store(i, rows, values, mask, bitmap)
+        for k, i in enumerate(self.var_fields):
+            stops = ends[:, 3 * k + 2]
+            starts = stops - sizes[:, 3 * k + 2]
+            converter = self.fields[i].converter
+            values, mask = converter._binparse_var_column(
+                buffer, starts.tolist(), stops.tolist()
+            )
+            self._store(i, rows, values, mask, bitmap)
+
+    def _store(self, i, rows, values, mask, bitmap):
+        """
+        Put the *values* and *mask* of field *i* in *rows* of the array, if
+        the field is selected, also masking the values that the BINARY2
+        *bitmap* marks as null.
+        """
+        name = self.names[i]
+        if name is None:
+            return
+        if self.mode == 2 and self.fields[i].datatype not in _NEVER_MASKED_DATATYPES:
+            mask = mask | ((bitmap[:, i // 8] & (0x80 >> (i % 8))) != 0)
+        self.array[name][rows] = values
+        self.mask[name][rows] = mask
 
 
 def _lookup_by_attr_factory(attr, unique, iterator, element_name, doc):
@@ -3199,6 +3500,9 @@ class TableElement(
             string_io.seek(0)
             read = string_io.read
         else:
+            # A stream from a URL is read value by value as it arrives, so
+            # there is no buffer for the column reader
+            buffer = None
             vo_prot = ("http", "https", "ftp", "file")
             if not href.startswith(vo_prot):
                 vo_raise(
@@ -3228,10 +3532,45 @@ class TableElement(
                 raise EOFError
             return result
 
-        return careful_read
+        return careful_read, buffer
+
+    def _parse_binary_columns(self, mode, buffer, colnumbers):
+        """
+        Read every row of a BINARY or BINARY2 stream a column at a time.
+
+        This gives the same array as reading the stream one value at a
+        time, much faster.
+
+        Parameters
+        ----------
+        mode : int
+            1 for BINARY, 2 for BINARY2.
+        buffer : bytes
+            The whole decoded stream.
+        colnumbers : list of int
+            The indices of the fields to read.
+
+        Returns
+        -------
+        array : `~numpy.ma.MaskedArray` or None
+            `None` when a field has a datatype read only value by value, or
+            when anything stops the column reader, such as a value that does
+            not convert.  The value-by-value reader then reads the stream,
+            and gives the warnings and errors for it.
+        """
+        try:
+            reader = _BinaryColumnReader(self.all_fields, mode)
+            return reader.read(buffer, colnumbers, self.array.dtype)
+        except Exception:
+            return None
 
     def _parse_binary(self, mode, iterator, colnumbers, config, pos):
-        careful_read = self._get_binary_data_stream(iterator, config)
+        careful_read, buffer = self._get_binary_data_stream(iterator, config)
+
+        if buffer is not None:
+            array = self._parse_binary_columns(mode, buffer, colnumbers)
+            if array is not None:
+                return array
 
         builder = _MaskedArrayBuilder(self.array.dtype, len(self.array))
         del self.array
@@ -3257,11 +3596,8 @@ class TableElement(
                         converters.bitarray_to_bool(mask_bits, len(fields))
                     )
 
-                    # Ignore the mask for string columns (see issue 8995)
                     for i, f in enumerate(fields):
-                        if row_mask_data[i] and (
-                            f.datatype == "char" or f.datatype == "unicodeChar"
-                        ):
+                        if row_mask_data[i] and f.datatype in _NEVER_MASKED_DATATYPES:
                             row_mask_data[i] = False
 
                 for i, binparse in enumerate(binparsers):

@@ -259,9 +259,15 @@ file with just a single table::
 Performance Considerations
 --------------------------
 
-File reads will be moderately faster if the ``TABLE`` element includes
-an nrows_ attribute. If the number of rows is not specified, the
-record array must be resized repeatedly during load.
+A table stored as ``BINARY`` or ``BINARY2`` inside the file is read a column
+at a time, which is several times faster than reading it value by value, when
+every one of its columns is a single number (``short``, ``int``, ``long``,
+``unsignedByte``, ``float`` or ``double``), a ``boolean``, a ``bit``, or a
+string (``char`` or ``unicodeChar``).
+
+Other tables are read value by value. Those reads will be moderately faster if
+the ``TABLE`` element includes an nrows_ attribute. If the number of rows is not
+specified, the record array must be resized repeatedly during load.
 
 .. _nrows: http://www.ivoa.net/documents/REC/VOTable/VOTable-20040811.html#ToC10
 
