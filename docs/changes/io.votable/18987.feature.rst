@@ -1,0 +1,1 @@
+Add support for VOTable 1.6 and utf-8 char encoding
