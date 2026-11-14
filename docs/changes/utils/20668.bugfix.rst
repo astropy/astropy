@@ -1,0 +1,6 @@
+Fixed a race condition on free-threaded Python builds where accessing the
+``info`` attribute of a class (e.g., ``Latitude.info``) stored the class on
+an object shared with its parent and sibling classes. Reading tables with
+mixin columns (e.g., ECSV files) or stacking tables from several threads at
+once could then create columns of the wrong class, raising errors such as
+``UnitTypeError`` or ``unable to parse yaml in meta header``.
