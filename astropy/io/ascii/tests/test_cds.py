@@ -153,10 +153,17 @@ def test_write_null_data_values():
     assert lines == exp_output
 
 
-@pytest.mark.parametrize(
-    "val",
-    [float("nan"), np.nan, float("+inf"), np.inf, float("-inf"), -np.inf],
-)
+NON_FINITE_SCALARS = [
+    pytest.param(float("+inf"), id="float('inf')"),
+    pytest.param(float("-inf"), id="float('-inf')"),
+    pytest.param(np.inf, id="np.inf"),
+    pytest.param(-np.inf, id="-np.inf"),
+    pytest.param(float("nan"), id="float('nan')"),
+    pytest.param(np.nan, id="np.nan"),
+]
+
+
+@pytest.mark.parametrize("val", NON_FINITE_SCALARS)
 def test_write_non_finite_values_to_mrt(val):
     # see https://github.com/astropy/astropy/issues/17840
     out = StringIO()
@@ -621,9 +628,7 @@ def test_write_qtable():
     assert "Description of b" in result
 
 
-@pytest.mark.parametrize(
-    "val", [float("nan"), np.nan, float("inf"), np.inf, float("-inf"), -np.inf]
-)
+@pytest.mark.parametrize("val", NON_FINITE_SCALARS)
 def test_qtable_masked_invalid_quantity(val):
     # regression test for a bug where masks would be dropped
     # from QTable columns on export to MRT

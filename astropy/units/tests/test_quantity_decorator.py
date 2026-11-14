@@ -358,7 +358,11 @@ def test_str_unit_typo():
 class TestTypeAnnotations:
     @pytest.mark.parametrize(
         "annot",
-        [u.m, u.Quantity[u.m], u.Quantity[u.m, "more"]],
+        [
+            u.m,
+            pytest.param(u.Quantity[u.m], id="Q[m]"),
+            pytest.param(u.Quantity[u.m, "more"], id="Q[m, 'more']"),
+        ],
     )  # Note: parametrization is done even if test class is skipped
     def test_single_annotation_unit(self, annot):
         """Try a variety of valid annotations."""

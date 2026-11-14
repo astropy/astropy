@@ -830,7 +830,13 @@ class TestJoin:
         assert str(t12).splitlines() == exp
 
     @pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
-    @pytest.mark.parametrize("distance_func", ["search_around_3d", search_around_3d])
+    @pytest.mark.parametrize(
+        "distance_func",
+        [
+            pytest.param("search_around_3d", id="from-name"),
+            pytest.param(search_around_3d, id="from-func"),
+        ],
+    )
     def test_join_with_join_skycoord_3d(self, distance_func, join_engine):
         sc1 = SkyCoord([0, 1, 1.1, 2] * u.deg, [0, 0, 0, 0] * u.deg, [1, 1, 2, 1] * u.m)
         sc2 = SkyCoord([0.5, 1.05, 2.1] * u.deg, [0, 0, 0] * u.deg, [1, 1, 1] * u.m)
@@ -2431,7 +2437,7 @@ def test_vstack_bytes(operation_table_type):
     assert t2["a"].itemsize == 1
 
 
-@pytest.mark.parametrize("other", ["a", b"a"])
+@pytest.mark.parametrize("other", ["a", b"a"], ids=type)
 def test_vstack_unicode(other):
     """
     Test for problem related to issue #5617 when vstack'ing *unicode*

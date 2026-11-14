@@ -225,7 +225,7 @@ def test_custom_format_scalar_jd1_jd2_okay(custom_format_name):
         np.longdouble(1),
         1.0j,
         "foo",
-        b"foo",
+        pytest.param(b"foo", id="bytes('foo')"),
         Time(5, format="mjd"),
         lambda: 7,
         np.datetime64("2005-02-25"),

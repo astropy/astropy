@@ -993,7 +993,7 @@ def test_string_truncation_warning_masked():
 
 
 @pytest.mark.parametrize("Column", (table.Column, table.MaskedColumn))
-@pytest.mark.parametrize("second", ["def", b"def"])
+@pytest.mark.parametrize("second", ["def", b"def"], ids=type)
 def test_col_unicode_sandwich_create_from_str(Column, second):
     """
     Create a bytestring Column from strings (including unicode) in Py3.

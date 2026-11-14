@@ -142,7 +142,12 @@ def test_redshift_hubble():
 @pytest.mark.skipif(not HAS_SCIPY, reason="Cosmology needs scipy")
 @pytest.mark.parametrize(
     "kind",
-    [cu.redshift_distance.__defaults__[-1], "comoving", "lookback", "luminosity"],
+    [
+        pytest.param(cu.redshift_distance.__defaults__[-1], id="defaults"),
+        "comoving",
+        "lookback",
+        "luminosity",
+    ],
 )
 def test_redshift_distance(kind):
     """Test :func:`astropy.cosmology.units.redshift_distance`."""
