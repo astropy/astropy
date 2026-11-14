@@ -1492,8 +1492,14 @@ class CoordinateHelper:
 
         tick_world_coordinates, spacing = self.locator(*coord_range[self.coord_index])
 
-        # tick_world_coordinates is a Quantities array and we only needs its values
-        tick_world_coordinates_values = tick_world_coordinates.value
+        # Angles are contoured in degrees, which the longitude wrapping assumes
+        if self._coord_scale_to_deg is not None:
+            field = field * self._coord_scale_to_deg
+            tick_world_coordinates_values = tick_world_coordinates.to_value(u.deg)
+        else:
+            tick_world_coordinates_values = tick_world_coordinates.to_value(
+                self.coord_unit
+            )
 
         if self.coord_type == "longitude" and len(tick_world_coordinates_values) > 0:
             if len(tick_world_coordinates_values) > 1:
