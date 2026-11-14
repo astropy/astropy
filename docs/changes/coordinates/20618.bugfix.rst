@@ -1,0 +1,3 @@
+``Angle.to_string``, and so ``SkyCoord.to_string``, no longer gives a spurious
+``RuntimeWarning: invalid value encountered in do_format`` with some Python
+builds, such as the x86_64 Linux builds that uv installs.
