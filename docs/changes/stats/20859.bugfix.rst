@@ -1,0 +1,6 @@
+``SigmaClip`` instances no longer store the clipping bounds as
+instance attributes, so a single instance is now safe to call
+concurrently from multiple threads for all code paths. As a result,
+calling a ``SigmaClip`` instance with empty or fully masked data and
+``return_bounds=True`` now always returns NaN bounds instead of the
+bounds from a previous call.

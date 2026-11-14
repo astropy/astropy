@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pickle
+import sys
 import warnings
 
 import numpy as np
@@ -917,3 +918,65 @@ def test_sigmaclip_pickle():
     result = restored(data)
     expected = sigclip(data)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_sigma_clip_bounds_empty_after_call():
+    """
+    The bounds returned for empty or fully masked input should not
+    leak from a previous call on the same instance.
+    """
+    sigclip = SigmaClip(sigma=3.0)
+    _ = sigclip(np.arange(10.0))
+
+    result, lo, hi = sigclip(np.array([]), return_bounds=True)
+    assert result.size == 0
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+    marr = np.ma.MaskedArray(np.arange(10.0), mask=True)
+    result, lo, hi = sigclip(marr, return_bounds=True)
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+
+@pytest.fixture(params=["noaxis", "withaxis"])
+def shared_sigclip(request):
+    rng = np.random.default_rng(0)
+    datasets = []
+    for scale in (1.0, 1e3, 1e6, 1e9):
+        data = rng.normal(0.0, scale, (40, 100))
+        data[0, :10] += 30 * scale  # outliers to clip
+        datasets.append(data)
+
+    if request.param == "noaxis":
+        # The axis=None case uses the _sigmaclip_noaxis code path.
+        sigclip = SigmaClip(sigma=2.0, maxiters=5)
+        axis = None
+    else:
+        # A callable cenfunc with an axis uses the Python
+        # _sigmaclip_withaxis code path.
+        sigclip = SigmaClip(sigma=2.0, maxiters=5, cenfunc=np.nanmedian)
+        axis = 1
+
+    def clip(data):
+        return sigclip(data, axis=axis, masked=False, return_bounds=True)
+
+    return clip, datasets, [clip(data) for data in datasets]
+
+
+@pytest.mark.force_parallel_threads(8)
+@pytest.mark.iterations(25)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
+def test_sigma_clip_shared_instance_thread_safety(shared_sigclip):
+    """
+    Test that a single SigmaClip instance gives the correct results
+    when called concurrently from multiple threads on different data.
+    """
+    clip, datasets, expected = shared_sigclip
+    for data, (exp_filtered, exp_lo, exp_hi) in zip(datasets, expected, strict=True):
+        filtered, lo, hi = clip(data)
+        assert_equal(filtered, exp_filtered)
+        assert_equal(lo, exp_lo)
+        assert_equal(hi, exp_hi)
