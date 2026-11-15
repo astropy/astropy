@@ -272,7 +272,7 @@ def decode_ascii(s):
         else:
             itemsize = s.dtype.itemsize
             raw = np.ascontiguousarray(s).view(np.uint8)
-            if raw.size == 0 or raw.max() > 127:
+            if itemsize == 0 or raw.max() > 127:
                 # Fall back to strict ascii decode for non-ascii and zero-width
                 # cols. Preserves UnicodeDecodeError raising behavior.
                 ns = s.astype((np.str_, itemsize))

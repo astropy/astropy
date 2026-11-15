@@ -2125,6 +2125,12 @@ class TestTableFunctions(FitsTestCase):
             np.testing.assert_array_equal(hdul[1].data["a"], [""])
             np.testing.assert_array_equal(hdul[1].data["b"], [12])
 
+    def test_zero_width_str_column_with_multiple_rows_decodes_to_empty_strings(self):
+        data = np.array([("", 12)] * 3, dtype=[("a", "S"), ("b", "i4")])
+        thdu = fits.BinTableHDU(data)
+        np.testing.assert_array_equal(thdu.data["a"], [""] * 3)
+        np.testing.assert_array_equal(thdu.data["b"], [12] * 3)
+
     def test_string_column_padding(self):
         a = ["img1", "img2", "img3a", "p"]
         s = (
