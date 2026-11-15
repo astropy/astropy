@@ -1,0 +1,3 @@
+VOTable files with arrays of strings can now be read and written: ``char`` and
+``unicodeChar`` FIELDs and PARAMs with an ``arraysize`` such as ``"10x4"`` or
+``"10x*"``, which used to fail with ``E01: Invalid size specifier``.

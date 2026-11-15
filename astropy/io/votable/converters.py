@@ -292,6 +292,18 @@ class Converter:
         raise NotImplementedError("This datatype must implement a 'binoutput' method.")
 
 
+def _string_length(arraysize):
+    """
+    The string length part of a ``char`` or ``unicodeChar`` arraysize: "10"
+    for "10x4", and "10*" for "10*".
+
+    Only the first dimension is the length of a string.  The others give
+    the shape of an array of strings, which `StringArray` and
+    `StringVarArray` handle.
+    """
+    return arraysize.split("x")[0]
+
+
 class Char(Converter):
     """
     Handles the char datatype. (7-bit unsigned characters).
@@ -320,8 +332,9 @@ class Char(Converter):
             self.arraysize = "*"
         else:
             # Check if this is a bounded variable-length field
-            is_variable = field.arraysize.endswith("*")
-            numeric_part = field.arraysize.removesuffix("*")
+            length = _string_length(field.arraysize)
+            is_variable = length.endswith("*")
+            numeric_part = length.removesuffix("*")
             try:
                 self.arraysize = int(numeric_part)
             except ValueError:
@@ -439,8 +452,9 @@ class UnicodeChar(Converter):
             self.arraysize = "*"
         else:
             # Check if this is a bounded variable-length field
-            is_variable = field.arraysize.endswith("*")
-            numeric_part = field.arraysize.removesuffix("*")
+            length = _string_length(field.arraysize)
+            is_variable = length.endswith("*")
+            numeric_part = length.removesuffix("*")
             try:
                 self.arraysize = int(numeric_part)
             except ValueError:
@@ -595,6 +609,133 @@ class ArrayVarArray(VarArray):
             result_mask.append(mask)
 
         return _make_masked_array(result, result_mask), False
+
+
+class _StringArrayMixin:
+    """
+    Reading and writing arrays of fixed-length strings as TABLEDATA text.
+
+    The strings are stored end to end with no separator, each padded with
+    blanks to the string length.  ``self._scalar`` is the `Char` or
+    `UnicodeChar` converter for one string.
+    """
+
+    def _split(self, value):
+        # The padding of the last string never arrives: the XML parser
+        # strips trailing whitespace from the cell.
+        width = self._scalar.arraysize
+        return [value[i : i + width].rstrip(" ") for i in range(0, len(value), width)]
+
+    def _parse_strings(self, parts, shape, config, pos):
+        parse = self._scalar.parse
+        result = [parse(x, config, pos)[0] for x in parts]
+        return np.array(result, dtype=self._scalar.format).reshape(shape)
+
+    def output(self, value, mask):
+        width = self._scalar.arraysize
+        output = self._scalar.output
+        value = np.asarray(value)
+        mask = np.broadcast_to(mask, value.shape)
+        result = []
+        for x, m in zip(value.flat, mask.flat):
+            if m:
+                x = ""
+            elif isinstance(x, bytes):
+                x = x.decode("utf-8")
+            if len(x) > width:
+                vo_warn(W46, (self._datatype, width), None, None)
+            # Pad before escaping, so that "&amp;" counts as one character
+            result.append(output(f"{x[:width]:<{width}}", False))
+        return "".join(result)
+
+
+class StringArray(_StringArrayMixin, Array):
+    """
+    Handles a fixed-size array of fixed-length strings, such as
+    ``arraysize="10x4"``: 4 strings of 10 characters.
+
+    Each string is converted by *base*, the `Char` or `UnicodeChar`
+    converter of the field.
+    """
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        Array.__init__(self, field, config, pos)
+
+        self._base = self._scalar = base
+        self._datatype = field.datatype
+        self._arraysize = arraysize
+        self.format = f"{tuple(arraysize)}{base.format}"
+        self._items = prod(arraysize)
+        self.default = np.zeros(arraysize, dtype=base.format)
+
+    def parse(self, value, config=None, pos=None):
+        parts = self._split(value)
+        if len(parts) > self._items:
+            warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
+        # Too few is not an error: trailing empty strings are all padding,
+        # which the XML parser strips.
+        parts = (parts + [""] * self._items)[: self._items]
+        return self.parse_parts(parts, config, pos)
+
+    def parse_parts(self, parts, config=None, pos=None):
+        result = self._parse_strings(parts, self._arraysize, config, pos)
+        return result, np.zeros(self._arraysize, dtype="bool")
+
+    def binparse(self, read):
+        binparse = self._base.binparse
+        result = [binparse(read)[0] for _ in range(self._items)]
+        result = np.array(result, dtype=self._base.format).reshape(self._arraysize)
+        return result, np.zeros(self._arraysize, dtype="bool")
+
+    def binoutput(self, value, mask):
+        binoutput = self._base.binoutput
+        value = np.asarray(value)
+        mask = np.broadcast_to(mask, value.shape)
+        return _empty_bytes.join(binoutput(x, m) for x, m in zip(value.flat, mask.flat))
+
+
+class StringVarArray(_StringArrayMixin, VarArray):
+    """
+    Handles a variable number of fixed-length strings, such as
+    ``arraysize="10x*"``, or of fixed-size arrays of them, such as
+    ``arraysize="10x4x*"``.
+
+    *base* is the `Char` or `UnicodeChar` converter of the field in the
+    first case, and a `StringArray` in the second.
+    """
+
+    def __init__(self, field, base, arraysize, config=None, pos=None):
+        VarArray.__init__(self, field, base, arraysize, config, pos)
+
+        self._scalar = getattr(base, "_base", base)
+        self._datatype = field.datatype
+        self._shape = (-1, *arraysize)
+        self._items = prod(arraysize)
+        # The BINARY formats store the length of the array in characters
+        self._chars = self._items * self._scalar.arraysize
+        self.default = np.zeros((0, *arraysize), dtype=self._scalar.format)
+
+    def parse(self, value, config=None, pos=None):
+        parts = self._split(value)
+        # As in StringArray.parse, trailing empty strings arrive stripped.
+        parts += [""] * (-len(parts) % self._items)
+        return ma.array(self._parse_strings(parts, self._shape, config, pos)), False
+
+    def binparse(self, read):
+        length = self._parse_length(read) // self._chars
+        binparse = self._base.binparse
+        result = [binparse(read)[0] for _ in range(length)]
+        result = np.array(result, dtype=self._scalar.format).reshape(self._shape)
+        return ma.array(result), False
+
+    def binoutput(self, value, mask):
+        if value is None or len(value) == 0:
+            return _zero_int
+
+        binoutput = self._base.binoutput
+        result = [self._write_length(len(value) * self._chars)]
+        result.extend(binoutput(x, m) for x, m in zip(value, ma.getmaskarray(value)))
+        return _empty_bytes.join(result)
 
 
 class ScalarVarArray(VarArray):
@@ -1407,6 +1548,22 @@ def get_converter(field, config=None, pos=None):
         if not fixed:
             converter = converter.vararray_type(field, converter, arraysize, config)
 
+    if field.datatype in ("char", "unicodeChar") and "x" in (arraysize or ""):
+        # The first dimension is the string length, already handled by the
+        # scalar converter
+        dims = arraysize.split("x")[1:]
+        fixed = dims[-1] != "*"
+        if not fixed:
+            dims.pop()
+        shape = [int(x) if x.isdecimal() else 0 for x in reversed(dims)]
+        if 0 in (converter.arraysize, *shape):
+            vo_raise(E01, (arraysize, field.datatype, field.ID), config, pos)
+
+        if shape:
+            converter = StringArray(field, converter, shape, config)
+        if not fixed:
+            converter = StringVarArray(field, converter, shape, config)
+
     return converter
 
 
@@ -1462,10 +1619,15 @@ def numpy_to_votable_dtype(dtype, shape):
     if dtype.num not in numpy_dtype_to_field_mapping:
         raise TypeError(f"{dtype!r} can not be represented in VOTable")
 
-    if dtype.char == "S":
-        return {"datatype": "char", "arraysize": str(dtype.itemsize)}
-    elif dtype.char == "U":
-        return {"datatype": "unicodeChar", "arraysize": str(dtype.itemsize // 4)}
+    if dtype.char in "SU":
+        # The string length comes first, then the shape with the fastest
+        # varying dimension first, as get_converter reads it.
+        if dtype.char == "S":
+            datatype, length = "char", dtype.itemsize
+        else:
+            datatype, length = "unicodeChar", dtype.itemsize // 4
+        arraysize = "x".join(str(x) for x in (length, *reversed(shape)))
+        return {"datatype": datatype, "arraysize": arraysize}
     else:
         result = {"datatype": numpy_dtype_to_field_mapping[dtype.num]}
         if len(shape):
