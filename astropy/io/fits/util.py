@@ -262,14 +262,11 @@ def decode_ascii(s):
             s = s.decode("ascii", errors="replace")
             return s.replace("\ufffd", "?")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.bytes_):
-        # np.strings.encode/decode annoyingly don't preserve the type of the
-        # array, hence the view() call
-        # It also doesn't necessarily preserve widths of the strings,
-        # hence the astype()
+        # The view(type(s)) calls return the same array subclass as the input
         if s.size == 0:
-            # Numpy apparently also has a bug that if a string array is
-            # empty calling np.strings.decode on it returns an empty float64
-            # array : https://github.com/numpy/numpy/issues/13156
+            # Empty input gives an empty 1-d array of the same width (kept from
+            # when np.strings.decode was used, which returned float64 for empty
+            # arrays: https://github.com/numpy/numpy/issues/13156)
             dt = s.dtype.str.replace("S", "U")
             ns = np.array([], dtype=dt).view(type(s))
         else:
