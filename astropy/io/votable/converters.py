@@ -321,18 +321,18 @@ class Array(Converter):
             vo_warn(W01, (), config, pos)
         return array_splitter.split(value)
 
-    @staticmethod
-    def _splitter_string(value, config=None, pos=None, width=None):
-        if "," in value:
-            vo_warn(W01, (), config, pos)
+    def _splitter_string(self, value, config=None, pos=None):
+        if self._string_length is None or int(self._string_length) <= 0:
+            vo_raise(E02, (int(self._string_length),), config, pos)
 
-        if width is None or width <= 0:
-            vo_raise(E19, (width,), config, pos)
+        remainder = len(value) % self._string_length
+        if remainder:
+            value += " " * (self._string_length - remainder)
 
-        if len(value) % width != 0:
-            vo_raise(E19, (len(value) // width, len(value)), config, pos)
-
-        return [value[i : i + width] for i in range(0, len(value), width)]
+        return [
+            value[i : i + self._string_length]
+            for i in range(0, len(value), int(self._string_length))
+        ]
 
 
 class VarArray(Array):
@@ -386,7 +386,7 @@ class ArrayVarArray(VarArray):
     null = None
 
     def parse(self, value, config=None, pos=None):
-        if value.strip() == "":
+        if value is None or value.strip() == "":
             return ma.array([]), False
 
         parts = self._splitter(value, config, pos)
@@ -426,23 +426,7 @@ class CharArrayVarArray(ArrayVarArray):
         self.field_name = field.name
         self._splitter = self._splitter_string
 
-    def parse(self, value, config=None, pos=None):
-        if value is None or value.strip() == "":
-            return ma.array([]), False
-
-        parts = self._splitter(value, config, pos, int(self._string_length))
-        items = self._base._items
-        parse_parts = self._base.parse_parts
-        if len(parts) % items != 0:
-            vo_raise(E02, (items, len(parts)), config, pos)
-        result = []
-        result_mask = []
-        for i in range(0, len(parts), items):
-            _value, _mask = parse_parts(parts[i : i + items], config, pos)
-            result.append(_value)
-            result_mask.append(_mask)
-
-        return _make_masked_array(result, result_mask), False
+        self._codec = "ascii"
 
     def output(self, value, mask):
         output = self._base.output
@@ -462,7 +446,7 @@ class CharArrayVarArray(ArrayVarArray):
 
         strings = np.array(
             [
-                s.tobytes().decode("ascii").rstrip(_unicode_null)
+                s.tobytes().decode(self._codec).rstrip(_unicode_null)
                 for s in raw_strings.ravel()
             ],
             dtype=f"U{self._string_length:d}",
@@ -488,12 +472,12 @@ class CharArrayVarArray(ArrayVarArray):
 
         for element in filtered.flat:
             try:
-                encoded = element.encode("ascii")
+                encoded = element.encode(self._codec)
             except UnicodeEncodeError:
-                vo_raise(E24, (value, self.field_name))
+                vo_raise(E24, (element, self.field_name))
 
             if len(encoded) > max_bytes:
-                vo_raise(E24, (element, self.field_name))
+                vo_raise(W46, (element, self.field_name))
 
             packed.append(struct.pack(fmt, encoded))
 
@@ -541,6 +525,8 @@ class CharArray(Array):
 
         self._splitter = self._splitter_string
 
+        self._codec = "ascii"
+
     def parse(self, value, config=None, pos=None):
 
         config = config or {}
@@ -548,7 +534,7 @@ class CharArray(Array):
         if config.get("version_1_3_or_later", False) and value == "":
             return np.zeros(self._arraysize, dtype=self._base.format), True
 
-        parts = self._splitter(value, config, pos, int(self._string_length))
+        parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
         if config.get("verify", "ignore") == "exception":
@@ -559,10 +545,9 @@ class CharArray(Array):
             elif len(parts) > self._items:
                 parts = parts[: self._items]
             else:
-                parts = parts + ([self._base.default] * (self._items - len(parts)))
+                parts = parts + ([""] * (self._items - len(parts)))
 
-            result, result_mask = self.parse_parts(parts, config, pos)
-            return _make_masked_array(result, result_mask), False
+            return self.parse_parts(parts, config, pos)
 
     def parse_parts(self, parts, config=None, pos=None):
         base_parse = self._base.parse
@@ -580,12 +565,16 @@ class CharArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
+
         if mask.size <= 1:
             func = np.broadcast
         else:
             func = zip
+
         return "".join(
-            base_output(x, m) if not m else base_output(_unicode_null * len(x), not m)
+            base_output(x.ljust(self._string_length), m)
+            if not m
+            else base_output(" " * self._string_length, not m)
             for x, m in func(value.flat, mask.flat)
         )
 
@@ -597,7 +586,7 @@ class CharArray(Array):
 
         strings = np.array(
             [
-                s.tobytes().decode("ascii").rstrip(_unicode_null)
+                s.tobytes().decode(self._codec).rstrip(_unicode_null)
                 for s in raw_strings.ravel()
             ],
             dtype=f"U{self._string_length:d}",
@@ -621,15 +610,17 @@ class CharArray(Array):
         fmt = f">{max_bytes}s"
 
         for element in filtered.flat:
-            try:
-                encoded = element.encode("ascii")
-            except UnicodeEncodeError:
-                vo_raise(E24, (value, self.field_name))
+            if isinstance(element, str):
+                try:
+                    encoded = element.encode(self._codec)
+                    if len(encoded) > max_bytes:
+                        vo_raise(W46, (element, self.field_name))
 
-            if len(encoded) > max_bytes:
-                vo_raise(E24, (element, self.field_name))
-
-            packed.append(struct.pack(fmt, encoded))
+                    packed.append(struct.pack(fmt, encoded))
+                except ValueError:
+                    vo_raise(E24, (element, self.field_name))
+            else:
+                packed.append(struct.pack(fmt, element))
 
         join_values = b"".join(packed)
         items = filtered.size
@@ -669,6 +660,8 @@ class Char(Converter):
         Converter.__init__(self, field, config, pos)
 
         self.field_name = field.name
+
+        self._codec = "ascii"
 
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
@@ -717,7 +710,7 @@ class Char(Converter):
 
         # Warn about non-ascii characters if warnings are enabled.
         try:
-            value.encode("ascii")
+            value.encode(self._codec)
         except UnicodeEncodeError:
             vo_warn(W55, (self.field_name, value), config, pos)
         return value, False
@@ -731,10 +724,10 @@ class Char(Converter):
         # non-ASCII characters.
         try:
             if isinstance(value, str):
-                value.encode("ascii")
+                value.encode(self._codec)
             else:
                 # Check for non-ASCII chars in the bytes object.
-                value = value.decode("ascii")
+                value = value.decode(self._codec)
         except (ValueError, UnicodeEncodeError):
             warn_or_raise(E24, UnicodeEncodeError, (value, self.field_name))
         finally:
@@ -750,12 +743,12 @@ class Char(Converter):
         if self.arraysize != "*" and length > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
 
-        return read(length).decode("ascii"), False
+        return read(length).decode(self._codec), False
 
     def _binparse_fixed(self, read):
         s = struct.unpack(self._struct_format, read(self.arraysize))[0]
         end = s.find(_zero_byte)
-        s = s.decode("ascii")
+        s = s.decode(self._codec)
         if end != -1:
             return s[:end], False
         return s, False
@@ -765,24 +758,24 @@ class Char(Converter):
             return _zero_int
         if isinstance(value, str):
             try:
-                encoded = value.encode("ascii")
+                value = value.encode(self._codec)
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
 
-        if self.arraysize != "*" and len(encoded) > self.arraysize:
+        if self.arraysize != "*" and len(value) > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), None, None)
 
-        return self._write_length(len(encoded)) + encoded
+        return self._write_length(len(value)) + value
 
     def _binoutput_fixed(self, value, mask):
         if mask:
-            encoded = _empty_bytes
+            value = _empty_bytes
         elif isinstance(value, str):
             try:
-                encoded = value.encode("ascii")
+                value = value.encode(self._codec)
             except ValueError:
                 vo_raise(E24, (value, self.field_name))
-        return struct.pack(self._struct_format, encoded)
+        return struct.pack(self._struct_format, value)
 
 
 class UnicodeArrayVarArray(ArrayVarArray):
@@ -807,23 +800,7 @@ class UnicodeArrayVarArray(ArrayVarArray):
         self.field_name = field.name
         self._splitter = self._splitter_string
 
-    def parse(self, value, config=None, pos=None):
-        if value.strip() == "":
-            return ma.array([]), False
-
-        parts = self._splitter(value, config, pos, int(self._string_length))
-        items = self._base._items
-        parse_parts = self._base.parse_parts
-        if len(parts) % items != 0:
-            vo_raise(E02, (items, len(parts)), config, pos)
-        result = []
-        result_mask = []
-        for i in range(0, len(parts), items):
-            _value, _mask = parse_parts(parts[i : i + items], config, pos)
-            result.append(_value)
-            result_mask.append(_mask)
-
-        return _make_masked_array(result, result_mask), False
+        self._codec = "utf-16-be"
 
     def output(self, value, mask):
         output = self._base.output
@@ -837,13 +814,13 @@ class UnicodeArrayVarArray(ArrayVarArray):
 
         char_count = expected_chars * 2  # utf-16 = 2 bytes per code unit
 
-        struct_format = f">{shape}S{self._string_length * 2:d}"
+        struct_format = f">{shape}V{self._string_length * 2:d}"
 
         raw_strings = np.frombuffer(read(char_count), dtype=struct_format)[0]
 
         strings = np.array(
             [
-                s.tobytes().decode("utf-16-be").rstrip(_unicode_null)
+                s.tobytes().decode(self._codec).rstrip(_unicode_null)
                 for s in raw_strings.ravel()
             ],
             dtype=f"U{self._string_length:d}",
@@ -869,12 +846,12 @@ class UnicodeArrayVarArray(ArrayVarArray):
 
         for element in filtered.flat:
             try:
-                encoded = element.encode("utf-16-be")
+                encoded = element.encode(self._codec)
             except UnicodeEncodeError:
-                vo_raise(E24, (value, self.field_name))
+                vo_raise(E24, (element, self.field_name))
 
             if len(encoded) > max_bytes:
-                vo_raise(E24, (element, self.field_name))
+                vo_raise(W46, (element, self.field_name))
 
             packed.append(struct.pack(fmt, encoded))
 
@@ -912,7 +889,7 @@ class UnicodeArray(Array):
         self._string_length = shape.pop()
         self._arraysize = shape
         self.format = f"{tuple(self._arraysize)}U{self._string_length:d}"
-        self._struct_format = f">{tuple(self._arraysize)}S{self._string_length * 2:d}"
+        self._struct_format = f">{tuple(self._arraysize)}V{self._string_length * 2:d}"
 
         self._items = int(prod(self._arraysize))
 
@@ -921,14 +898,16 @@ class UnicodeArray(Array):
 
         self._splitter = self._splitter_string
 
+        self._codec = "utf-16-be"
+
     def parse(self, value, config=None, pos=None):
 
         config = config or {}
 
-        if config["version_1_3_or_later"] and value == "":
+        if config.get("version_1_3_or_later", False) and value == "":
             return np.zeros(self._arraysize, dtype=self._base.format), True
 
-        parts = self._splitter(value, config, pos, int(self._string_length))
+        parts = self._splitter(value, config, pos)
         if len(parts) != self._items:
             warn_or_raise(E02, E02, (self._items, len(parts)), config, pos)
         if config.get("verify", "ignore") == "exception":
@@ -939,10 +918,9 @@ class UnicodeArray(Array):
             elif len(parts) > self._items:
                 parts = parts[: self._items]
             else:
-                parts = parts + ([self._base.default] * (self._items - len(parts)))
+                parts = parts + ([""] * (self._items - len(parts)))
 
-            value, mask = self.parse_parts(parts, config, pos)
-            return _make_masked_array(value, mask), False
+            return self.parse_parts(parts, config, pos)
 
     def parse_parts(self, parts, config=None, pos=None):
         base_parse = self._base.parse
@@ -960,14 +938,16 @@ class UnicodeArray(Array):
         base_output = self._base.output
         value = np.asarray(value)
         mask = np.asarray(mask)
+
         if mask.size <= 1:
             func = np.broadcast
         else:
             func = zip
+
         return "".join(
-            base_output(x, m)
+            base_output(x.ljust(self._string_length), m)
             if not m
-            else base_output(_unicode_null * 2 * len(x), not m)
+            else base_output(" " * len(x), not m)
             for x, m in func(value.flat, mask.flat)
         )
 
@@ -978,7 +958,7 @@ class UnicodeArray(Array):
 
         strings = np.array(
             [
-                s.tobytes().decode("utf-16-be").rstrip(_unicode_null)
+                s.tobytes().decode(self._codec).rstrip(_unicode_null)
                 for s in raw_strings.ravel()
             ],
             dtype=f"U{self._string_length:d}",
@@ -1006,9 +986,9 @@ class UnicodeArray(Array):
 
         for element in filtered.flat:
             try:
-                encoded = element.encode("utf-16-be")
+                encoded = element.encode(self._codec)
             except UnicodeEncodeError:
-                vo_raise(E24, (value, self.field_name))
+                vo_raise(E24, (element, self.field_name))
 
             if len(encoded) > max_bytes:
                 vo_raise(E24, (element, self.field_name))
@@ -1051,6 +1031,8 @@ class UnicodeChar(Converter):
             config = {}
 
         Converter.__init__(self, field, config, pos)
+
+        self._codec = "utf-16-be"
 
         if field.arraysize is None:
             vo_warn(W47, (), config, pos)
@@ -1106,11 +1088,11 @@ class UnicodeChar(Converter):
         if self.arraysize != "*" and length > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
 
-        return read(length * 2).decode("utf-16-be"), False
+        return read(length * 2).decode(self._codec), False
 
     def _binparse_fixed(self, read):
         s = struct.unpack(self._struct_format, read(self.arraysize * 2))[0]
-        s = s.decode("utf-16-be")
+        s = s.decode(self._codec)
         end = s.find("\0")
         if end != -1:
             return s[:end], False
@@ -1124,14 +1106,14 @@ class UnicodeChar(Converter):
             vo_warn(W46, ("unicodeChar", self.arraysize), None, None)
             value = value[: self.arraysize]
 
-        encoded = value.encode("utf-16-be")
+        encoded = value.encode(self._codec)
 
         return self._write_length(len(encoded) // 2) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = ""
-        return struct.pack(self._struct_format, value.encode("utf-16-be"))
+        return struct.pack(self._struct_format, value.encode(self._codec))
 
 
 class ScalarVarArray(VarArray):
@@ -1933,12 +1915,8 @@ def get_converter(field, config=None, pos=None):
             fixed = True
 
         if arraysize != "":
-            if "x" in arraysize:
-                arraysize = [int(x) for x in arraysize.split("x")]
-                arraysize.reverse()
-            else:
-                arraysize = [int(arraysize)]
-
+            arraysize = [int(x) for x in arraysize.split("x")]
+            arraysize.reverse()
         else:
             arraysize = []
 
@@ -2004,16 +1982,24 @@ def numpy_to_votable_dtype(dtype, shape):
     if dtype.num not in numpy_dtype_to_field_mapping:
         raise TypeError(f"{dtype!r} can not be represented in VOTable")
 
-    if dtype.char == "S":
-        return {"datatype": "char", "arraysize": str(dtype.itemsize)}
-    elif dtype.char == "U":
-        return {"datatype": "unicodeChar", "arraysize": str(dtype.itemsize // 4)}
-    else:
-        result = {"datatype": numpy_dtype_to_field_mapping[dtype.num]}
-        if len(shape):
-            result["arraysize"] = "x".join(str(x) for x in shape)
+    if dtype.kind in ("S", "U"):
+        datatype = "char" if dtype.kind == "S" else "unicodeChar"
 
-        return result
+        itemsize = dtype.itemsize
+        if dtype.kind == "U":
+            itemsize //= 4
+
+        arraysize = [str(itemsize)]
+        arraysize.extend(str(x) for x in shape)
+
+        return {"datatype": datatype, "arraysize": "x".join(arraysize)}
+
+    result = {"datatype": numpy_dtype_to_field_mapping[dtype.num]}
+
+    if shape:
+        result["arraysize"] = "x".join(str(x) for x in shape)
+
+    return result
 
 
 def table_column_to_votable_datatype(column):

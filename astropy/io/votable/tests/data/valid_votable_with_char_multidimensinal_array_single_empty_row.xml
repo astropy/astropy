@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+    <RESOURCE name="myFavouriteGalaxies">
+        <COOSYS ID="sys" equinox="J2000" epoch="J2000" system="eq_FK5"/>
+        <TABLE name="results">
+            <DESCRIPTION>Velocities and Distance estimations</DESCRIPTION>
+            <FIELD name="empty_row" ID="empty_row" ucd="pos.distance;pos.heliocentric"
+                   datatype="char" arraysize="5x4x2">
+                <DESCRIPTION>Char array of fix length</DESCRIPTION>
+            </FIELD>
+            <DATA>
+                <TABLEDATA>
+                    <TR>
+                        <TD>                                        </TD>
+                    </TR>
+                </TABLEDATA>
+            </DATA>
+        </TABLE>
+    </RESOURCE>
+</VOTABLE>

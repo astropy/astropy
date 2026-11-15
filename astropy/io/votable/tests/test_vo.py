@@ -20,7 +20,7 @@ from numpy.testing import assert_array_equal
 
 # LOCAL
 from astropy.io.votable import tree
-from astropy.io.votable.exceptions import W31, W39, VOTableSpecError, VOWarning
+from astropy.io.votable.exceptions import E02, W31, W39, VOTableSpecError, VOWarning
 from astropy.io.votable.table import parse, parse_single_table, validate, writeto
 from astropy.io.votable.xmlutil import validate_schema
 from astropy.table import Table
@@ -150,10 +150,10 @@ def _test_regression(tmp_path, _python_based=False, binary_mode=1):
     )
 
     with open(
-            get_pkg_data_filename(
-                f"data/regression.bin.tabledata.truth.{votable.version}.xml"
-            ),
-            encoding="utf-8",
+        get_pkg_data_filename(
+            f"data/regression.bin.tabledata.truth.{votable.version}.xml"
+        ),
+        encoding="utf-8",
     ) as fd:
         truth = fd.readlines()
     with open(str(tmp_path / "regression.bin.tabledata.xml"), encoding="utf-8") as fd:
@@ -272,8 +272,8 @@ def test_select_missing_columns_error_message(columns, expected_missing):
     # see https://github.com/astropy/astropy/pull/15956
     filename = get_pkg_data_filename("data/regression.xml")
     with pytest.raises(
-            ValueError,
-            match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
+        ValueError,
+        match=re.escape(f"Columns {expected_missing!r} were not found in fields list"),
     ):
         parse_single_table(filename, columns=columns)
 
@@ -383,7 +383,7 @@ def test_select_columns_by_name():
     ],
 )
 def test_select_columns_by_name_edge_cases(
-        column_ids, use_names_over_ids, expected_names
+    column_ids, use_names_over_ids, expected_names
 ):
     # see https://github.com/astropy/astropy/issues/14943
     filename = get_pkg_data_filename("data/regression.xml")
@@ -699,9 +699,9 @@ class TestParse:
     def test_repr(self):
         assert "3 tables" in repr(self.votable)
         assert (
-                repr(list(self.votable.iter_fields_and_params())[0])
-                == '<PARAM ID="awesome" arraysize="*" datatype="float" '
-                   'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
+            repr(list(self.votable.iter_fields_and_params())[0])
+            == '<PARAM ID="awesome" arraysize="*" datatype="float" '
+            'name="INPUT" unit="deg" value="[0.0 0.0]"/>'
         )
         # Smoke test
         repr(list(self.votable.iter_groups()))
@@ -1020,7 +1020,12 @@ def test_table_from_scratch_char_array():
 def test_open_files():
     for filename in get_pkg_data_filenames("data", pattern="*.xml"):
         if not filename.endswith(
-                ("custom_datatype.xml", "timesys_errors.xml", "parquet_binary.xml")
+            (
+                "custom_datatype.xml",
+                "timesys_errors.xml",
+                "parquet_binary.xml",
+                "valid_votable_with_unicodeChar_multidimensinal_array_empty_element.xml",
+            )
         ):
             parse(filename)
 
@@ -1133,10 +1138,77 @@ def test_unicodeChar_multidimensional_array_columns():
     assert_array_equal(actual["col9"], np.ma.masked_array(data=data, mask=mask))
 
 
+def test_unicodeChar_multidimensional_array_single_empty_row():
+
+    votable = parse(
+        get_pkg_data_filename(
+            "data/valid_votable_with_char_multidimensinal_array_single_empty_row.xml"
+        )
+    )
+
+    table = votable.get_first_table().to_table()
+
+    assert len(table) == 1
+
+    actual = table[0]
+
+    arr = np.array(
+        [
+            ["", "", "", ""],
+            ["", "", "", ""],
+        ]
+    )
+
+    np.testing.assert_array_equal(actual["empty_row"].data, arr)
+    # See test test_unicodeChar_multidimensional_array_columns_empty_element
+
+
+def test_unicodeChar_multidimensional_array_columns_empty_element():
+
+    with pytest.raises(E02) as exc_info:
+        votable = parse(
+            get_pkg_data_filename(
+                "data/valid_votable_with_unicodeChar_multidimensinal_array_empty_element.xml"
+            )
+        )
+
+    assert "Incorrect number of elements in array" in str(exc_info.value)
+
+    # The IterParser removes the leading and trailing whitespace. The following tests should work if the IterParser
+    # is changed.
+    pytest.xfail(
+        "Known issue with Unicode serialization: The IterParser removes the leading and trailing whitespace"
+    )
+
+    table = votable.get_first_table().to_table()
+
+    assert len(table) == 1
+
+    actual = table[0]
+
+    assert actual["col6"] == "αβγδε"
+
+    data = [
+        ["     ", "áéíóú", "     ", "Españ"],
+        ["αβγδε", "你好123", "09876", "     "],
+    ]
+
+    mask = [False, False, False, False, False, False, False, False]
+
+    assert_array_equal(actual["col7"], np.ma.masked_array(data=data, mask=mask))
+    assert_array_equal(actual["col8"], np.ma.masked_array(data=data, mask=mask))
+
+    data = [
+        ["     ", "     ", "     ", "     "],
+        ["     ", "     ", "     ", "     "],
+    ]
+    assert_array_equal(actual["col9"], np.ma.masked_array(data=data, mask=mask))
+
+
 def test_unicodeChar_multidimensional_array_columns_multiple_2_rows():
     votable = parse(
         get_pkg_data_filename(
-            "data/binary2_variable_length_multidimension_array_unicodeChar_2_rows.xml"
+            "data/binary2_fix_length_multidimension_array_unicodeChar_2_rows.xml"
         )
     )
     table = votable.get_first_table().to_table()
@@ -1208,7 +1280,7 @@ def test_build_from_scratch(tmp_path):
     )
 
 
-def test_build_from_scratch_atring_array(tmp_path):
+def test_build_from_scratch_string_array(tmp_path):
     # Create a new VOTable file...
     votable = tree.VOTableFile()
 

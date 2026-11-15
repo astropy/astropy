@@ -1,15 +1,18 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import io
+import warnings
 
 # THIRD-PARTY
 import numpy as np
+import numpy.ma as ma
 import pytest
 from numpy.testing import assert_array_equal
 
 # LOCAL
 from astropy.io.votable import converters, exceptions, tree
-from astropy.io.votable.table import parse_single_table
+from astropy.io.votable.table import parse, parse_single_table
+from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -33,31 +36,26 @@ def test_oversize_char():
 
 def test_char_fix_array():
     config = {"verify": "exception"}
-    field = tree.Field(None, name="c", arraysize="2x2", datatype="char", config=config)
+    field = tree.Field(None, name="c", arraysize="3x2", datatype="char", config=config)
     c = converters.get_converter(field, config=config)
-    assert (
-        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
-        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    )
+    assert c.output([["Foo", "Bar"], ["Foo", "Bar"]], True) == "            "
 
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
         == "FooBarFooBar"
     )
+
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
-        == "\x00\x00\x00Bar\x00\x00\x00Bar"
+        == "   Bar   Bar"
     )
 
 
 def test_char_variable_array():
     config = {"verify": "exception"}
-    field = tree.Field(None, name="c", arraysize="2x*", datatype="char", config=config)
+    field = tree.Field(None, name="c", arraysize="3x*", datatype="char", config=config)
     c = converters.get_converter(field, config=config)
-    assert (
-        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
-        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    )
+    assert c.output([["Foo", "Bar"], ["Foo", "Bar"]], True) == "            "
 
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
@@ -65,20 +63,17 @@ def test_char_variable_array():
     )
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
-        == "\x00\x00\x00Bar\x00\x00\x00Bar"
+        == "   Bar   Bar"
     )
 
 
-def test_unicodeChar_array():
+def test_unicodeChar_fix_array():
     config = {"verify": "exception"}
     field = tree.Field(
-        None, name="c", arraysize="2x2", datatype="unicodeChar", config=config
+        None, name="c", arraysize="3x2", datatype="unicodeChar", config=config
     )
     c = converters.get_converter(field, config=config)
-    assert (
-        c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], True)
-        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    )
+    assert c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], True) == "            "
 
     assert (
         c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], [[False, False], [False, False]])
@@ -86,20 +81,19 @@ def test_unicodeChar_array():
     )
     assert (
         c.output([["áéí", "ÁÉÍ"], ["áéí", "ÁÉÍ"]], [[True, False], [True, False]])
-        == "\x00\x00\x00\x00\x00\x00ÁÉÍ\x00\x00\x00\x00\x00\x00ÁÉÍ"
+        == "   ÁÉÍ   ÁÉÍ"
     )
 
 
-def test_unicodeChar_fix_array():
+def test_unicodeChar_variable_array():
     config = {"verify": "exception"}
+
     field = tree.Field(
-        None, name="c", arraysize="2x*", datatype="unicodeChar", config=config
+        None, name="c", arraysize="3x*", datatype="unicodeChar", config=config
     )
+
     c = converters.get_converter(field, config=config)
-    assert (
-        c.output([["Foo", "Bar"], ["Foo", "Bar"]], True)
-        == "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
-    )
+    assert c.output([["Foo", "Bar"], ["Foo", "Bar"]], True) == "            "
 
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[False, False], [False, False]])
@@ -107,7 +101,21 @@ def test_unicodeChar_fix_array():
     )
     assert (
         c.output([["Foo", "Bar"], ["Foo", "Bar"]], [[True, False], [True, False]])
-        == "\x00\x00\x00\x00\x00\x00Bar\x00\x00\x00\x00\x00\x00Bar"
+        == "   Bar   Bar"
+    )
+
+    c = converters.get_converter(field, config=config)
+    assert c.output([["你好你", "αβγ"], ["你好你", "αβγ"]], True) == "            "
+
+    assert (
+        c.output(
+            [["你好你", "αβγ"], ["你好你", "αβγ"]], [[False, False], [False, False]]
+        )
+        == "你好你αβγ你好你αβγ"
+    )
+    assert (
+        c.output([["你好你", "αβγ"], ["你好你", "αβγ"]], [[True, False], [True, False]])
+        == "   αβγ   αβγ"
     )
 
 
@@ -272,7 +280,7 @@ def test_unicode_as_char_binary_fix_array():
         converter.binoutput("zła", False)
 
 
-def test_unicode_as_char_binary_varible_array():
+def test_unicode_as_char_binary_variable_array():
     config = {"verify": "exception"}
 
     field = tree.Field(
@@ -368,22 +376,31 @@ def test_double_array():
 
 
 def test_complex_array_vararray():
-    config = {"verify": "exception"}
+    config = {"verify": "exception", "version_1_3_or_later": True}
     field = tree.Field(
         None, name="c", datatype="floatComplex", arraysize="2x3*", config=config
     )
     c = converters.get_converter(field, config=config)
     with pytest.raises(exceptions.E02):
-        c.parse("2 3 4 5 6")
+        c.parse("2 3 4 5 6", config=config)
+
+
+def test_int_array_vararray():
+    config = {"verify": "exception", "version_1_3_or_later": True}
+
+    field = tree.Field(None, name="c", datatype="int", arraysize="2x3", config=config)
+    c = converters.get_converter(field, config=config)
+    with pytest.raises(exceptions.E02):
+        c.parse("1 2 3 4 5", config=config)
 
 
 def test_complex_array_vararray2():
-    config = {"verify": "exception"}
+    config = {"verify": "exception", "version_1_3_or_later": True}
     field = tree.Field(
         None, name="c", datatype="floatComplex", arraysize="2x3*", config=config
     )
     c = converters.get_converter(field, config=config)
-    x = c.parse("")
+    x = c.parse("", config=config)
     assert len(x[0]) == 0
 
 
@@ -567,3 +584,259 @@ def test_overflow_binary_converter():
     </VOTABLE>"""
     table = parse_single_table(io.BytesIO(content))
     assert list(table.to_table()["bit_column"]) == [False, True, True]
+
+
+def test_oversize_char_array():
+
+    # exception
+    config = {"verify": "exception", "version_1_3_or_later": True}
+
+    field = tree.Field(None, name="c", datatype="char", arraysize="3x2", config=config)
+    c = converters.get_converter(field, config=config)
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("abc", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("ab", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+
+    # warn
+    config = {"verify": "warn", "version_1_3_or_later": True}
+
+    field = tree.Field(None, name="c", datatype="char", arraysize="3x2", config=config)
+    c = converters.get_converter(field, config=config)
+    with pytest.warns(exceptions.E02) as exc_info:
+        x = c.parse("abc", config=config)
+
+    assert len(x) == 2
+
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("ab", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+    # Ignore
+    config = {"verify": "ignore", "version_1_3_or_later": True}
+
+    field = tree.Field(None, name="c", datatype="char", arraysize="3x2", config=config)
+    c = converters.get_converter(field, config=config)
+
+    with warnings.catch_warnings(record=True) as exc_info:
+        warnings.resetwarnings()
+        warnings.simplefilter("always")
+        x = c.parse("abc", config=config)
+
+        assert len(x) == 2
+
+
+def test_oversize_unicodeChar_array():
+    # exception
+    config = {"verify": "exception", "version_1_3_or_later": True}
+
+    field = tree.Field(
+        None, name="c", datatype="unicodeChar", arraysize="3x2", config=config
+    )
+    c = converters.get_converter(field, config=config)
+
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("αβγ", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("αβ", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+
+    # warn
+    config = {"verify": "warn", "version_1_3_or_later": True}
+
+    field = tree.Field(
+        None, name="c", datatype="unicodeChar", arraysize="3x2", config=config
+    )
+    c = converters.get_converter(field, config=config)
+
+    with pytest.warns(exceptions.E02) as exc_info:
+        x = c.parse("αβγ", config=config)
+
+    assert len(x) == 2
+
+    with pytest.raises(exceptions.E02) as exc_info:
+        x = c.parse("αβ", config=config)
+
+    assert (
+        "Incorrect number of elements in array. Expected multiple of 2, got 1"
+        in str(exc_info.value)
+    )
+
+    # Ignore
+    config = {"verify": "ignore", "version_1_3_or_later": True}
+
+    field = tree.Field(
+        None, name="c", datatype="unicodeChar", arraysize="3x2", config=config
+    )
+    c = converters.get_converter(field, config=config)
+
+    with warnings.catch_warnings(record=True) as exc_info:
+        warnings.simplefilter("always")
+        x = c.parse("αβγ", config=config)
+
+        assert len(x) == 2
+
+
+@pytest.mark.parametrize(
+    "dtype, expected",
+    [
+        (np.dtype("float64"), {"datatype": "double"}),
+        (np.dtype("float32"), {"datatype": "float"}),
+        (np.dtype("bool"), {"datatype": "bit"}),
+        (np.dtype("uint8"), {"datatype": "unsignedByte"}),
+        (np.dtype("int16"), {"datatype": "short"}),
+        (np.dtype("int32"), {"datatype": "int"}),
+        (np.dtype("int64"), {"datatype": "long"}),
+        (np.dtype("complex64"), {"datatype": "floatComplex"}),
+        (np.dtype("complex128"), {"datatype": "doubleComplex"}),
+    ],
+)
+def test_numpy_to_votable_dtype_scalar(dtype, expected):
+    result = converters.numpy_to_votable_dtype(dtype, ())
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "dtype, expected",
+    [
+        (
+            np.dtype("S10"),
+            {
+                "datatype": "char",
+                "arraysize": "10",
+            },
+        ),
+        (
+            np.dtype("U10"),
+            {
+                "datatype": "unicodeChar",
+                "arraysize": "10",
+            },
+        ),
+        (
+            np.dtype("S1"),
+            {
+                "datatype": "char",
+                "arraysize": "1",
+            },
+        ),
+        (
+            np.dtype("U1"),
+            {
+                "datatype": "unicodeChar",
+                "arraysize": "1",
+            },
+        ),
+    ],
+)
+def test_numpy_to_votable_dtype_strings(dtype, expected):
+    result = converters.numpy_to_votable_dtype(dtype, ())
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "dtype, shape, expected",
+    [
+        (
+            np.dtype("int32"),
+            (3,),
+            {"datatype": "int", "arraysize": "3"},
+        ),
+        (
+            np.dtype("float64"),
+            (2, 3),
+            {"datatype": "double", "arraysize": "2x3"},
+        ),
+        (
+            np.dtype("float32"),
+            (2, 3, 4),
+            {"datatype": "float", "arraysize": "2x3x4"},
+        ),
+    ],
+)
+def test_numpy_to_votable_dtype_arrays(dtype, shape, expected):
+    result = converters.numpy_to_votable_dtype(dtype, shape)
+    assert result == expected
+
+
+def test_numpy_to_votable_dtype_unsupported():
+    dtype = np.dtype("object")
+
+    with pytest.raises(TypeError, match="can not be represented in VOTable"):
+        converters.numpy_to_votable_dtype(dtype, ())
+
+
+def test_numpy_to_votable_dtype_empty_shape():
+    result = converters.numpy_to_votable_dtype(np.dtype("int32"), ())
+    assert result == {"datatype": "int"}
+
+
+@pytest.mark.parametrize(
+    ("values", "dtype", "expected_datatype", "expected_values"),
+    [
+        pytest.param(
+            [["abc", "de"]], None, "unicodeChar", ["abc", "de "], id="ascii-default"
+        ),
+        pytest.param(
+            [["αβγ", "αβ"]], None, "unicodeChar", ["αβγ", "αβ "], id="unicode-default"
+        ),
+        pytest.param(
+            [["abc", "de"]], "U", "unicodeChar", ["abc", "de "], id="ascii-unicode"
+        ),
+        pytest.param(
+            [["αβγ", "αβ"]], "U", "unicodeChar", ["αβγ", "αβ "], id="unicode-unicode"
+        ),
+        pytest.param([["abc", "de"]], "S", "char", ["abc", "de "], id="ascii-bytes"),
+        pytest.param([[b"abc", b"de"]], "S", "char", ["abc", "de "], id="bytes"),
+    ],
+)
+def test_numpy_to_votable_dtype_string_array(
+    values, dtype, expected_values, expected_datatype
+):
+    astropy_table = Table({"c": np.array(values, dtype=dtype)})
+    col = astropy_table["c"]
+
+    result = converters.numpy_to_votable_dtype(col.dtype, col.shape[1:])
+
+    assert result == {
+        "datatype": expected_datatype,
+        "arraysize": "3x2",
+    }
+
+    output = io.BytesIO()
+    astropy_table.write(output, format="votable")  # , tabledata_format="binary2")
+    output.seek(0)
+
+    votable2 = parse(output)
+    table2 = votable2.get_first_table()
+    astropy_table2 = table2.to_table()
+    actual_row = astropy_table2[0]
+
+    assert len(astropy_table2) == 1
+    actual = astropy_table2[0]
+
+    assert_array_equal(ma.getdata(actual["c"]), expected_values)
