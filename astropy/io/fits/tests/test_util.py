@@ -203,7 +203,7 @@ def test_rstrip_inplace():
 
 
 def test_string_column_with_non_ascii_bytes_stays_bytes_while_ascii_column_decodes():
-    names = np.array([b"caf\xe9", b"ok"], dtype="S6")
+    names = np.array([b"\xe9t\xe9", b"ok"], dtype="S6")
     hdu = fits.BinTableHDU.from_columns(
         [
             fits.Column(name="name", format="6A", array=names),
