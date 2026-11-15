@@ -273,9 +273,20 @@ def decode_ascii(s):
             dt = s.dtype.str.replace("S", "U")
             ns = np.array([], dtype=dt).view(type(s))
         else:
-            ns = np.strings.decode(s, "ascii").view(type(s))
-        if ns.dtype.itemsize / 4 != s.dtype.itemsize:
-            ns = ns.astype((np.str_, s.dtype.itemsize))
+            # ASCII bytes map one-to-one onto UCS4 code points, so decoding is
+            # just widening each byte to 4 bytes. This avoids np.strings.decode,
+            # which creates a Python object per element and is very slow for
+            # large arrays. Null padding and embedded nulls are preserved as-is.
+            itemsize = s.dtype.itemsize
+            raw = np.ascontiguousarray(s).view(np.uint8)
+            if raw.size == 0 or raw.max() > 127:
+                # Zero-width strings, or non-ASCII bytes: the str cast is a
+                # strict ASCII decode and raises the same UnicodeDecodeError
+                # as np.strings.decode.
+                ns = s.astype((np.str_, itemsize))
+            else:
+                ns = raw.astype(np.uint32).view((np.str_, itemsize)).reshape(s.shape)
+            ns = ns.view(type(s))
         return ns
     elif isinstance(s, np.ndarray) and not issubclass(s.dtype.type, np.str_):
         # Don't silently pass through on non-string arrays; we don't want
