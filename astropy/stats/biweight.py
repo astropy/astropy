@@ -131,7 +131,8 @@ def _validate_c(c):
     """
     Raise an error if the tuning constant ``c`` is not positive.
     """
-    if c <= 0:
+    # "not c > 0" also rejects NaN, unlike "c <= 0"
+    if not c > 0:
         msg = "c must be positive."
         raise ValueError(msg)
 

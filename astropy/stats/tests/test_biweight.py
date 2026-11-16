@@ -716,7 +716,7 @@ def test_biweight_midcorrelation_zero_mad():
     assert np.isnan(biweight_midcorrelation(x, x))
 
 
-@pytest.mark.parametrize("c", [0.0, -6.0])
+@pytest.mark.parametrize("c", [0.0, -6.0, np.nan])
 @pytest.mark.parametrize(
     "func",
     [
@@ -728,7 +728,7 @@ def test_biweight_midcorrelation_zero_mad():
 )
 def test_biweight_c_positive(func, c):
     """
-    Test that a non-positive tuning constant raises an error.
+    Test that a non-positive or NaN tuning constant raises an error.
     """
     with pytest.raises(ValueError, match=r"c must be positive\."):
         func(np.arange(10.0), c=c)
