@@ -1016,7 +1016,13 @@ class CoordinateHelper:
         # the parent axes to tell us what the bounding frame is.
         from . import conf
 
-        frame = self.frame.sample(conf.frame_boundary_samples)
+        # The frame and the world coordinates along it are the same for every
+        # coordinate of the map, so the coordinates share them while the axes
+        # update their ticks.
+        frame_world = getattr(self.parent_map, "_frame_world", {})
+        if "frame" not in frame_world:
+            frame_world["frame"] = self.frame.sample(conf.frame_boundary_samples)
+        frame = frame_world["frame"]
 
         self._ticks.clear()
         self._ticklabels.clear()
@@ -1045,11 +1051,14 @@ class CoordinateHelper:
 
                 # Define a helper function to minimize code repetition
                 def shifted_pixel_to_world(index, shift):
-                    pixel = axes0.copy()
-                    pixel[:, index] += shift
-                    pixel = invertedTransLimits.transform(pixel)
-                    with np.errstate(invalid="ignore"):
-                        return self.transform.transform(pixel)[:, self.coord_index]
+                    key = (axis, index, shift)
+                    if key not in frame_world:
+                        pixel = axes0.copy()
+                        pixel[:, index] += shift
+                        pixel = invertedTransLimits.transform(pixel)
+                        with np.errstate(invalid="ignore"):
+                            frame_world[key] = self.transform.transform(pixel)
+                    return frame_world[key][:, self.coord_index]
 
                 # Advance 2 pixels to the right in figure coordinates
                 world1 = shifted_pixel_to_world(0, 2)

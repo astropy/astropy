@@ -13,6 +13,7 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.visualization.wcsaxes import conf
 from astropy.visualization.wcsaxes.coordinate_helpers import CoordinateHelper
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.wcs import WCS
@@ -576,3 +577,51 @@ def test_hidden_coordinates_do_not_take_a_spine():
     assert "b" in ax.coords["lat"].get_ticklabel_position()
     assert ax.coords["time"].get_ticklabel_position() == ["#"]
     assert ax.coords["step"].get_ticklabel_position() == ["#"]
+
+
+def test_frame_transformed_once_for_all_coordinates():
+    # The ticks of every coordinate are found from the world coordinates
+    # along the frame. These should be computed once when the axes are drawn,
+    # and not once for each coordinate, as the transform can be slow.
+    calls = []
+
+    class CountingTransform(transforms.Transform):
+        input_dims = 2
+        output_dims = 2
+        is_separable = False
+        has_inverse = False
+
+        def transform(self, values):
+            calls.append(len(values))
+            return values * 0.01
+
+        def transform_path(self, path):
+            return Path(self.transform(path.vertices), path.codes)
+
+        transform_path_non_affine = transform_path
+
+    coord_meta = {
+        "type": ("longitude", "latitude"),
+        "unit": (u.deg, u.deg),
+        "wrap": (360 * u.deg, None),
+        "name": ("lon", "lat"),
+    }
+
+    fig = Figure()
+    canvas = FigureCanvasAgg(fig)
+    ax = WCSAxes(
+        fig,
+        [0.1, 0.1, 0.8, 0.8],
+        transform=CountingTransform(),
+        coord_meta=coord_meta,
+    )
+    fig.add_axes(ax)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+
+    calls.clear()
+    canvas.draw()
+
+    # Each of the four spines is transformed as it is, and shifted along x
+    # and along y to find the angles of the ticks.
+    assert calls.count(conf.frame_boundary_samples) == 12

@@ -589,8 +589,12 @@ class WCSAxes(Axes):
             coords.frame.update()
             coords._coord_range = coords.get_coord_range()
 
+            # Shared by the coordinates, which all need the world coordinates
+            # along the same frame
+            coords._frame_world = {}
             for coord in coords:
                 coord._update_ticks()
+            del coords._frame_world
 
         # At this point, if any of the tick/ticklabel/axislabel positions are
         # set to be automatic, we need to determine the optimal positions.
