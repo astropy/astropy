@@ -991,8 +991,9 @@ def shared_sigclip(request):
         datasets.append(data)
 
     if request.param == "noaxis":
-        # The axis=None case uses the _sigmaclip_noaxis code path.
-        sigclip = SigmaClip(sigma=2.0, maxiters=5)
+        # A callable cenfunc with axis=None uses the Python
+        # _sigmaclip_noaxis code path.
+        sigclip = SigmaClip(sigma=2.0, maxiters=5, cenfunc=np.nanmedian)
         axis = None
     else:
         # A callable cenfunc with an axis uses the Python
