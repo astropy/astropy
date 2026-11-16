@@ -90,6 +90,7 @@ int fits_hdecompress(unsigned char *input, int smooth, int *a, int na, int *ny, 
   
    input  - input array of compressed bytes
    a - pre-allocated array to hold the output uncompressed image
+   na - number of integers allocated for a (eg, sizeof a / sizeof *a)
    nx - returned X axis size
    ny - returned Y axis size
 
@@ -133,6 +134,7 @@ int fits_hdecompress64(unsigned char *input, int smooth, LONGLONG *a, int na, in
   
    input  - input array of compressed bytes
    a - pre-allocated array to hold the output uncompressed image
+   na - number of integers allocated for a (eg, sizeof a / sizeof *a)
    nx - returned X axis size
    ny - returned Y axis size
 
@@ -1046,7 +1048,7 @@ static int decode(unsigned char *infile, int *a, int na, int *nx, int *ny, int *
 /*
 char *infile;				 input file							
 int  *a;				 address of output array [nx][ny]
-int  na;		                 size allocated for output array
+int  na;		                 number of ints allocated for output array
 int  *nx,*ny;				 dimensions of image					
 int  *scale;				 scale factor for digitization		
 */
@@ -1102,7 +1104,7 @@ static int decode64(unsigned char *infile, LONGLONG *a, int na, int *nx, int *ny
 /*
 char *infile;				 input file							
 LONGLONG  *a;				 address of output array [nx][ny]
-int  na;                                 size allocated for output array		
+int  na;                                 number of ints allocated for output array		
 int  *nx,*ny;				 dimensions of image					
 int  *scale;				 scale factor for digitization		
 */

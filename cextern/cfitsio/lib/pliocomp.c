@@ -6,7 +6,7 @@
    compression technique is used in IRAF.
 */
 int pl_p2li (int *pxsrc, int xs, short *lldst, int npix);
-int pl_l2pi (short *ll_src, int xs, int *px_dst, int npix);
+int pl_l2pi (short *ll_src, size_t srclen, int xs, int *px_dst, int npix);
 
 
 /*
@@ -180,8 +180,9 @@ L100:
  * Translated from the SPP version using xc -f, f2c.  8Sep99 DCT.
  */
 
-int pl_l2pi (short *ll_src, int xs, int *px_dst, int npix)
+int pl_l2pi (short *ll_src, size_t srclen, int xs, int *px_dst, int npix)
 /* short *ll_src;                   encoded line list */
+/* size_t srclen;                   length of encoded line list */
 /* int xs;                          starting index in ll_src */
 /* int *px_dst;                    output pixel array */
 /* int npix;                       number of pixels to convert */
@@ -228,6 +229,10 @@ L120:
         skipwd = 0;
         goto L130;
 L140:
+        if (ip < 1 || (size_t)ip > srclen) {
+           ret_val = -1;
+           goto L100;
+        }
         opcode = ll_src[ip] / 4096;
         data = ll_src[ip] & 4095;
         sw0001 = opcode;
@@ -269,6 +274,10 @@ L170:
         x1 = x2 + 1;
         goto L151;
 L220:
+        if (((size_t)ip+1) > srclen) {
+           ret_val = -1;
+           goto L100;
+        }
         pv = (ll_src[ip + 1] << 12) + data;
         skipwd = 1;
         goto L151;

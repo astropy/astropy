@@ -36,6 +36,7 @@ rm -rf cfitsio/utilities
 rm -rf cfitsio/cmake
 rm -rf cfitsio/config
 rm -rf cfitsio/m4
+rm -rf cfitsio/tests
 
 # We only use a very small subset of fitsio2.h, so here we generate that
 # file. If there are compilation issues after updating, it may be that

@@ -1,5 +1,26 @@
                    Log of Changes Made to CFITSIO
                    
+Version 4.7.0 - Aug 2026
+
+  - This release includes patches to security vulnerabilities.  We 
+    strongly encourage this upgrade, particularly for those running 
+    CFITSIO in web accessible applications.
+    
+    Our thanks to A. Denkiewicz and Z. Bugaud for their extensive help
+    with this.
+  
+  - New test framework added, containing a collection of unit tests.
+    Our thanks to W. Pursell for contributing this.
+    
+  - Bug fix for parsing octal integer constants in expressions.  Our
+    thanks to Cruzzil_Code for submitting this.
+    
+  - Enhanced output from uncompress2mem_from_mem function.
+  
+  - Appended 'fits_' prefix to stream driver function names to reduce
+    chances of potential symbol name conflicts with outside libraries.
+    Our thanks to rtobar for submitting this.
+     
 Version 4.6.4 - Apr 2026
 
   - This release includes patches to security vulnerabilities.  We 
