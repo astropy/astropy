@@ -2,7 +2,7 @@
 """World Coordinate System (WCS) transformations in FITS files.
 
 .. _wcslib: https://www.atnf.csiro.au/people/mcalabre/WCS/wcslib/index.html
-.. _distortion paper: https://www.atnf.csiro.au/people/mcalabre/WCS/dcs_20040422.pdf
+.. _distortion paper: https://fits.gsfc.nasa.gov/wcs/dcs_20040422.pdf
 .. _SIP: https://irsa.ipac.caltech.edu/data/SPITZER/docs/files/spitzer/shupeADASS.pdf
 .. _FITS WCS standard: https://fits.gsfc.nasa.gov/fits_wcs.html
 
@@ -17,8 +17,8 @@ It performs three separate classes of WCS transformations:
   Calabretta's `wcslib`_.  See `~astropy.wcs.Wcsprm`.
 - Simple Imaging Polynomial (`SIP`_) convention.  See
   `~astropy.wcs.Sip`.
-- table lookup distortions as defined in WCS `distortion paper`_.  See
-  `~astropy.wcs.DistortionLookupTable`.
+- table lookup distortions as defined in draft FITS WCS `distortion paper`_.
+  See `~astropy.wcs.DistortionLookupTable`.
 
 Each of these transformations can be used independently or together in
 a standard pipeline.

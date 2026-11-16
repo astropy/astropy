@@ -714,3 +714,21 @@ def test_helper_uniform_multidim_regression():
     # Bounds must hold for all samples
     assert np.all(d.distribution >= lower[..., np.newaxis])
     assert np.all(d.distribution <= upper[..., np.newaxis])
+
+
+def test_scalar_distribution_ellipsis():
+    # Regression test for https://github.com/astropy/astropy/issues/20455
+    import numpy as np
+
+    from astropy.uncertainty import Distribution
+
+    d_array = Distribution(np.arange(12.0).reshape(3, 4))
+    s = d_array[0]
+
+    # Using ellipsis should return a Distribution, not a structured ndarray
+    result = s[...]
+    assert isinstance(result, Distribution)
+
+    result_empty = s[()]
+    assert isinstance(result_empty, type(s))
+    assert result_empty is not s

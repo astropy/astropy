@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 from collections import defaultdict
+from contextlib import nullcontext
 from functools import partial
 
 import numpy as np
@@ -11,6 +12,7 @@ from matplotlib.transforms import Affine2D, Bbox, Transform
 
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils.compat.optional_deps import HAS_PIL
+from astropy.utils.decorators import deprecated_renamed_argument
 from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
@@ -382,6 +384,11 @@ class WCSAxes(Axes):
         --------
         matplotlib.axes.Axes.plot :
             This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        scatter_coord : The equivalent method for `matplotlib.axes.Axes.scatter`.
+        text_coord : The equivalent method for `matplotlib.axes.Axes.text`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -415,6 +422,11 @@ class WCSAxes(Axes):
         --------
         matplotlib.axes.Axes.text :
             This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        plot_coord : The equivalent method for `matplotlib.axes.Axes.plot`.
+        scatter_coord : The equivalent method for `matplotlib.axes.Axes.scatter`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -446,7 +458,13 @@ class WCSAxes(Axes):
 
         See Also
         --------
-        matplotlib.axes.Axes.scatter : This method is called from this function with all arguments passed to it.
+        matplotlib.axes.Axes.scatter :
+            This method is called from this function with all arguments passed to it.
+            Unlike this method, it interprets plain numbers as pixel coordinates by
+            default, and world coordinates only if a ``transform`` constructed with
+            :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform` is passed.
+        plot_coord : The equivalent method for `matplotlib.axes.Axes.plot`.
+        text_coord : The equivalent method for `matplotlib.axes.Axes.text`.
         """
         args, kwargs = self._transform_plot_args(*args, **kwargs)
 
@@ -919,14 +937,18 @@ class WCSAxes(Axes):
         if not self.get_visible():
             return
 
-        # Do a draw to populate the self._bboxes list
-        self.draw_wcsaxes(renderer)
+        # Do a draw to populate the self._bboxes list, disabling any actual
+        # drawing commands since some renderers used for layout (e.g. the PGF
+        # measurement renderer) cannot accept them.
+        with getattr(renderer, "_draw_disabled", nullcontext)():
+            self.draw_wcsaxes(renderer)
         bb = [b for b in self._bboxes if b and (b.width != 0 or b.height != 0)]
         bb.append(super().get_tightbbox(renderer, *args, **kwargs))
 
         return Bbox.union(bb)
 
-    def grid(self, b=None, axis="both", *, which="major", **kwargs):
+    @deprecated_renamed_argument("b", "visible", since="8.1")
+    def grid(self, visible=None, axis="both", *, which="major", **kwargs):
         """
         Plot gridlines for both coordinates.
 
@@ -937,7 +959,7 @@ class WCSAxes(Axes):
 
         Parameters
         ----------
-        b : bool
+        visible : bool
             Whether to show the gridlines.
         axis : 'both', 'x', 'y'
             Which axis to turn the gridlines on/off for.
@@ -956,11 +978,11 @@ class WCSAxes(Axes):
             )
 
         if axis == "both":
-            self.coords.grid(draw_grid=b, **kwargs)
+            self.coords.grid(draw_grid=visible, **kwargs)
         elif axis == "x":
-            self.coords[0].grid(draw_grid=b, **kwargs)
+            self.coords[0].grid(draw_grid=visible, **kwargs)
         elif axis == "y":
-            self.coords[1].grid(draw_grid=b, **kwargs)
+            self.coords[1].grid(draw_grid=visible, **kwargs)
         else:
             raise ValueError("axis should be one of x/y/both")
 

@@ -64,7 +64,7 @@ def redshift_distance(
         Note this does NOT include the angular diameter distance as this
         distance measure is not monotonic.
     **atzkw
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`, which is used to
+        Keyword arguments for :func:`~astropy.cosmology.z_at_value`, which is used to
         convert distance to redshift.
 
     Returns
@@ -109,11 +109,11 @@ def redshift_distance(
 
     method = getattr(cosmology, kind + "_distance")
 
-    def z_to_distance(z):
+    def z_to_distance(z):  # numpydoc ignore=PR01
         """Redshift to distance."""
         return method(z)
 
-    def distance_to_z(d):
+    def distance_to_z(d):  # numpydoc ignore=PR01
         """Distance to redshift."""
         return z_at_value(method, d << u.Mpc, **atzkw)
 
@@ -140,7 +140,7 @@ def redshift_hubble(
         If None, will use the default cosmology
         (controlled by |default_cosmology|).
     **atzkw
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+        Keyword arguments for :func:`~astropy.cosmology.z_at_value`.
 
     Returns
     -------
@@ -167,19 +167,19 @@ def redshift_hubble(
     with default_cosmology.set(cosmology):  # if already cosmo, passes through
         cosmology = default_cosmology.get()
 
-    def z_to_hubble(z):
+    def z_to_hubble(z):  # numpydoc ignore=PR01
         """Redshift to Hubble parameter."""
         return cosmology.H(z)
 
-    def hubble_to_z(H):
+    def hubble_to_z(H):  # numpydoc ignore=PR01
         """Hubble parameter to redshift."""
         return z_at_value(cosmology.H, H << (u.km / u.s / u.Mpc), **atzkw)
 
-    def z_to_littleh(z):
+    def z_to_littleh(z):  # numpydoc ignore=PR01
         """Redshift to :math:`h`-unit Quantity."""
         return z_to_hubble(z).to_value(u.km / u.s / u.Mpc) / 100 * littleh
 
-    def littleh_to_z(h):
+    def littleh_to_z(h):  # numpydoc ignore=PR01
         """:math:`h`-unit Quantity to redshift."""
         return hubble_to_z(h * 100)
 
@@ -209,7 +209,7 @@ def redshift_temperature(
         If None, will use the default cosmology
         (controlled by |default_cosmology|).
     **atzkw
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+        Keyword arguments for :func:`~astropy.cosmology.z_at_value`.
 
     Returns
     -------
@@ -276,7 +276,7 @@ def with_redshift(
         ``Cosmology.Tcmb``. Default is `True`.
 
     atzkw : dict or None (optional, keyword-only)
-        keyword arguments for :func:`~astropy.cosmology.z_at_value`
+        Keyword arguments for :func:`~astropy.cosmology.z_at_value`.
 
     Returns
     -------

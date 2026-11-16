@@ -88,7 +88,7 @@ class _ZAtValueKWArgs(TypedDict):  # noqa: PYI049
     """Print diagnostic output from solver."""
 
 
-def _z_at_scalar_value(  # ruff: ignore[PLR0917]
+def _z_at_scalar_value(  # ruff: ignore[PLR0917]  # numpydoc ignore=PR01
     func,
     fval: float | FArray | Quantity,
     zmin: float | FArray | Quantity = 1e-8,
@@ -279,14 +279,6 @@ def z_at_value(  # ruff: ignore[PLR0917]
         The redshift ``z`` satisfying ``zmin < z < zmax`` and ``func(z) =
         fval`` within ``ztol``. Has units of cosmological redshift.
 
-    Warns
-    -----
-    :class:`~astropy.utils.exceptions.AstropyUserWarning`
-        If ``fval`` is not bracketed by ``func(zmin)=fval(zmin)`` and
-        ``func(zmax)=fval(zmax)``.
-
-        If the solver was not successful.
-
     Raises
     ------
     :class:`astropy.cosmology.CosmologyError`
@@ -297,6 +289,14 @@ def z_at_value(  # ruff: ignore[PLR0917]
         If ``bracket`` is not an object array. 2 (or 3) element sequences will
         be turned into object arrays, so this error should only occur if a
         non-object array is used for ``bracket``.
+
+    Warns
+    -----
+    :class:`~astropy.utils.exceptions.AstropyUserWarning`
+        If ``fval`` is not bracketed by ``func(zmin)=fval(zmin)`` and
+        ``func(zmax)=fval(zmax)``.
+
+        If the solver was not successful.
 
     Notes
     -----

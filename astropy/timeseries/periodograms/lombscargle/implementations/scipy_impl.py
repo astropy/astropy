@@ -1,9 +1,29 @@
+from functools import cache
+
 import numpy as np
 
+from astropy.timeseries.periodograms.lombscargle.utils import (
+    compute_chi2_ref,
+    convert_normalization,
+)
+from astropy.utils import minversion
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
-def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=True):
+@cache
+def _scipy_supports_floating_mean():
+    # Deferred so that scipy is only imported and its version only probed when
+    # the answer is needed; passing the module object lets minversion fall
+    # back to scipy.__version__ when the distribution metadata is missing
+    # (e.g. in some frozen applications).
+    import scipy
+
+    return minversion(scipy, "1.15.0.dev0")
+
+
+def lombscargle_scipy(
+    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
+):
     """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
@@ -23,6 +43,11 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     center_data : bool, optional
         If True, pre-center the data by subtracting the weighted mean
         of the input data.
+    fit_mean : bool, optional, keyword-only
+        If True, include a constant offset as part of the model at each
+        frequency. This can lead to more accurate results, especially in the
+        case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
+        to the ``floating_mean`` argument in `scipy.signal.lombscargle`.
 
     Returns
     -------
@@ -41,6 +66,9 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
 
     from scipy import signal
 
+    if fit_mean and not _scipy_supports_floating_mean():
+        raise ValueError("fit_mean=True requires scipy 1.15 or later")
+
     t, y = np.broadcast_arrays(t, y)
 
     # Scipy requires floating-point input
@@ -56,17 +84,13 @@ def lombscargle_scipy(t, y, frequency, normalization="standard", center_data=Tru
     if center_data:
         y = y - y.mean()
 
-    # Note: scipy input accepts angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency)
+    kwargs = {"floating_mean": True} if fit_mean else {}
+
+    # Note: scipy `freqs` input is in angular frequencies
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
 
     if normalization == "psd":
-        pass
-    elif normalization == "standard":
-        p *= 2 / (t.size * np.mean(y**2))
-    elif normalization == "log":
-        p = -np.log(1 - 2 * p / (t.size * np.mean(y**2)))
-    elif normalization == "model":
-        p /= 0.5 * t.size * np.mean(y**2) - p
-    else:
-        raise ValueError(f"normalization='{normalization}' not recognized")
-    return p
+        return p
+
+    chi2_ref = compute_chi2_ref(y, center_data=center_data, fit_mean=fit_mean)
+    return convert_normalization(p, t.size, "psd", normalization, chi2_ref=chi2_ref)

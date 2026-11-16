@@ -12,13 +12,16 @@ def convert_parameter_to_column(parameter, value, meta=None):
     Parameters
     ----------
     parameter : `astropy.cosmology._src.parameter.Parameter`
+        The cosmology parameter.
     value : Any
+        The value of the parameter.
     meta : dict or None, optional
         Information from the Cosmology's metadata.
 
     Returns
     -------
     `astropy.table.Column`
+        The column, with the parameter value as its (length-1) data.
     """
     shape = (1,) + np.shape(value)  # minimum of 1d
 
@@ -38,7 +41,9 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     Parameters
     ----------
     parameter : `astropy.cosmology._src.parameter.Parameter`
+        The cosmology parameter.
     value : Any
+        The value of the parameter.
     meta : dict or None, optional
         Information from the Cosmology's metadata.
         This function will use any of: 'getter', 'setter', 'fixed', 'tied',
@@ -47,6 +52,7 @@ def convert_parameter_to_model_parameter(parameter, value, meta=None):
     Returns
     -------
     `astropy.modeling.Parameter`
+        The model parameter.
     """
     # Get from meta information relevant to Model
     attrs = (

@@ -37,7 +37,10 @@ def test_read_ipac():
 
 
 def test_read_cds():
-    Table.read(get_pkg_data_filename("data/cds.dat"), format="cds")
+    t = Table.read(get_pkg_data_filename("data/cds.dat"), format="cds")
+    assert all(
+        (c := t[name]).description == c.description.strip() for name in t.columns
+    )
 
 
 def test_read_dapphot():

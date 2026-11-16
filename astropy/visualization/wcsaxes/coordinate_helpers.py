@@ -373,6 +373,12 @@ class CoordinateHelper:
         if "color" in kwargs:
             kwargs["edgecolor"] = kwargs.pop("color")
 
+        # Treat `visible` as an alias for draw_grid (matching
+        # `matplotlib.axes.Axes.grid`) rather than letting it be silently
+        # overridden by draw_grid below.
+        if "visible" in kwargs:
+            draw_grid = kwargs.pop("visible")
+
         self._grid_lines_kwargs.update(kwargs)
 
         if draw_grid is None:

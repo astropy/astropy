@@ -1,0 +1,2 @@
+Fixed ``fold_intervals`` returning incorrect, and possibly negative, weights
+when an interval's upper limit falls exactly on a period boundary.

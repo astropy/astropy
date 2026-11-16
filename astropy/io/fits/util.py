@@ -745,10 +745,13 @@ def _free_space_check(hdulist, dirname=None):
         yield
     except OSError as exc:
         error_message = ""
+        if dirname is None:
+            try:
+                dirname = os.path.dirname(hdulist._file.name)
+            except (AttributeError, TypeError):
+                dirname = ""
         if not isinstance(hdulist, list):
             hdulist = [hdulist]
-        if dirname is None:
-            dirname = os.path.dirname(hdulist._file.name)
         if os.path.isdir(dirname):
             free_space = data.get_free_space_in_dir(dirname)
             hdulist_size = sum(hdu.size for hdu in hdulist)

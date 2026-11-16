@@ -40,6 +40,13 @@ class BoxLeastSquares(BasePeriodogram):
     dy : float, array-like, or `~astropy.units.Quantity`, optional
         Error or sequence of observational errors associated with times ``t``.
 
+    References
+    ----------
+    .. [1] Kovacs, Zucker, & Mazeh (2002), A&A, 391, 369
+        (arXiv:astro-ph/0206099)
+    .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1
+        (arXiv:1605.06811)
+
     Examples
     --------
     Generate noisy data with a transit:
@@ -77,13 +84,6 @@ class BoxLeastSquares(BasePeriodogram):
     Unit("d")
     >>> results.power.unit
     Unit(dimensionless)
-
-    References
-    ----------
-    .. [1] Kovacs, Zucker, & Mazeh (2002), A&A, 391, 369
-        (arXiv:astro-ph/0206099)
-    .. [2] Hartman & Bakos (2016), Astronomy & Computing, 17, 1
-        (arXiv:1605.06811)
     """
 
     def __init__(self, t, y, dy=None):

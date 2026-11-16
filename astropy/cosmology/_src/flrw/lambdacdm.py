@@ -23,7 +23,7 @@ __doctest_requires__ = {"*": ["scipy"]}
 
 
 @dataclass_decorator
-class LambdaCDM(FLRW):
+class LambdaCDM(FLRW):  # numpydoc ignore=PR02
     """FLRW cosmology with a cosmological constant and curvature.
 
     This has no additional attributes beyond those of FLRW.
@@ -380,6 +380,16 @@ class LambdaCDM(FLRW):
            T(x) = 2 \sqrt(x) _{2}F_{1}\left(\frac{1}{6}, \frac{1}{2};
                                             \frac{7}{6}; -x^3 \right)
 
+        Parameters
+        ----------
+        x : float
+            Input value.
+
+        Returns
+        -------
+        float
+            The value of :math:`T(x)`.
+
         Notes
         -----
         The :func:`scipy.special.hyp2f1` code already implements the
@@ -606,6 +616,23 @@ def phi_amplitude_b_outside(  # ruff: ignore[PLR0917]
     This is the regime treated by their first set of elliptic-integral formulas (eqs.
     (8)-(13) in II.A.1).
 
+    Parameters
+    ----------
+    Om0, Ok0 : float
+        Omega matter and Omega curvature at z=0.
+    kappa : float
+        The sign of :math:`b`.
+    y1 : float
+        The real root of the cubic.
+    A : float
+        :math:`\sqrt{y_1 (3 y_1 + 2)}`.
+    z : ndarray
+        Input redshift.
+
+    Returns
+    -------
+    ndarray
+        The Phi amplitude.
     """
     return np.arccos(
         ((z + 1.0) * Om0 / abs(Ok0) + kappa * y1 - A)
@@ -616,12 +643,27 @@ def phi_amplitude_b_outside(  # ruff: ignore[PLR0917]
 def phi_amplitude_b_inside(
     Om0: float, Ok0: float, y1: float, y2: float, z: NDArray[np.number], /
 ) -> NDArray[np.number]:
-    r"""Phi amplitude for 0<b<2 case. See `phi_amplitude_b_outside`."""
+    r"""Phi amplitude for 0<b<2 case. See `phi_amplitude_b_outside`.
+
+    Parameters
+    ----------
+    Om0, Ok0 : float
+        Omega matter and Omega curvature at z=0.
+    y1, y2 : float
+        The first two roots of the cubic.
+    z : ndarray
+        Input redshift.
+
+    Returns
+    -------
+    ndarray
+        The Phi amplitude.
+    """
     return np.arcsin(np.sqrt((y1 - y2) / ((z + 1.0) * Om0 / abs(Ok0) + y1)))
 
 
 @dataclass_decorator
-class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):
+class FlatLambdaCDM(FlatFLRWMixin, LambdaCDM):  # numpydoc ignore=PR02
     """FLRW cosmology with a cosmological constant and no curvature.
 
     This has no additional attributes beyond those of FLRW.

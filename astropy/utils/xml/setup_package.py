@@ -23,12 +23,19 @@ def get_extensions(build_type="release"):
             cfg[k].extend(v)
     else:
         EXPAT_DIR = "cextern/expat/lib"
-        cfg["sources"].extend(
-            [
-                join(EXPAT_DIR, fn)
-                for fn in ["xmlparse.c", "xmlrole.c", "xmltok.c", "xmltok_impl.c"]
-            ]
-        )
+        expat_sources = [
+            "xcs.c",
+            "xmlparse.c",
+            "xmlrole.c",
+            "xmltok.c",
+            "xmltok_impl.c",
+        ]
+        # Source of entropy for the hash salt, matching expat_config.h
+        if sys.platform == "win32":
+            expat_sources.append("random_rand_s.c")
+        else:
+            expat_sources.append("random_dev_urandom.c")
+        cfg["sources"].extend([join(EXPAT_DIR, fn) for fn in expat_sources])
         cfg["include_dirs"].extend([XML_DIR, EXPAT_DIR])
         if sys.platform.startswith("linux"):
             # This is to ensure we only export the Python entry point

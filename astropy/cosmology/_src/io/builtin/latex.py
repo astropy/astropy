@@ -107,7 +107,7 @@ def write_latex[T: Table](
     latex_names : bool, optional keyword-only
         Whether to use LaTeX names for the parameters. Default is `True`.
     **kwargs
-        Passed to ``cls.write``
+        Passed to ``cls.write``.
 
     Raises
     ------
@@ -196,11 +196,21 @@ def write_latex[T: Table](
 def latex_identify(
     origin: object, filepath: str | None, *args: object, **kwargs: object
 ) -> bool:
-    """Identify if object uses the Table format.
+    """Identify if object uses the LaTeX format.
+
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    filepath : str or None
+        The path to the file, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
 
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     return filepath is not None and filepath.endswith(".tex")
 

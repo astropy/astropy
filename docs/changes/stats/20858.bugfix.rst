@@ -1,0 +1,15 @@
+Fixed ``biweight_location``, ``biweight_scale``, and
+``biweight_midvariance`` so that a scalar initial location guess
+(``M``) works with ``axis=None`` and with an integer ``axis`` on
+multidimensional data. Previously, an ``AttributeError`` or
+``AxisError`` was raised. These functions now raise a ``ValueError``
+if an array ``M`` does not have the shape of the input data reduced
+along ``axis``, including any array ``M`` when ``axis=None``.
+Previously, such inputs could silently return incorrect results.
+
+Fixed ``biweight_location`` to return NaN, instead of the input ``M``,
+when the data contain NaN values and ``ignore_nan=False``.
+
+Also clarified in the ``biweight_location`` docstring that when the MAD
+is zero, ``M`` (the median, or the input initial location guess if it
+was provided) is returned.

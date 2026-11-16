@@ -43,3 +43,23 @@ def test_convert_normalization(norm_in, norm_out, data):
         chi2_ref=compute_chi2_ref(y, dy),
     )
     assert_allclose(power_in_converted, power_out)
+
+
+@pytest.mark.parametrize(
+    "norm_in, norm_out, invalid",
+    [("spam", "standard", "spam"), ("standard", "eggs", "eggs")],
+)
+def test_convert_normalization_invalid(norm_in, norm_out, invalid):
+    with pytest.raises(ValueError, match=f"^{invalid} is not a valid normalization$"):
+        convert_normalization(np.ones(3), 10, norm_in, norm_out)
+
+
+def test_convert_normalization_both_invalid():
+
+    expected_exceptions = [
+        pytest.RaisesExc(ValueError, match="spam is not a valid normalization"),
+        pytest.RaisesExc(ValueError, match="eggs is not a valid normalization"),
+    ]
+
+    with pytest.RaisesGroup(*expected_exceptions, match="invalid normalizations"):
+        convert_normalization(np.ones(3), 10, "spam", "eggs")

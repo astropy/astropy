@@ -1,6 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import pickle
+import sys
 import warnings
 
 import numpy as np
@@ -9,7 +10,7 @@ from numpy.testing import assert_allclose, assert_array_equal, assert_equal
 
 from astropy import units as u
 from astropy.coordinates import Angle
-from astropy.stats import mad_std
+from astropy.stats import biweight_location, biweight_scale, mad_std
 from astropy.stats.sigma_clipping import (
     SigmaClip,
     SigmaClippedStats,
@@ -249,6 +250,80 @@ def test_sigma_clip_fast_all_rejected():
     assert_equal(result1.mask, result2.mask)
     assert np.all(np.isfinite(lower1))
     assert np.all(np.isfinite(upper1))
+
+
+def test_sigma_clip_noaxis_all_rejected():
+    # When an iteration of the axis=None python implementation rejects
+    # every remaining value, the bounds from that iteration must be kept
+    # so that the masked output masks all values. Previously, one more
+    # iteration ran on the empty array, giving NaN bounds that masked
+    # nothing (while masked=False correctly returned an empty array).
+    data = np.array([0.0, 100.0])
+    sobj = SigmaClip(sigma=0.1, maxiters=10, cenfunc=np.nanmedian, stdfunc=np.nanstd)
+
+    result, lower, upper = sobj(data, return_bounds=True)
+    assert_equal(result.mask, [True, True])
+    assert np.isfinite(lower)
+    assert np.isfinite(upper)
+
+    # The masked output must agree with the axis-based python
+    # implementation and with the unmasked output
+    result_axis = sobj(data, axis=0)
+    assert_equal(result.mask, result_axis.mask)
+    assert sobj(data, masked=False).size == 0
+
+
+def test_sigma_clip_noaxis_all_masked_input():
+    # An input with no valid values must still return an all-masked
+    # result and NaN bounds, as before.
+    data = np.ma.MaskedArray([1.0, 2.0], mask=[True, True])
+    sobj = SigmaClip(sigma=3, maxiters=5, cenfunc=np.nanmedian, stdfunc=np.nanstd)
+    result, lower, upper = sobj(data, return_bounds=True)
+    assert_equal(result.mask, [True, True])
+    assert np.isnan(lower)
+    assert np.isnan(upper)
+
+
+def test_sigma_clip_biweight():
+    """
+    Test the 'biweight' cenfunc and stdfunc string options.
+    """
+
+    def nanbiloc(data, axis=None):
+        return biweight_location(data, axis=axis, ignore_nan=True)
+
+    def nanbiscale(data, axis=None):
+        return biweight_scale(data, axis=axis, ignore_nan=True)
+
+    rng = np.random.default_rng(12345)
+    data = rng.normal(5.0, 2.0, (10, 100))
+    data[0, 0:10] = 100.0  # outliers
+
+    # The string options are equivalent to the NaN-aware biweight
+    # callables
+    sobj1 = SigmaClip(sigma=2.5, maxiters=5, cenfunc="biweight", stdfunc="biweight")
+    sobj2 = SigmaClip(sigma=2.5, maxiters=5, cenfunc=nanbiloc, stdfunc=nanbiscale)
+    for axis in (None, 0, 1):
+        assert_equal(sobj1(data, axis=axis), sobj2(data, axis=axis))
+
+    # The outliers are clipped
+    result = sobj1(data, axis=1, masked=False)
+    assert np.all(np.isnan(result[0, 0:10]))
+
+    # 'biweight' can be mixed with the other string options
+    for kwargs in ({"cenfunc": "biweight"}, {"stdfunc": "biweight"}):
+        result = sigma_clip(data, sigma=2.5, maxiters=5, masked=False, axis=1, **kwargs)
+        assert np.all(np.isnan(result[0, 0:10]))
+
+    # The parsed functions are picklable
+    restored = pickle.loads(pickle.dumps(sobj1))
+    assert_equal(restored(data), sobj1(data))
+
+    # sigma_clipped_stats passthrough
+    stats = sigma_clipped_stats(
+        data, cenfunc="biweight", stdfunc="biweight", sigma=2.5, maxiters=5
+    )
+    assert np.all(np.isfinite(stats))
 
 
 def test_sigma_clip_invalid_cenfunc_stdfunc():
@@ -885,3 +960,65 @@ def test_sigmaclip_pickle():
     result = restored(data)
     expected = sigclip(data)
     np.testing.assert_array_equal(result, expected)
+
+
+def test_sigma_clip_bounds_empty_after_call():
+    """
+    The bounds returned for empty or fully masked input should not
+    leak from a previous call on the same instance.
+    """
+    sigclip = SigmaClip(sigma=3.0)
+    _ = sigclip(np.arange(10.0))
+
+    result, lo, hi = sigclip(np.array([]), return_bounds=True)
+    assert result.size == 0
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+    marr = np.ma.MaskedArray(np.arange(10.0), mask=True)
+    result, lo, hi = sigclip(marr, return_bounds=True)
+    assert np.isnan(lo)
+    assert np.isnan(hi)
+
+
+@pytest.fixture(params=["noaxis", "withaxis"])
+def shared_sigclip(request):
+    rng = np.random.default_rng(0)
+    datasets = []
+    for scale in (1.0, 1e3, 1e6, 1e9):
+        data = rng.normal(0.0, scale, (40, 100))
+        data[0, :10] += 30 * scale  # outliers to clip
+        datasets.append(data)
+
+    if request.param == "noaxis":
+        # The axis=None case uses the _sigmaclip_noaxis code path.
+        sigclip = SigmaClip(sigma=2.0, maxiters=5)
+        axis = None
+    else:
+        # A callable cenfunc with an axis uses the Python
+        # _sigmaclip_withaxis code path.
+        sigclip = SigmaClip(sigma=2.0, maxiters=5, cenfunc=np.nanmedian)
+        axis = 1
+
+    def clip(data):
+        return sigclip(data, axis=axis, masked=False, return_bounds=True)
+
+    return clip, datasets, [clip(data) for data in datasets]
+
+
+@pytest.mark.force_parallel_threads(8)
+@pytest.mark.iterations(25)
+@pytest.mark.skipif(
+    sys.platform == "emscripten", reason="threads not supported on emscripten"
+)
+def test_sigma_clip_shared_instance_thread_safety(shared_sigclip):
+    """
+    Test that a single SigmaClip instance gives the correct results
+    when called concurrently from multiple threads on different data.
+    """
+    clip, datasets, expected = shared_sigclip
+    for data, (exp_filtered, exp_lo, exp_hi) in zip(datasets, expected, strict=True):
+        filtered, lo, hi = clip(data)
+        assert_equal(filtered, exp_filtered)
+        assert_equal(lo, exp_lo)
+        assert_equal(hi, exp_hi)

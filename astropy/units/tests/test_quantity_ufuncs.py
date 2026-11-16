@@ -16,6 +16,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 from astropy import units as u
 from astropy.units import quantity_helper as qh
 from astropy.units.quantity_helper.converters import UfuncHelpers
+from astropy.units.quantity_helper.scipy_special import _has_scipy_array_api
 from astropy.utils.compat.numpycompat import NUMPY_LT_2_3, NUMPY_LT_2_6
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
@@ -107,11 +108,21 @@ class TestUfuncHelpers:
             if isinstance(ufunc, np.ufunc)
         }
         if HAS_SCIPY:
-            import scipy.special as sps
+            from astropy.units.quantity_helper.scipy_special import (
+                get_scipy_special_helpers,
+            )
+
+            if _has_scipy_array_api():
+                import scipy.special._ufuncs as sps
+            else:
+                import scipy.special as sps
 
             all_sps_ufuncs = {
                 ufunc for ufunc in sps.__dict__.values() if isinstance(ufunc, np.ufunc)
             }
+            # Include the scipy helpers even if they have not been loaded yet,
+            # so that the result does not depend on which tests ran before.
+            all_q_ufuncs |= set(get_scipy_special_helpers())
         else:
             all_sps_ufuncs = set()
 
@@ -1616,11 +1627,16 @@ if HAS_SCIPY:
 
     def test_scipy_registration():
         """Check that scipy gets loaded upon first use."""
-        if sps.erf in qh.UFUNC_HELPERS:
+        if _has_scipy_array_api():
+            erf_ufunc = sps._ufuncs.erf
+        else:
+            erf_ufunc = sps.erf
+
+        if erf_ufunc in qh.UFUNC_HELPERS:
             # Generally, scipy will not be loaded here, but in a double run it might.
             pytest.skip()
         sps.erf(1.0 * u.percent)
-        assert sps.erf in qh.UFUNC_HELPERS
+        assert erf_ufunc in qh.UFUNC_HELPERS
 
     class TestScipySpecialUfuncs:
         @pytest.mark.parametrize("function", erf_like_ufuncs)

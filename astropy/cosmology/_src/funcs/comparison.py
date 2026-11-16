@@ -77,6 +77,7 @@ def _parse_format(cosmo: Any, format: _FormatType, /) -> Cosmology:
     Returns
     -------
     |Cosmology| or generator thereof
+        The parsed |Cosmology|.
 
     Raises
     ------
@@ -203,7 +204,7 @@ def _comparison_decorator(pyfunc: Callable[..., Any]) -> Callable[..., Any]:
 
 
 @_comparison_decorator
-def cosmology_equal(
+def cosmology_equal(  # numpydoc ignore=PR02
     cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
 ) -> bool:
     r"""Return element-wise equality check on the cosmologies.
@@ -320,7 +321,7 @@ def cosmology_equal(
 
 
 @_comparison_decorator
-def _cosmology_not_equal(
+def _cosmology_not_equal(  # numpydoc ignore=PR02
     cosmo1: Any, cosmo2: Any, /, *, allow_equivalent: bool = False
 ) -> bool:
     r"""Return element-wise cosmology non-equality check.
@@ -334,11 +335,6 @@ def _cosmology_not_equal(
     cosmo1, cosmo2 : |Cosmology|-like
         The objects to compare. Must be convertible to |Cosmology|, as specified
         by ``format``.
-
-    out : ndarray, None, optional
-        A location into which the result is stored. If provided, it must have a
-        shape that the inputs broadcast to. If not provided or None, a
-        freshly-allocated array is returned.
 
     format : bool or None or str or tuple thereof, optional keyword-only
         Whether to allow the arguments to be converted to a |Cosmology|. This

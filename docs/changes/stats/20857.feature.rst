@@ -1,0 +1,2 @@
+Added ``'biweight'`` as a ``cenfunc`` and ``stdfunc`` option for sigma
+clipping, using ``biweight_location`` and ``biweight_scale``.

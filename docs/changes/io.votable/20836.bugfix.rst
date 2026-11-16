@@ -1,0 +1,4 @@
+Reading a TABLEDATA table with ``invalid="mask"`` put values in the wrong
+columns since astropy 7.0: when a value could not be converted, each value
+after it in the row moved one column to the left. That value is now masked
+and the rest of the row stays in place.

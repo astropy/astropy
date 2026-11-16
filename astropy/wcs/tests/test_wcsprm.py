@@ -3,6 +3,7 @@
 import gc
 import locale
 import re
+import warnings
 
 import numpy as np
 import pytest
@@ -93,6 +94,21 @@ def test_cdelt():
     assert_array_equal(w.cdelt, [1, 1])
     w.cdelt = [42, 54]
     assert_array_equal(w.cdelt, [42, 54])
+
+
+def test_cdelt_with_cd_warning_as_error():
+    # Regression test for a bug that caused a SystemError instead of the
+    # warning being raised as an exception when warnings were errors.
+    w = _wcs.Wcsprm()
+    w.cd = [[1, 0], [0, 1]]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(RuntimeWarning, match="cdelt will be ignored"):
+            w.cdelt
+        with pytest.raises(RuntimeWarning, match="cdelt will be ignored"):
+            w.cdelt = [2, 2]
+    with pytest.warns(RuntimeWarning, match="cdelt will be ignored"):
+        assert_array_equal(w.cdelt, [1, 1])
 
 
 def test_cdelt_delete():

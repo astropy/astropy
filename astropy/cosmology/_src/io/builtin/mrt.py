@@ -24,19 +24,16 @@ a column since MRT format does not preserve table metadata.
     --------------------------------------------------------------------------------
      1-13  A13          ---    cosmology Description of cosmology
     15-22  A8           ---    name      Description of name
-    24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-    30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                  density/critical density at z=0.
-    38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-    45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                  species.
-    51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                  species.
-    66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+    24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+    30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                  density at z=0.
+    38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+    45-49  F5.3         ---    Neff      Number of effective neutrino species.
+    51-64  A14          ---    m_nu      Mass of neutrino species.
+    66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                   density/critical density at z=0.
     --------------------------------------------------------------------------------
     ...
-
 
 .. testcleanup::
 
@@ -96,12 +93,12 @@ def read_mrt(
         any non-mandatory arguments missing in 'table'.
 
     **kwargs
-        Passed to ``QTable.read``
+        Passed to ``QTable.read``.
 
     Returns
     -------
     `~astropy.cosmology.Cosmology` subclass instance
-
+        The cosmology instance.
 
     Examples
     --------
@@ -129,15 +126,13 @@ def read_mrt(
         --------------------------------------------------------------------------------
          1-13  A13          ---    cosmology Description of cosmology
         15-22  A8           ---    name      Description of name
-        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                      density/critical density at z=0.
-        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                      species.
-        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                      species.
-        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+        24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                      density at z=0.
+        38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      Number of effective neutrino species.
+        51-64  A14          ---    m_nu      Mass of neutrino species.
+        66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                       density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...
@@ -186,7 +181,7 @@ def write_mrt[T: Table](
 
     Parameters
     ----------
-    cosmology : |Cosmology| subclass instance
+    cosmo : |Cosmology| subclass instance, positional-only
         The cosmology to serialize.
     file : path-like or file-like
         Where to write the MRT table.
@@ -230,27 +225,20 @@ def write_mrt[T: Table](
         --------------------------------------------------------------------------------
         1-13  A13          ---    cosmology Description of cosmology
         15-22  A8           ---    name      Description of name
-        24-28  F5.2   km.Mpc-1.s-1 H0        [67.66/67.66] Hubble constant at z=0.
-        30-36  F7.5         ---    Om0       [0.3/0.31] Omega matter; matter
-                                    density/critical density at z=0.
-        38-43  F6.4         K      Tcmb0     [2.72/2.73] Temperature of the CMB at z=0.
-        45-49  F5.3         ---    Neff      [3.04/3.05] Number of effective neutrino
-                                    species.
-        51-64  A14          ---    m_nu      [[0.   0.   0.06]] Mass of neutrino
-                                    species.
-        66-72  F7.5         ---    Ob0       [0.04/0.05] Omega baryon; baryonic matter
+        24-28  F5.2   km.Mpc-1.s-1 H0        Hubble constant at z=0.
+        30-36  F7.5         ---    Om0       Omega matter; matter density/critical
+                                      density at z=0.
+        38-43  F6.4         K      Tcmb0     Temperature of the CMB at z=0.
+        45-49  F5.3         ---    Neff      Number of effective neutrino species.
+        51-64  A14          ---    m_nu      Mass of neutrino species.
+        66-72  F7.5         ---    Ob0       Omega baryon; baryonic matter
                                     density/critical density at z=0.
         --------------------------------------------------------------------------------
         ...
 
-
     .. testcleanup::
 
         >>> temp_dir.cleanup()
-
-    Notes
-    -----
-
     """
     if (fmt := kwargs.pop("format", "ascii.mrt")) != "ascii.mrt":
         raise ValueError(f"format must be 'ascii.mrt', not {fmt}")
@@ -280,7 +268,7 @@ def write_mrt[T: Table](
                 table[name] = Column(
                     data=[format_col_item(idx) for idx in range(len(col))],
                     name=name,
-                    description=str(col.value) + " " + col.info.description,
+                    description=col.info.description,
                 )
             except TypeError as exc:
                 msg = f"could not convert column {col.info.name!r} to string: {exc}"
@@ -291,7 +279,7 @@ def write_mrt[T: Table](
 
 
 def mrt_identify(
-    _: object, filepath: str | None, /, *args: object, **kwargs: object
+    origin: object, filepath: str | None, /, *args: object, **kwargs: object
 ) -> bool:
     """Identify if an object uses the HTML Table format.
 

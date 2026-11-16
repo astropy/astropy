@@ -20,6 +20,7 @@ import typing
 import warnings
 from io import StringIO
 from pathlib import Path
+from typing import Any, Literal
 
 import numpy as np
 
@@ -273,7 +274,7 @@ def _get_fast_reader_dict(kwargs):
 def _validate_read_write_kwargs(read_write, **kwargs):
     """Validate types of keyword arg inputs to read() or write()."""
 
-    def is_ducktype(val, cls):
+    def is_ducktype(val: Any, cls: Literal["list-like"] | type[Any]) -> bool:
         """Check if ``val`` is an instance of ``cls`` or "seems" like one:
         ``cls(val) == val`` does not raise and exception and is `True`. In
         this way you can pass in ``np.int16(2)`` and have that count as `int`.
@@ -282,18 +283,20 @@ def _validate_read_write_kwargs(read_write, **kwargs):
         an iterable but not a string.
         """
         if cls == "list-like":
-            ok = not isinstance(val, str) and isinstance(val, collections.abc.Iterable)
-        else:
-            ok = isinstance(val, cls)
-            if not ok:
-                # See if ``val`` walks and quacks like a ``cls```.
-                try:
-                    new_val = cls(val)
-                except Exception:
-                    ok = False
-                else:
-                    ok = new_val == val
-        return ok
+            return not isinstance(val, str) and isinstance(
+                val, collections.abc.Iterable
+            )
+
+        if isinstance(val, cls):
+            return True
+
+        # See if ``val`` walks and quacks like a ``cls```.
+        try:
+            new_val = cls(val)
+        except Exception:
+            return False
+
+        return new_val == val
 
     kwarg_types = READ_KWARG_TYPES if read_write == "read" else WRITE_KWARG_TYPES
 

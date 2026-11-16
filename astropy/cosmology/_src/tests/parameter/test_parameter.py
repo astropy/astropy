@@ -2,7 +2,11 @@
 
 """Testing :mod:`astropy.cosmology._src.parameter`."""
 
+import copy
+import re
+import sys
 from collections.abc import Callable
+from importlib.metadata import metadata
 
 import numpy as np
 import pytest
@@ -365,22 +369,46 @@ class TestParameter(ParameterTestMixin):
 
     # -------------------------------------------
 
-    def test_Parameter_clone(self, param):
-        """Test :meth:`astropy.cosmology.Parameter.clone`."""
+    def test_Parameter_replace(self, param):
+        """Test :meth:`astropy.cosmology.Parameter.__replace__`."""
         # this implicitly relies on `__eq__` testing properly. Which is tested.
 
         # basic test that nothing changes
-        assert param.clone() == param
-        assert param.clone() is not param  # but it's not a 'singleton'
+        assert param.__replace__() == param
+        assert param.__replace__() is not param  # but it's not a 'singleton'
+        assert param.__replace__().name == param.name
 
         # passing kwargs will change stuff
-        newparam = param.clone(unit="km/(yr sr)")
+        newparam = param.__replace__(unit="km/(yr sr)")
         assert newparam.unit == u.km / u.yr / u.sr
         assert param.unit != u.km / u.yr / u.sr  # original is unchanged
 
         # expected failure for not-an-argument
         with pytest.raises(TypeError):
-            param.clone(not_a_valid_parameter=True)
+            param.__replace__(not_a_valid_parameter=True)
+
+    @pytest.mark.skipif(sys.version_info < (3, 13), reason="copy.replace is 3.13+")
+    def test_Parameter_copy_replace(self, param):
+        """Test :func:`copy.replace` dispatches to ``Parameter.__replace__``."""
+        newparam = copy.replace(param, unit="km")
+        assert newparam == param.__replace__(unit="km")
+
+    def test_Parameter_clone(self, param):
+        """Test :meth:`astropy.cosmology.Parameter.clone`."""
+        assert param.clone(unit="km") == param.__replace__(unit="km")
+
+    def test_Parameter_clone_deprecation_gate(self):
+        """Fail once astropy requires Python 3.13+: then deprecate ``clone``.
+
+        At that point ``copy.replace`` is always available, so ``Parameter.clone``
+        should be deprecated in favor of it, and this test removed.
+        """
+        spec = metadata("astropy")["Requires-Python"]
+        min_py = tuple(map(int, re.search(r">=\s*(\d+)\.(\d+)", spec).groups()))
+        assert min_py < (3, 13), (
+            "astropy now requires Python 3.13+: deprecate Parameter.clone in favor "
+            "of copy.replace and remove this test."
+        )
 
     # -------------------------------------------
 

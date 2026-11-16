@@ -3,11 +3,22 @@ from contextlib import nullcontext
 
 import numpy as np
 import pytest
+from hypothesis import example, given
+from hypothesis import strategies as st
+from hypothesis.extra.numpy import basic_indices
 from numpy.testing import assert_allclose, assert_almost_equal, assert_equal
 from packaging.version import Version
 
 from astropy import units as u
-from astropy.coordinates import ITRS, BaseCoordinateFrame, EarthLocation, SkyCoord
+from astropy.coordinates import (
+    ICRS,
+    ITRS,
+    Angle,
+    BaseCoordinateFrame,
+    EarthLocation,
+    Galactic,
+    SkyCoord,
+)
 from astropy.coordinates.representation import SphericalRepresentation
 from astropy.coordinates.representation.geodetic import (
     BaseBodycentricRepresentation,
@@ -27,6 +38,7 @@ from astropy.utils import unbroadcast
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.data import get_pkg_data_contents, get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
+from astropy.utils.shapes import simplify_basic_index
 from astropy.wcs.utils import (
     FRAME_WCS_MAPPINGS,
     SUPPORTED_PRJ_CODES,
@@ -46,6 +58,7 @@ from astropy.wcs.utils import (
     pixel_to_pixel,
     pixel_to_skycoord,
     proj_plane_pixel_scales,
+    skycoord_to_celestial_wcs,
     skycoord_to_pixel,
     wcs_to_celestial_frame,
 )
@@ -318,6 +331,53 @@ def test_slice_step_preserve_units():
     assert slice_wcs.world_axis_units == ["arcsec", "arcsec", "nm"]
 
 
+@pytest.mark.parametrize("linear", ["cdelt", "pc", "cd", "crota", "sip"])
+def test_slice_step_linear_transformation(linear):
+    # Regression test for a bug that caused slicing with a step to give
+    # incorrect coordinates if the PCi_j or CDi_j matrix mixed pixel axes, or
+    # if SIP distortions were present, since the step was applied to CDELTi,
+    # which scales a world axis rather than a pixel axis.
+
+    full_wcs = WCS(naxis=2)
+    full_wcs.wcs.ctype = "RA---TAN", "DEC--TAN"
+    full_wcs.wcs.crval = 30, 40
+    full_wcs.wcs.crpix = 4.3, -2.7
+    if linear == "cd":
+        full_wcs.wcs.cd = [[-0.008, 0.003], [0.002, 0.011]]
+    else:
+        full_wcs.wcs.cdelt = -0.01, 0.012
+    if linear == "pc":
+        full_wcs.wcs.pc = [[0.9, -0.4], [0.4, 0.9]]
+    elif linear == "crota":
+        full_wcs.wcs.crota = 0, 25
+    elif linear == "sip":
+        full_wcs.wcs.ctype = "RA---TAN-SIP", "DEC--TAN-SIP"
+        a = np.zeros((3, 3))
+        b = np.zeros((3, 3))
+        a[2, 0], a[1, 1], b[0, 2], b[2, 0] = 1e-3, 2e-3, 1.5e-3, -1e-3
+        full_wcs.sip = Sip(a, b, None, None, full_wcs.wcs.crpix)
+
+    # Use different starts and steps for x and y so that mixing up the axes
+    # gives incorrect results.
+    start_x, step_x = 2, 2
+    start_y, step_y = 1, 3
+    sliced_wcs = full_wcs[start_y::step_y, start_x::step_x]
+
+    # Slicing with a step means binning, so pixel x of the sliced WCS
+    # corresponds to the center of pixels start + step * x to
+    # start + step * (x + 1) - 1 of the original WCS, and likewise for y.
+    x, y = np.meshgrid(np.arange(5), np.arange(4))
+    assert_allclose(
+        sliced_wcs.pixel_to_world_values(x, y),
+        full_wcs.pixel_to_world_values(
+            start_x + step_x * x + (step_x - 1) / 2,
+            start_y + step_y * y + (step_y - 1) / 2,
+        ),
+        rtol=0,
+        atol=1e-10,
+    )
+
+
 def test_slice_pixel_bounds():
     # Regression test for a bug that caused pixel_bounds to not be updated
     # when slicing a WCS without dropping any dimensions.
@@ -460,6 +520,219 @@ def test_slice_negative_values(negative, positive):
             mywcs[negative]
     else:
         assert_allclose(mywcs[negative].wcs.crpix, mywcs[positive].wcs.crpix)
+
+
+SLICING_TEST_SHAPE = (5, 7, 9)
+
+
+def _slicing_test_wcs(linear, preserve_units=False):
+    """
+    Return a 3D celestial and spectral WCS with SLICING_TEST_SHAPE, with the
+    linear transformation or units chosen by ``linear``.
+    """
+    full_wcs = WCS(naxis=3, preserve_units=preserve_units)
+    full_wcs.wcs.ctype = "RA---TAN", "DEC--TAN", "WAVE"
+    full_wcs.wcs.crval = 30, 40, 500
+    # Non-integer and different on every axis so that off-by-one and axis order
+    # mistakes don't cancel out.
+    full_wcs.wcs.crpix = 4.3, -2.7, 1.5
+    if linear == "cd":
+        full_wcs.wcs.cd = [[-0.008, 0.003, 0], [0.002, 0.011, 0], [0, 0, 2.5]]
+    else:
+        full_wcs.wcs.cdelt = -0.01, 0.012, 2.5
+    if linear == "pc":
+        full_wcs.wcs.pc = [[0.9, -0.4, 0], [0.4, 0.9, 0], [0, 0, 1]]
+    elif linear == "crota":
+        full_wcs.wcs.crota = 0, 25, 0
+    elif linear == "units":
+        # Non-SI spectral units, so that set() rescales cdelt and crval
+        full_wcs.wcs.cunit = "deg", "deg", "nm"
+    full_wcs.array_shape = SLICING_TEST_SHAPE
+    return full_wcs
+
+
+def st_positive_step_slices(shape):
+    """
+    Generate tuples of slices with positive steps, the only case where steps
+    are supported, since these are rare in the output of basic_indices.
+    """
+    return st.tuples(
+        *(
+            st.builds(
+                slice,
+                st.none() | st.integers(-size, size),
+                st.none() | st.integers(-size, size),
+                st.none() | st.integers(1, size),
+            )
+            for size in shape
+        )
+    )
+
+
+def st_pixel_bounds(shape):
+    """
+    Generate pixel bounds, in FITS order, that can be None either overall or
+    for individual dimensions.
+
+    The bounds are a quarter of a pixel away from multiples of 0.5, which are
+    the positions at which the test evaluates the WCS, since rounding errors
+    could otherwise change which of these positions are in bounds (positions
+    out of bounds give NaN world coordinates).
+    """
+    return st.none() | st.tuples(
+        *(
+            st.none()
+            | st.lists(
+                st.integers(-2 * size, 4 * size).map(lambda n: n / 2 + 0.25),
+                min_size=2,
+                max_size=2,
+            ).map(sorted)
+            for size in shape[::-1]
+        )
+    )
+
+
+@pytest.mark.parametrize("linear", ["cdelt", "pc", "cd", "crota", "units"])
+@given(
+    index=(
+        basic_indices(SLICING_TEST_SHAPE, min_dims=1)
+        | st_positive_step_slices(SLICING_TEST_SHAPE)
+    ),
+    numpy_order=st.booleans(),
+    preserve_units=st.booleans(),
+    pixel_bounds=st_pixel_bounds(SLICING_TEST_SHAPE),
+    shape_known=st.booleans(),
+)
+# basic_indices rarely generates an ellipsis that stands for one or more
+# dimensions and is not at the end, so we include explicit examples to check
+# that the ellipsis is expanded in the right place and is not counted as a
+# dimension.
+@example(
+    index=(Ellipsis, 2),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+@example(
+    index=(1, Ellipsis, slice(1, 4)),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+@example(
+    index=(Ellipsis, 1, 2, slice(1, 4)),
+    numpy_order=True,
+    preserve_units=False,
+    pixel_bounds=None,
+    shape_known=True,
+)
+def test_slice_basic_indices(
+    linear, index, numpy_order, preserve_units, pixel_bounds, shape_known
+):
+    # Check that slicing a WCS behaves the same as slicing the corresponding
+    # data, for any valid Numpy basic index. If the shape is not known, the
+    # data is still assumed to have SLICING_TEST_SHAPE but the WCS does not
+    # know this.
+
+    full_wcs = _slicing_test_wcs(linear, preserve_units=preserve_units)
+    full_wcs.pixel_bounds = pixel_bounds
+    if not shape_known:
+        full_wcs.array_shape = None
+    shape = SLICING_TEST_SHAPE
+    full_index = simplify_basic_index(index, shape=shape)
+    dropped = [not isinstance(view, slice) for view in full_index]
+    steps = [view.step if isinstance(view, slice) else 1 for view in full_index]
+
+    if numpy_order:
+        do_slice = lambda: full_wcs[index]
+    else:
+        do_slice = lambda: full_wcs.slice(full_index[::-1], numpy_order=False)
+
+    # If the shape is not known, negative values cannot be interpreted, except
+    # for the stop value of slices since this only affects the (unknown) shape.
+    if not shape_known:
+        try:
+            simplify_basic_index(index, shape=[None] * len(shape))
+        except ValueError:
+            with pytest.raises(ValueError, match="size is not known"):
+                full_wcs[index]
+            return
+
+    # Steps are not supported when dropping dimensions, and negative steps
+    # are not supported at all.
+    if any(dropped) and any(step != 1 for step in steps):
+        with pytest.raises(IndexError, match="with a step is not supported"):
+            do_slice()
+        return
+    if any(step < 0 for step in steps):
+        with pytest.raises(NotImplementedError, match="Reversing an axis"):
+            do_slice()
+        return
+
+    header = full_wcs.to_header_string()
+    original_bounds = full_wcs.pixel_bounds
+    sliced_wcs = do_slice()
+    assert full_wcs.to_header_string() == header
+    assert full_wcs.pixel_bounds == original_bounds
+
+    expected_shape = np.empty(shape)[index].shape
+    if 0 in expected_shape:
+        # A zero length axis cannot be represented since NAXISi = 0 means that
+        # the size of the axis is not known.
+        return
+    if shape_known:
+        assert sliced_wcs.array_shape == expected_shape
+    else:
+        assert sliced_wcs.array_shape is None
+
+    # The world axes kept are the ones correlated with at least one of the
+    # pixel axes kept. The latter are in the reverse order to the array axes.
+    keep_pixel = np.logical_not(dropped)[::-1]
+    keep_world = full_wcs.axis_correlation_matrix[:, keep_pixel].any(axis=1)
+    assert sliced_wcs.pixel_n_dim == keep_pixel.sum()
+    assert sliced_wcs.world_n_dim == keep_world.sum()
+    assert_equal(
+        sliced_wcs.world_axis_physical_types,
+        np.array(full_wcs.world_axis_physical_types)[keep_world],
+    )
+
+    # Slicing with a step means binning, so element k of the sliced array
+    # corresponds to the center of elements start + k * step to
+    # start + (k + 1) * step - 1 in the original array.
+    original_indices = [
+        indices[index] + (step - 1) / 2
+        for indices, step in zip(np.indices(shape, dtype=float), steps)
+    ]
+    expected = np.array(full_wcs.array_index_to_world_values(*original_indices))
+    actual = sliced_wcs.array_index_to_world_values(*np.indices(expected_shape))
+    if sliced_wcs.world_n_dim == 1:
+        actual = [actual]
+    assert_allclose(actual, expected[keep_world], rtol=0, atol=1e-10)
+
+    # The same relation between the original and sliced pixel coordinates
+    # applies to the pixel bounds, for the dimensions that are kept.
+    if pixel_bounds is None:
+        assert sliced_wcs.pixel_bounds is None
+    else:
+        expected_bounds = []
+        for view, bounds in zip(full_index[::-1], pixel_bounds):
+            if not isinstance(view, slice):
+                continue
+            if bounds is None:
+                expected_bounds.append(None)
+            else:
+                offset = view.start + (view.step - 1) / 2
+                expected_bounds.append(
+                    tuple((bound - offset) / view.step for bound in bounds)
+                )
+        assert len(sliced_wcs.pixel_bounds) == len(expected_bounds)
+        for actual_bounds, bounds in zip(sliced_wcs.pixel_bounds, expected_bounds):
+            if bounds is None:
+                assert actual_bounds is None
+            else:
+                assert_allclose(actual_bounds, bounds, rtol=0, atol=1e-10)
 
 
 def test_axis_names():
@@ -756,6 +1029,150 @@ def test_celestial_frame_to_wcs():
     assert tuple(mywcs.wcs.ctype) == ("TLON-CAR", "TLAT-CAR")
     assert mywcs.wcs.radesys == "ITRS"
     assert mywcs.wcs.dateobs == Time("J2000").utc.fits
+
+
+def test_skycoord_to_celestial_wcs():
+    # default values, square fov
+    center = SkyCoord(266.4, -29, unit="deg")
+    fov = Angle(4, unit="arcmin")
+    pixel_size = Angle(1, unit="arcmin")
+    wcs_default = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=pixel_size
+    )
+    assert wcs_default.naxis == 2
+    assert wcs_default.wcs.ctype[0] == "RA---TAN"
+    assert wcs_default.wcs.ctype[1] == "DEC--TAN"
+    expected_cdelt = 1 / 60.0
+    assert_allclose(wcs_default.wcs.cdelt, [-expected_cdelt, expected_cdelt])
+    assert_allclose(wcs_default.wcs.crval, [266.4, -29.0])
+    expected_naxis = 4
+    assert_allclose(wcs_default.array_shape, [expected_naxis, expected_naxis])
+    expected_crpix = expected_naxis / 2.0 + 0.5
+    assert_allclose(wcs_default.wcs.crpix, [expected_crpix, expected_crpix])
+
+    # all optional
+    center = SkyCoord(0, 0, unit="deg", frame="galactic")
+    data_shape = [150, 90]
+    wcs_optional = skycoord_to_celestial_wcs(
+        center,
+        pixel_shape=data_shape,
+        pixel_angular_size=Angle([-0.01, 0.02], unit="deg"),
+        reference_pixel=[15, 10],
+        frame=Galactic(),
+        projection="TAN",
+        rotation=Angle(90, unit="deg"),
+    )
+    assert_allclose(wcs_optional.wcs.cdelt, [-0.01, 0.02])
+    assert wcs_optional.wcs.ctype[0] == "GLON-TAN"
+    assert wcs_optional.wcs.ctype[1] == "GLAT-TAN"
+    assert_allclose(wcs_optional.wcs.crval, [0.0, 0.0])
+    assert_allclose(wcs_optional.array_shape, [90, 150])  # y/x
+    assert_allclose(wcs_optional.wcs.crpix, [16, 11])  # we ask for zero-indexed
+    assert_allclose(wcs_optional.wcs.pc, [[0, 2], [-0.5, 0]], atol=1e-10)
+
+    # rectangular fov
+    center = SkyCoord(10, 20, unit="deg")
+    wcs_rectangular_fov = skycoord_to_celestial_wcs(
+        center, fov=Angle([10, 5], "deg"), pixel_angular_size=Angle(1, "deg")
+    )
+    assert wcs_rectangular_fov.array_shape == (5, 10)  # y/x ordering
+    assert wcs_rectangular_fov.pixel_to_world(
+        (wcs_rectangular_fov.array_shape[1] - 1) / 2,
+        (wcs_rectangular_fov.array_shape[0] - 1) / 2,
+    ).separation(center) < Angle(0.01, "arcsec")
+
+    # field of view smaller than cdelt: image shape should be one pixel
+    wcs = skycoord_to_celestial_wcs(
+        center, fov=Angle(0.1, "arcmin"), pixel_angular_size=pixel_size
+    )
+    assert wcs.array_shape == (1, 1)
+
+    # test all fields that should also accept quantities
+    center = SkyCoord(0, 0, unit="deg")
+    fov = [5 * u.arcmin, 10 * u.arcmin]
+    pixel_size = [1 * u.arcsec, 2 * u.arcsec]
+    rotation = 45 * u.deg
+    wcs_quantities = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=pixel_size, rotation=rotation
+    )
+    assert wcs_quantities.array_shape == (300, 300)
+
+
+def test_skycoord_to_celestial_wcs_errors():
+    center = SkyCoord(0, 0, unit="deg", frame="galactic")
+    fov = Angle([8, 4], unit="deg")
+    pixel_size = Angle(1, unit="deg")
+    shape = (100, 200)
+
+    with pytest.raises(ValueError, match="Must specify valid projection code"):
+        skycoord_to_celestial_wcs(
+            center, pixel_shape=shape, pixel_angular_size=pixel_size, projection="ABC"
+        )
+
+    with pytest.raises(ValueError, match="'reference_position' should be scalar*"):
+        center_non_scalar = SkyCoord([0, 0], [0, 0], unit="deg", frame="galactic")
+        skycoord_to_celestial_wcs(
+            center_non_scalar, pixel_shape=shape, pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="Missing 'fov' or 'pixel_shape'"):
+        skycoord_to_celestial_wcs(center, pixel_angular_size=pixel_size)
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        skycoord_to_celestial_wcs(
+            center, fov=fov, pixel_shape=shape, pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="'reference_pixel' should be of length 2"):
+        scalar_ref_pixel = [10]  # Only 1 element
+        skycoord_to_celestial_wcs(
+            center,
+            fov=fov,
+            pixel_angular_size=pixel_size,
+            reference_pixel=scalar_ref_pixel,
+        )
+
+    with pytest.raises(ValueError, match="'fov' should be of length 1 or 2"):
+        skycoord_to_celestial_wcs(
+            center, fov=Angle([1, 2, 3], "arcmin"), pixel_angular_size=pixel_size
+        )
+
+    with pytest.raises(ValueError, match="'pixel_shape' should be of length 2"):
+        skycoord_to_celestial_wcs(
+            center, pixel_shape=[1, 2, 3], pixel_angular_size=pixel_size
+        )
+
+
+test_pixel_sizes = [
+    (Angle([3, 0.3], unit="arcmin"), [0.05, 0.005]),
+    (Angle(3, unit="arcmin"), [-0.05, 0.05]),
+]
+
+
+@pytest.mark.parametrize("pixel_size,cdelt", test_pixel_sizes)
+def test_crota_vs_pc_in_skycoord_to_celestial_wcs(pixel_size, cdelt):
+    # see https://github.com/astropy/astropy/pull/19985#discussion_r3596900938
+    center = SkyCoord(0, 0, unit="deg")
+    shape = (100, 200)
+    rotation = Angle(30, unit="deg")
+
+    wcs_pc = skycoord_to_celestial_wcs(
+        center, pixel_shape=shape, pixel_angular_size=pixel_size, rotation=rotation
+    )
+
+    wcs_crota = celestial_frame_to_wcs(frame=ICRS(), projection="TAN")
+    wcs_crota.wcs.cdelt = cdelt
+    wcs_crota.wcs.crval = [0, 0]
+    wcs_crota.array_shape = shape[::-1]
+    wcs_crota.wcs.crpix = [50.5, 100.5]
+    wcs_crota.wcs.crota = 0, 30
+
+    y, x = np.mgrid[0:200:20, 0:100:10]
+    pixel_pc = pixel_to_skycoord(x, y, wcs=wcs_pc)
+    pixel_crota = pixel_to_skycoord(x, y, wcs=wcs_crota)
+
+    assert_allclose(pixel_pc.data.lon.value, pixel_crota.data.lon.value)
+    assert_allclose(pixel_pc.data.lat.value, pixel_crota.data.lat.value)
 
 
 def test_body_to_wcs_frame():

@@ -24,7 +24,18 @@ __all__ = (  # noqa: F822, RUF022
 
 
 def __getattr__(name):
-    """Get parameters of cosmology representations with lazy import from ``PEP 562``."""
+    """Get parameters of cosmology realizations with lazy import from ``PEP 562``.
+
+    Parameters
+    ----------
+    name : str
+        The name of the realization.
+
+    Returns
+    -------
+    `~types.MappingProxyType`
+        The parameters of the realization.
+    """
     from astropy.cosmology import realizations
 
     cosmo = getattr(realizations, name)

@@ -37,6 +37,22 @@ def _make_masked(data, mask, **kwargs):
         return np.ma.MaskedArray(data, mask, **kwargs)
 
 
+def _nanbiweight_location(
+    data: ArrayLike,
+    axis: int | tuple[int, ...] | None = None,
+) -> float | NDArray:
+    """biweight_location function that ignores NaNs."""
+    return biweight_location(data, axis=axis, ignore_nan=True)
+
+
+def _nanbiweight_scale(
+    data: ArrayLike,
+    axis: int | tuple[int, ...] | None = None,
+) -> float | NDArray:
+    """biweight_scale function that ignores NaNs."""
+    return biweight_scale(data, axis=axis, ignore_nan=True)
+
+
 class SigmaClip:
     """
     Class to perform sigma clipping.
@@ -95,21 +111,29 @@ class SigmaClip:
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop. The default is 5.
 
-    cenfunc : {'median', 'mean'} or callable, optional
+    cenfunc : {'median', 'mean', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute
-        the center value for the clipping. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'median'``.
+        the center value for the clipping. The ``'biweight'`` option
+        uses the NaN-aware `~astropy.stats.biweight_location` function
+        with its default tuning constant. Unlike ``'median'`` and
+        ``'mean'``, it does not use the fast C implementation of the
+        clipping loop. If using a callable function/object and the
+        ``axis`` keyword is used, then it must be able to ignore NaNs
+        (e.g., `numpy.nanmean`) and it must have an ``axis`` keyword
+        to return an array with axis dimension(s) removed. The default
+        is ``'median'``.
 
-    stdfunc : {'std', 'mad_std'} or callable, optional
+    stdfunc : {'std', 'mad_std', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'std'``.
+        standard deviation about the center value. The ``'biweight'``
+        option uses the NaN-aware `~astropy.stats.biweight_scale`
+        function with its default tuning constant. Unlike ``'std'``
+        and ``'mad_std'``, it does not use the fast C implementation
+        of the clipping loop. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanstd`) and it must have an ``axis``
+        keyword to return an array with axis dimension(s) removed. The
+        default is ``'std'``.
 
     grow : float or `False`, optional
         Radius within which to mask the neighbouring pixels of those
@@ -177,8 +201,8 @@ class SigmaClip:
         sigma_lower: float | None = None,
         sigma_upper: float | None = None,
         maxiters: int | None = 5,
-        cenfunc: Literal["median", "mean"] | Callable = "median",
-        stdfunc: Literal["std", "mad_std"] | Callable = "std",
+        cenfunc: Literal["median", "mean", "biweight"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std", "biweight"] | Callable = "std",
         grow: float | Literal[False] | None = False,
     ) -> None:
         self.sigma = sigma
@@ -189,9 +213,6 @@ class SigmaClip:
         self.stdfunc = stdfunc
         self._cenfunc_parsed = self._parse_cenfunc(cenfunc)
         self._stdfunc_parsed = self._parse_stdfunc(stdfunc)
-        self._min_value = np.nan
-        self._max_value = np.nan
-        self._niterations = 0
         self.grow = grow
 
         # This just checks that SciPy is available, to avoid failing
@@ -225,7 +246,7 @@ class SigmaClip:
 
     @staticmethod
     def _parse_cenfunc(
-        cenfunc: Literal["median", "mean"] | Callable | None,
+        cenfunc: Literal["median", "mean", "biweight"] | Callable | None,
     ) -> Callable | None:
         if isinstance(cenfunc, str):
             if cenfunc == "median":
@@ -234,6 +255,9 @@ class SigmaClip:
             elif cenfunc == "mean":
                 cenfunc = nanmean
 
+            elif cenfunc == "biweight":
+                cenfunc = _nanbiweight_location
+
             else:
                 raise ValueError(f"{cenfunc} is an invalid cenfunc.")
 
@@ -241,13 +265,15 @@ class SigmaClip:
 
     @staticmethod
     def _parse_stdfunc(
-        stdfunc: Literal["std", "mad_std"] | Callable | None,
+        stdfunc: Literal["std", "mad_std", "biweight"] | Callable | None,
     ) -> Callable | None:
         if isinstance(stdfunc, str):
             if stdfunc == "std":
                 stdfunc = nanstd
             elif stdfunc == "mad_std":
                 stdfunc = nanmadstd
+            elif stdfunc == "biweight":
+                stdfunc = _nanbiweight_scale
             else:
                 raise ValueError(f"{stdfunc} is an invalid stdfunc.")
 
@@ -257,15 +283,20 @@ class SigmaClip:
         self,
         data: ArrayLike,
         axis: int | tuple[int, ...] | None = None,
-    ) -> None:
+    ) -> tuple[float | NDArray, float | NDArray]:
+        # The bounds are returned rather than stored on the instance so
+        # that a single SigmaClip instance can be safely called
+        # concurrently from multiple threads.
         # ignore RuntimeWarning if the array (or along an axis) has only
         # NaNs
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             cen = self._cenfunc_parsed(data, axis=axis)
             std = self._stdfunc_parsed(data, axis=axis)
-            self._min_value = cen - (std * self.sigma_lower)
-            self._max_value = cen + (std * self.sigma_upper)
+            min_value = cen - (std * self.sigma_lower)
+            max_value = cen + (std * self.sigma_upper)
+
+        return min_value, max_value
 
     def _sigmaclip_fast(
         self,
@@ -413,16 +444,21 @@ class SigmaClip:
 
         nchanged = 1
         iteration = 0
+        min_value = max_value = np.nan
         while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
             size = filtered_data.size
-            self._compute_bounds(filtered_data, axis=None)
+            min_value, max_value = self._compute_bounds(filtered_data, axis=None)
             filtered_data = filtered_data[
-                (filtered_data >= self._min_value) & (filtered_data <= self._max_value)
+                (filtered_data >= min_value) & (filtered_data <= max_value)
             ]
+            if filtered_data.size == 0:
+                # Every remaining value was rejected. Keep the bounds
+                # from this iteration so that the masked output masks
+                # all values, instead of recomputing NaN bounds from
+                # the empty array (which would mask nothing).
+                break
             nchanged = size - filtered_data.size
-
-        self._niterations = iteration
 
         if masked:
             # For masked output, calculate the new mask. Since filtered_data
@@ -430,15 +466,11 @@ class SigmaClip:
             # to ignore RuntimeWarnings for comparisons with NaN.
             # TODO: move np.isfinite call above before reshape for reuse here.
             with np.errstate(invalid="ignore"):
-                clip_mask = (
-                    ~np.isfinite(data)
-                    | (data < self._min_value)
-                    | (data > self._max_value)
-                )
+                clip_mask = ~np.isfinite(data) | (data < min_value) | (data > max_value)
             filtered_data = _make_masked(data, clip_mask, copy=copy)
 
         if return_bounds:
-            return filtered_data, self._min_value, self._max_value
+            return filtered_data, min_value, max_value
         else:
             return filtered_data
 
@@ -514,28 +546,25 @@ class SigmaClip:
 
         nchanged = 1
         iteration = 0
+        min_value = max_value = np.nan
         while nchanged != 0 and (iteration < self.maxiters):
             iteration += 1
-            self._compute_bounds(filtered_data, axis=axis)
-            if not np.isscalar(self._min_value):
-                self._min_value = self._min_value.reshape(mshape)
-                self._max_value = self._max_value.reshape(mshape)
+            min_value, max_value = self._compute_bounds(filtered_data, axis=axis)
+            if not np.isscalar(min_value):
+                min_value = min_value.reshape(mshape)
+                max_value = max_value.reshape(mshape)
 
             with np.errstate(invalid="ignore"):
                 # Since these comparisons are always False for NaNs, the
                 # resulting mask contains only newly-rejected pixels and
                 # we can dilate it without growing masked pixels more
                 # than once.
-                new_mask = (filtered_data < self._min_value) | (
-                    filtered_data > self._max_value
-                )
+                new_mask = (filtered_data < min_value) | (filtered_data > max_value)
             if self.grow:
                 new_mask = self._binary_dilation(new_mask, kernel)
             filtered_data[new_mask] = np.nan
             nchanged = np.count_nonzero(new_mask)
             del new_mask
-
-        self._niterations = iteration
 
         if masked:
             # create an output masked array
@@ -543,7 +572,7 @@ class SigmaClip:
             filtered_data = _make_masked(filtered_data, result_mask, copy=copy)
 
         if return_bounds:
-            return filtered_data, self._min_value, self._max_value
+            return filtered_data, min_value, max_value
         else:
             return filtered_data
 
@@ -628,7 +657,7 @@ class SigmaClip:
                 result = np.full(data.shape, np.nan)
 
             if return_bounds:
-                return result, self._min_value, self._max_value
+                return result, np.nan, np.nan
             else:
                 return result
 
@@ -664,8 +693,8 @@ def sigma_clip(  # ruff: ignore[PLR0917]
     sigma_lower: float | None = None,
     sigma_upper: float | None = None,
     maxiters: int | None = 5,
-    cenfunc: Literal["median", "mean"] | Callable = "median",
-    stdfunc: Literal["std", "mad_std"] | Callable = "std",
+    cenfunc: Literal["median", "mean", "biweight"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std", "biweight"] | Callable = "std",
     axis: int | tuple[int, ...] | None = None,
     masked: bool | None = True,
     return_bounds: bool | None = False,
@@ -732,21 +761,29 @@ def sigma_clip(  # ruff: ignore[PLR0917]
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop. The default is 5.
 
-    cenfunc : {'median', 'mean'} or callable, optional
+    cenfunc : {'median', 'mean', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute
-        the center value for the clipping. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'median'``.
+        the center value for the clipping. The ``'biweight'`` option
+        uses the NaN-aware `~astropy.stats.biweight_location` function
+        with its default tuning constant. Unlike ``'median'`` and
+        ``'mean'``, it does not use the fast C implementation of the
+        clipping loop. If using a callable function/object and the
+        ``axis`` keyword is used, then it must be able to ignore NaNs
+        (e.g., `numpy.nanmean`) and it must have an ``axis`` keyword
+        to return an array with axis dimension(s) removed. The default
+        is ``'median'``.
 
-    stdfunc : {'std', 'mad_std'} or callable, optional
+    stdfunc : {'std', 'mad_std', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'std'``.
+        standard deviation about the center value. The ``'biweight'``
+        option uses the NaN-aware `~astropy.stats.biweight_scale`
+        function with its default tuning constant. Unlike ``'std'``
+        and ``'mad_std'``, it does not use the fast C implementation
+        of the clipping loop. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanstd`) and it must have an ``axis``
+        keyword to return an array with axis dimension(s) removed. The
+        default is ``'std'``.
 
     axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data. If `None`,
@@ -931,21 +968,29 @@ class SigmaClippedStats:
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop. The default is 5.
 
-    cenfunc : {'median', 'mean'} or callable, optional
+    cenfunc : {'median', 'mean', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute
-        the center value for the clipping. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'median'``.
+        the center value for the clipping. The ``'biweight'`` option
+        uses the NaN-aware `~astropy.stats.biweight_location` function
+        with its default tuning constant. Unlike ``'median'`` and
+        ``'mean'``, it does not use the fast C implementation of the
+        clipping loop. If using a callable function/object and the
+        ``axis`` keyword is used, then it must be able to ignore NaNs
+        (e.g., `numpy.nanmean`) and it must have an ``axis`` keyword
+        to return an array with axis dimension(s) removed. The default
+        is ``'median'``.
 
-    stdfunc : {'std', 'mad_std'} or callable, optional
+    stdfunc : {'std', 'mad_std', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'std'``.
+        standard deviation about the center value. The ``'biweight'``
+        option uses the NaN-aware `~astropy.stats.biweight_scale`
+        function with its default tuning constant. Unlike ``'std'``
+        and ``'mad_std'``, it does not use the fast C implementation
+        of the clipping loop. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanstd`) and it must have an ``axis``
+        keyword to return an array with axis dimension(s) removed. The
+        default is ``'std'``.
 
     axis : None or int or tuple of int, optional
         The axis or axes along which to sigma clip the data. If `None`,
@@ -987,8 +1032,8 @@ class SigmaClippedStats:
         sigma_lower: float | None = None,
         sigma_upper: float | None = None,
         maxiters: int = 5,
-        cenfunc: Literal["median", "mean"] | Callable = "median",
-        stdfunc: Literal["std", "mad_std"] | Callable = "std",
+        cenfunc: Literal["median", "mean", "biweight"] | Callable = "median",
+        stdfunc: Literal["std", "mad_std", "biweight"] | Callable = "std",
         axis: int | tuple[int, ...] | None = None,
         grow: float | Literal[False] | None = False,
     ) -> None:
@@ -1224,8 +1269,8 @@ def sigma_clipped_stats(  # ruff: ignore[PLR0917]
     sigma_lower: float | None = None,
     sigma_upper: float | None = None,
     maxiters: int | None = 5,
-    cenfunc: Literal["median", "mean"] | Callable = "median",
-    stdfunc: Literal["std", "mad_std"] | Callable = "std",
+    cenfunc: Literal["median", "mean", "biweight"] | Callable = "median",
+    stdfunc: Literal["std", "mad_std", "biweight"] | Callable = "std",
     std_ddof: int = 0,
     axis: int | tuple[int, ...] | None = None,
     grow: float | Literal[False] | None = False,
@@ -1270,21 +1315,29 @@ def sigma_clipped_stats(  # ruff: ignore[PLR0917]
         achieved prior to ``maxiters`` iterations, the clipping
         iterations will stop. The default is 5.
 
-    cenfunc : {'median', 'mean'} or callable, optional
+    cenfunc : {'median', 'mean', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute
-        the center value for the clipping. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanmean`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'median'``.
+        the center value for the clipping. The ``'biweight'`` option
+        uses the NaN-aware `~astropy.stats.biweight_location` function
+        with its default tuning constant. Unlike ``'median'`` and
+        ``'mean'``, it does not use the fast C implementation of the
+        clipping loop. If using a callable function/object and the
+        ``axis`` keyword is used, then it must be able to ignore NaNs
+        (e.g., `numpy.nanmean`) and it must have an ``axis`` keyword
+        to return an array with axis dimension(s) removed. The default
+        is ``'median'``.
 
-    stdfunc : {'std', 'mad_std'} or callable, optional
+    stdfunc : {'std', 'mad_std', 'biweight'} or callable, optional
         The statistic or callable function/object used to compute the
-        standard deviation about the center value. If using a callable
-        function/object and the ``axis`` keyword is used, then it must
-        be able to ignore NaNs (e.g., `numpy.nanstd`) and it must have
-        an ``axis`` keyword to return an array with axis dimension(s)
-        removed. The default is ``'std'``.
+        standard deviation about the center value. The ``'biweight'``
+        option uses the NaN-aware `~astropy.stats.biweight_scale`
+        function with its default tuning constant. Unlike ``'std'``
+        and ``'mad_std'``, it does not use the fast C implementation
+        of the clipping loop. If using a callable function/object and
+        the ``axis`` keyword is used, then it must be able to ignore
+        NaNs (e.g., `numpy.nanstd`) and it must have an ``axis``
+        keyword to return an array with axis dimension(s) removed. The
+        default is ``'std'``.
 
     std_ddof : int, optional
         The delta degrees of freedom for the standard deviation

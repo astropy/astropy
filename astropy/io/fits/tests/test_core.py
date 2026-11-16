@@ -1488,6 +1488,19 @@ class TestFileFunctions(FitsTestCase):
                 hdul.insert(1, fits.ImageHDU())
                 hdul.flush()
 
+    def test_write_error_without_filename(self):
+        """
+        Test that errors raised when writing to a file-like object without a
+        file name are not hidden by the free space check.
+        """
+
+        class FailingBytesIO(io.BytesIO):
+            def write(self, data):
+                raise OSError("Fake error raised when writing file.")
+
+        with pytest.raises(OSError, match="Fake error raised when writing file."):
+            fits.PrimaryHDU(np.arange(10)).writeto(FailingBytesIO())
+
     def _test_write_string_bytes_io(self, fileobj):
         """
         Implemented for both test_write_stringio and test_write_bytesio.

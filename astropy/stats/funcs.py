@@ -1567,6 +1567,10 @@ def fold_intervals(
         breaks.add(fa)
         r.append((0, fa, -wt))
         fb = b % 1
+        if fb == 0:
+            # b lies on a period boundary, so ceil(b) already counts no
+            # partial final period and nothing should be removed.
+            fb = 1.0
         breaks.add(fb)
         r.append((fb, 1, -wt))
 

@@ -27,8 +27,9 @@ from astropy.coordinates import (
     frame_transform_graph,
 )
 from astropy.coordinates.tests.test_representation import representation_equal
+from astropy.io.ascii import InconsistentTableError
 from astropy.io.misc.yaml import AstropyDumper, dump, load, load_all
-from astropy.table import QTable, SerializedColumn
+from astropy.table import QTable, SerializedColumn, Table
 from astropy.time import Time
 
 
@@ -348,10 +349,18 @@ def test_ecsv_astropy_objects_in_meta():
     assert t2.meta["unit"] == unit
 
 
-def test_yaml_dump_of_object_arrays_fail():
-    """Test that dumping and loading object arrays fails."""
+@pytest.mark.parametrize(
+    "obj",
+    [
+        np.array([1, 2, 3], dtype=object),
+        np.array([(1, 2)], dtype=[("a", "i4"), ("b", "O")]),
+        np.array((1, 2), dtype=[("a", "i4"), ("b", "O")])[()],  # numpy void.
+    ],
+)
+def test_yaml_dump_of_object_arrays_fail(obj):
+    """Test that dumping arrays containing objects fails."""
     with pytest.raises(TypeError, match="cannot serialize"):
-        dump(np.array([1, 2, 3], dtype=object))
+        dump(obj)
 
 
 def test_yaml_load_of_object_arrays_fail():
@@ -369,3 +378,63 @@ def test_yaml_load_of_object_arrays_fail():
             order: C
             shape: !!python/tuple [3]"""
         )
+
+
+# A plain and a nested structured object dtype for each of the ndarray and void
+# constructors. Each buffer holds an invalid pointer, so if a guard is missing, these
+# can crash the interpreter instead of failing the test.
+BAD_DTYPE_YAML = [
+    "!numpy.void {dtype: O, buffer: QUFBQUFBQUE=}",
+    "!numpy.void {dtype: [!!python/tuple [a, [!!python/tuple [b, O]]]], buffer: QUFBQUFBQUE=}",
+    "!numpy.ndarray {dtype: O, shape: [1], buffer: QUFBQUFBQUE=, order: C}",
+    (
+        "!numpy.ndarray {dtype: [!!python/tuple [a, [!!python/tuple [b, O]]]], shape: [1], "
+        "buffer: QUFBQUFBQUE=, order: C}"
+    ),
+]
+
+
+@pytest.mark.parametrize("text", BAD_DTYPE_YAML)
+def test_yaml_load_refuses_object_dtype(text):
+    """Object arrays must not be built from a buffer supplied by the YAML."""
+    with pytest.raises(TypeError, match="cannot load numpy array with object dtype"):
+        load(text)
+
+
+def test_ecsv_read_refuses_object_dtype_in_meta():
+    """Table metadata is the route by which an untrusted file reaches the YAML loader."""
+    ecsv = """\
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: a, datatype: int64}
+# meta: {bad: !numpy.void {dtype: O, buffer: QUFBQUFBQUE=}}
+# schema: astropy-2.0
+a
+1
+"""
+    with pytest.raises(InconsistentTableError, match="unable to parse yaml") as exc:
+        Table.read(ecsv, format="ascii.ecsv")
+    assert isinstance(exc.value.__cause__.__cause__, TypeError)
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        np.array([1.5, 2.5]).reshape(2, 1),
+        np.array([1.5, 2.5, 3.5, 4.5]).reshape(2, 2, order="F"),
+        np.array(["a", "bc"]),
+        np.array([(1, 2.5)], dtype=[("a", "i4"), ("b", "f8")]),
+        np.array(
+            [(1, (2.5, 3))], dtype=[("a", "i4"), ("b", [("c", "f8"), ("d", "i2")])]
+        ),
+        np.array([(1, [2, 3])], dtype=[("a", "i4"), ("b", "f8", (2,))]),
+        np.array((1, 2.5), dtype=[("a", "i4"), ("b", "f8")])[()],  # numpy void.
+    ],
+)
+def test_yaml_round_trip_without_objects(obj):
+    """Dtypes with no objects, in particular structured ones, must still load."""
+    result = load(dump(obj))
+    assert result.dtype == obj.dtype
+    assert result.shape == obj.shape
+    assert result.tobytes() == obj.tobytes()

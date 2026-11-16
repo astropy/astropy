@@ -1,0 +1,5 @@
+The ``scipy`` method of `~astropy.timeseries.LombScargle` now supports the
+``fit_mean=True`` setting with newer Scipy versions (1.15+), equivalent to its
+``floating_mean`` option. As a result, ``method='auto'`` may now select the
+``scipy`` method in cases where it previously used ``cython``, which can
+change results at the floating-point rounding level.

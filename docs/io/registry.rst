@@ -93,6 +93,13 @@ format::
     particular, the first argument may not be a filename or file object, so it
     should not assume that this is the case.
 
+    If an identifier function raises an exception, format identification stops
+    and a ``RuntimeError`` naming the format and the function is raised, with
+    the original exception chained as ``__cause__``. This happens even if
+    another format matches, so an identifier should return ``False`` rather
+    than raise for input that it does not recognize. Passing the ``format``
+    argument skips identification and avoids the error.
+
 We then register this identifier function, similarly to the reader function::
 
     >>> registry.register_identifier('my-table-format', Table, identify_mtf)

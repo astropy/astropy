@@ -1,0 +1,1 @@
+Fixed memory leaks in ``Wcsprm`` when ``preserve_units=True``. Also fixed a leak when reading a ``-TAB`` WCS fails, and a possible read of freed memory after assigning ``cunit``.

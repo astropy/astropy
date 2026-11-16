@@ -118,12 +118,15 @@ static int Celprm_clear(Celprm* self)
 
 static void Celprm_dealloc(Celprm* self)
 {
-    Celprm_clear(self);
-    wcslib_cel_to_python_exc(celfree(self->x)); // free memory used for err msg
+    // Only free the celprm struct if we own it. When this object is a view
+    // into a celprm owned by another object (e.g. Wcsprm), that object frees
+    // it, and self->x may no longer be valid once the owner is released.
     if (self->prefcount && (--(*self->prefcount)) == 0) {
+        wcslib_cel_to_python_exc(celfree(self->x)); // free memory used for err msg
         free(self->x);
         free(self->prefcount);
     }
+    Celprm_clear(self);
     PyTypeObject *tp = Py_TYPE((PyObject*)self);
     freefunc free_func = PyType_GetSlot(tp, Py_tp_free);
     free_func((PyObject*)self);

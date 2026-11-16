@@ -77,6 +77,7 @@ def from_row(
     Returns
     -------
     `~astropy.cosmology.Cosmology`
+        The cosmology instance.
 
     Examples
     --------
@@ -183,13 +184,13 @@ def to_row(
         The cosmology instance to convert to a mapping.
     *args
         Not used. Needed for compatibility with
-        `~astropy.io.registry.UnifiedReadWriteMethod`
-    table_cls : type (optional, keyword-only)
-        Astropy :class:`~astropy.table.Table` class or subclass type to use. Default is
-        :class:`~astropy.table.QTable`.
+        `~astropy.io.registry.UnifiedReadWriteMethod`.
     cosmology_in_meta : bool
         Whether to put the cosmology class in the Table metadata (if `True`) or as the
         first column (if `False`, default).
+    table_cls : type (optional, keyword-only)
+        Astropy :class:`~astropy.table.Table` class or subclass type to use. Default is
+        :class:`~astropy.table.QTable`.
     rename : Mapping[str, str] or None (optional, keyword-only)
         A mapping of field names of the |Cosmology| to column names in the row.
 
@@ -265,9 +266,19 @@ def row_identify(
 ) -> bool:
     """Identify if object uses the `~astropy.table.Row` format.
 
+    Parameters
+    ----------
+    origin : str
+        Whether the registry is being used to ``"read"`` or ``"write"``.
+    format : str or None
+        The format specified by the user, if any.
+    *args, **kwargs
+        Positional and keyword arguments passed to the I/O function.
+
     Returns
     -------
     bool
+        Whether the object uses this format.
     """
     itis = False
     if origin == "read":

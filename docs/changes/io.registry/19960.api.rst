@@ -1,0 +1,6 @@
+When the ``format`` argument is not given, the unified I/O ``read`` and ``write``
+functions and ``identify_format`` now raise a ``RuntimeError`` if an identifier
+function raises an exception. The message names the format and the identifier
+function and suggests passing ``format``. The original exception is chained as
+``__cause__``, so code that catches it by type, for example ``except OSError``
+around ``Table.read()``, needs to be updated.

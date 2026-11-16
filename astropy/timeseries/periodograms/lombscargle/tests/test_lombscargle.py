@@ -9,6 +9,9 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
+from astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl import (
+    _scipy_supports_floating_mean,
+)
 
 ALL_METHODS = LombScargle.available_methods
 ALL_METHODS_NO_AUTO = [method for method in ALL_METHODS if method != "auto"]
@@ -70,8 +73,16 @@ def test_autofrequency(
 def test_all_methods(
     data, method, center_data, fit_mean, errors, with_units, normalization
 ):
-    if method == "scipy" and (fit_mean or errors != "none"):
-        return
+    if method == "scipy":
+        if fit_mean and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
+        if errors == "full":
+            pytest.skip("scipy method only supports uniform uncertainties dy")
+        elif errors == "partial" and normalization == "psd":
+            pytest.skip(
+                "scipy method drops the uniform dy, whose scale the psd "
+                "normalization depends on"
+            )
 
     t, y, dy = data
     frequency = 0.8 + 0.01 * np.arange(40)
@@ -100,7 +111,10 @@ def test_all_methods(
         fit_mean=fit_mean,
         normalization=normalization,
     )
-    P_expected = ls.power(frequency)
+    # Compare against the exact pure-python reference implementation, which
+    # supports every combination exercised here
+    reference = "cython" if method == "slow" else "slow"
+    P_expected = ls.power(frequency, method=reference)
 
     # don't use the lagrangian approximation here; we'll test this elsewhere
     if method in FAST_METHODS:
@@ -115,7 +129,7 @@ def test_all_methods(
     else:
         assert not hasattr(P_method, "unit")
 
-    assert_quantity_allclose(P_expected, P_method)
+    assert_quantity_allclose(P_method, P_expected, rtol=1e-10)
 
 
 @pytest.mark.parametrize("assume_regular_frequency", [True, False])
@@ -164,8 +178,11 @@ def test_cython_irregular_frequency(data, fit_mean, center_data):
 def test_integer_inputs(
     data, method, center_data, fit_mean, with_errors, normalization
 ):
-    if method == "scipy" and (fit_mean or with_errors):
-        return
+    if method == "scipy":
+        if fit_mean and not _scipy_supports_floating_mean():
+            pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
+        if with_errors:
+            pytest.skip("scipy method only supports uniform uncertainties dy")
 
     t, y, dy = data
 
@@ -234,7 +251,7 @@ def test_nterms_methods(
 
         P_method = ls.power(frequency, method=method, **kwds)
 
-        assert_allclose(P_expected, P_method, rtol=1e-7, atol=1e-25)
+        assert_allclose(P_method, P_expected, rtol=1e-7, atol=1e-25)
 
 
 @pytest.mark.parametrize("method", FAST_METHODS)

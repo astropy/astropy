@@ -1,0 +1,2 @@
+Do not dump vertatim data in when exporting multi-dimensional ``Cosmology``
+column to MRT.

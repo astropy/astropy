@@ -5,10 +5,13 @@ Available ufuncs in this module are at
 https://docs.scipy.org/doc/scipy/reference/special.html
 """
 
+import os
+
 import numpy as np
 
 from astropy.units.core import dimensionless_unscaled
 from astropy.units.errors import UnitsError, UnitTypeError
+from astropy.utils import minversion
 
 from .converters import UFUNC_HELPERS
 from .helpers import (
@@ -66,13 +69,39 @@ def helper_degree_minute_second_to_radian(f, unit1, unit2, unit3):
         )
 
 
+def _has_scipy_array_api() -> bool:
+    if minversion("scipy", "2.0.0.dev0"):  # SCIPY_LT_2_0
+        return True
+
+    if not minversion("scipy", "1.12.0"):
+        # at the time of writing, astropy requires scipy>=1.13 and Python>=3.12
+        # but versions as early as 1.11.2 are installable against Python 3.12
+        return False
+
+    SCIPY_ARRAY_API: bool | str = os.getenv("SCIPY_ARRAY_API", "0")
+    if isinstance(SCIPY_ARRAY_API, bool):
+        return SCIPY_ARRAY_API
+
+    return SCIPY_ARRAY_API.lower() in {"1", "true", "all"}
+
+
 def get_scipy_special_helpers():
-    import scipy.special as sps
+    # On scipy >= 2.0, as well as earlier versions with
+    # SCIPY_ARRAY_API=1 set, sps functions are wrappers that call different
+    # functions depending on the input array type.  Quantity are based on
+    # numpy arrays, so Quantity.__array_ufunc__ will get passed an entry in
+    # sps._ufuncs, which is what UFUNC_HELPERS will be keyed with.
+    if _has_scipy_array_api():
+        import scipy.special._ufuncs as sps
+    else:
+        import scipy.special as sps
 
     SCIPY_HELPERS = {}
     for name in dimensionless_to_dimensionless_sps_ufuncs:
-        ufunc = getattr(sps, name, None)
-        SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
+        # Some names are aliases defined only in the scipy.special namespace
+        # (e.g., digamma for psi), so are not present in sps._ufuncs.
+        if (ufunc := getattr(sps, name, None)) is not None:
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless
 
     for ufunc in degree_to_dimensionless_sps_ufuncs:
         SCIPY_HELPERS[getattr(sps, ufunc)] = helper_degree_to_dimensionless

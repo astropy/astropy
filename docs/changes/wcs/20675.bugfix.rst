@@ -1,0 +1,3 @@
+Fixed a use-after-free when deallocating ``Celprm`` objects (and ``Prjprm``
+objects referencing them) obtained from a ``Wcsprm``, such as ``WCS().wcs.cel``,
+which could cause segmentation faults on some systems.

@@ -21,7 +21,7 @@ from astropy.coordinates.name_resolve import (
     sesame_url,
 )
 from astropy.coordinates.sky_coordinate import SkyCoord
-from astropy.utils.data import get_cached_urls
+from astropy.utils.data import conf, get_cached_urls
 
 _cached_ngc3642 = {}
 _cached_ngc3642["simbad"] = """# NGC 3642    #Q22523669
@@ -100,16 +100,22 @@ _cached_castor["simbad"] = """# castor    #Q22524495
 #====Done (2013-Feb-12,17:00:39z)===="""
 
 
+def skip_if_sesame_down():
+    """Skip the current test unless at least one Sesame mirror responds."""
+    for url in sesame_url.get():
+        try:
+            with urllib.request.urlopen(url, timeout=conf.remote_timeout) as response:
+                if response.getcode() == 200:
+                    return
+        except OSError:
+            # URLError, HTTPError, and TimeoutError are all OSError subclasses
+            continue
+    pytest.skip("All Sesame mirrors appear to be down")
+
+
 @pytest.mark.remote_data
 def test_names():
-    # First check that sesame is up
-    if (
-        urllib.request.urlopen("https://cdsweb.unistra.fr/cgi-bin/nph-sesame").getcode()
-        != 200
-    ):
-        pytest.skip(
-            "SESAME appears to be down, skipping test_name_resolve.py:test_names()..."
-        )
+    skip_if_sesame_down()
 
     # "all" choice should ask for SIMBAD, then NED, then Vizier: "SNV" in the url
     with pytest.raises(
@@ -180,15 +186,7 @@ def test_names_parse():
     ("name", "db_dict"), [("NGC 3642", _cached_ngc3642), ("castor", _cached_castor)]
 )
 def test_database_specify(name, db_dict):
-    # First check that at least some sesame mirror is up
-    for url in sesame_url.get():
-        if urllib.request.urlopen(url).getcode() == 200:
-            break
-    else:
-        pytest.skip(
-            "All SESAME mirrors appear to be down, skipping "
-            "test_name_resolve.py:test_database_specify()..."
-        )
+    skip_if_sesame_down()
 
     for db in db_dict.keys():
         with sesame_database.set(db):

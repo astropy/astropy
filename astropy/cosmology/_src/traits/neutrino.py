@@ -115,7 +115,7 @@ class NeutrinoComponent:
     @property
     @abstractmethod
     def has_massive_nu(self) -> bool:
-        """Does this cosmology have at least one massive neutrino species?
+        """Whether this cosmology has at least one massive neutrino species.
 
         Returns
         -------

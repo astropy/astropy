@@ -2,7 +2,6 @@
 """Global Curvature.
 
 This is private API. See `~astropy.cosmology.traits` for public API.
-
 """
 
 __all__ = ("CurvatureComponent",)
@@ -21,7 +20,6 @@ class CurvatureComponent:
 
     This is a trait class; it is not meant to be instantiated directly, but
     instead to be used as a mixin to other classes.
-
     """
 
     @property
@@ -82,7 +80,6 @@ class CurvatureComponent:
 
         >>> cosmo.Ok(100)
         np.float64(-0.0006557825253017665)
-
         """
         z = aszarr(z)
         if self.Ok0 == 0:  # Common enough to be worth checking explicitly

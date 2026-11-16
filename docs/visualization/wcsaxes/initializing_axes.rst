@@ -65,6 +65,37 @@ same functions/methods as for a normal Matplotlib plot:
 .. note:: If you use the pyplot interface, you can also replace ``ax.set_xlim`` and
           ``ax.set_ylim`` by ``plt.xlim`` and ``plt.ylim``.
 
+
+Initialization from a center and field of view
+**********************************************
+
+When displaying artificial data, we can use
+:func:`~astropy.wcs.utils.skycoord_to_celestial_wcs` to initialize a WCS from a
+center and a field of view.
+
+.. plot::
+   :context: reset
+   :include-source:
+   :align: center
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    from astropy.coordinates import Angle, SkyCoord
+    from astropy.wcs.utils import skycoord_to_celestial_wcs
+
+    center = SkyCoord(266.4, -29, unit="deg")
+    fov = Angle([0.2, 0.4], unit="deg")
+    wcs = skycoord_to_celestial_wcs(
+        center, fov=fov, pixel_angular_size=Angle(0.005, unit="deg")
+    )
+
+    data = np.random.rand(*wcs.array_shape)
+
+    fig, ax = plt.subplots(subplot_kw=dict(projection=wcs))
+    plt.imshow(data, origin="lower")
+
+
 Alternative methods
 *******************
 

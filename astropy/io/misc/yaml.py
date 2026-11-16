@@ -107,18 +107,33 @@ def _timedelta_constructor(loader, node):
     return TimeDelta.info._construct_from_dict(map)
 
 
+def _dtype_from_yaml(dtype):
+    """Return numpy dtype from a YAML ``dtype`` value, refusing object dtypes.
+
+    The dtype and buffer of a numpy array in YAML come straight from the file, which may
+    be untrusted. For an object dtype the buffer would be interpreted as ``PyObject``
+    pointers that get dereferenced on access, so such arrays must never be constructed.
+    Using ``hasobject`` on the resolved dtype catches every spelling (``object``, ``O``)
+    as well as object fields nested in a structured dtype.
+    """
+    dtype = np.dtype(dtype)
+    if dtype.hasobject:
+        raise TypeError(f"cannot load numpy array with object dtype {dtype}")
+    return dtype
+
+
 def _ndarray_representer(dumper, obj):
     if obj.dtype.hasobject:
         raise TypeError(f"cannot serialize numpy object array: {obj}")
 
-    if not (obj.flags["C_CONTIGUOUS"] or obj.flags["F_CONTIGUOUS"]):
-        obj = np.ascontiguousarray(obj)
-
-    if np.isfortran(obj):
-        obj = obj.T
+    if obj.flags.c_contiguous:
+        order = "C"
+    elif obj.flags.f_contiguous:
         order = "F"
+        obj = obj.T
     else:
         order = "C"
+        obj = np.ascontiguousarray(obj)
 
     data_b64 = base64.b64encode(obj.tobytes())
 
@@ -139,13 +154,14 @@ def _ndarray_constructor(loader, node):
     # construct_sequence.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
-
-    if map["dtype"] == "object":
-        raise TypeError("cannot load numpy array with dtype object")
+    map["dtype"] = _dtype_from_yaml(map["dtype"])
     return np.ndarray(**map)
 
 
 def _void_representer(dumper, obj):
+    if obj.dtype.hasobject:
+        raise TypeError(f"cannot serialize numpy object array: {obj}")
+
     data_b64 = base64.b64encode(obj.tobytes())
     out = {
         "buffer": data_b64,
@@ -158,6 +174,7 @@ def _void_constructor(loader, node):
     # Interpret as node as an array scalar and then index to change to void.
     map = loader.construct_mapping(node, deep=True)
     map["buffer"] = base64.b64decode(map["buffer"])
+    map["dtype"] = _dtype_from_yaml(map["dtype"])
     return np.ndarray(shape=(), **map)[()]
 
 
