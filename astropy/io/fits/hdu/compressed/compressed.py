@@ -458,19 +458,14 @@ class CompImageHDU(ImageHDU):
         with the correct header.
         """
         # Determine based on the size of the input data whether to use the Q
-        # column format to store compressed data or the P format.
-        # The Q format is used only if the uncompressed data is larger than
-        # 4 GB.  This is not a perfect heuristic, as one can contrive an input
-        # array which, when compressed, the entire binary table representing
-        # the compressed data is larger than 4GB.  That said, this is the same
-        # heuristic used by CFITSIO, so this should give consistent results.
-        # And the cases where this heuristic is insufficient are extreme and
-        # almost entirely contrived corner cases, so it will do for now
-        if self._has_data:
-            huge_hdu = self.data.nbytes > 2**32
-        else:
-            huge_hdu = False
-        # TODO: test above
+        # column format to store compressed data or the P format. P descriptors
+        # are signed 32-bit integers, so the Q format is used if the
+        # uncompressed data is larger than 2**31 - 1 bytes. CFITSIO uses a
+        # 4 GB threshold because it reads P descriptors as unsigned, but other
+        # readers may not. This is still a heuristic, as data can grow when
+        # compressed; compress_image_data raises an error rather than write
+        # offsets that do not fit.
+        huge_hdu = self._has_data and self.data.nbytes > np.iinfo(np.int32).max
 
         # NOTE: for now the function below modifies the compressed binary table
         # bintable._header in-place, but this could be refactored in future to

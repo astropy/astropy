@@ -6,6 +6,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
+from astropy.io.fits.hdu.compressed import _tiled_compression
 from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
 from astropy.io.fits.hdu.compressed._tiled_compression import _heap_descriptors
@@ -388,3 +389,26 @@ def test_heap_descriptors_beyond_2gib(tmp_path, monkeypatch):
             lambda shape, code, offset: get_raw_data(shape, code, offset - 2**31),
         )
         assert_equal(hdul[1].section[1:3], data[1:3])
+
+
+def test_descriptor_format_large_data(tmp_path, monkeypatch):
+    # Offsets in 'P' descriptors are signed 32-bit integers, so 'Q' descriptors
+    # are used once the data are larger than 2**31 - 1 bytes. Broadcast arrays
+    # avoid allocating that much memory.
+    for shape, tform in [((2**15, 2**16 - 1), "1PB"), ((2**15, 2**16), "1QB")]:
+        hdu = fits.CompImageHDU(np.broadcast_to(np.uint8(0), shape))
+        assert hdu._get_bintable_without_data().header["TFORM1"] == tform
+
+    # Data can grow when compressed, so offsets that still do not fit in 'P'
+    # descriptors raise an error instead of silently wrapping. Pretend each
+    # tile compresses to 1 GiB without allocating it.
+    class LargeTile:
+        def __len__(self):
+            return 2**30
+
+    monkeypatch.setattr(
+        _tiled_compression, "_compress_tile", lambda *args, **kwargs: LargeTile()
+    )
+    hdu = fits.CompImageHDU(np.zeros((3, 4, 4), dtype=np.int16), tile_shape=(1, 4, 4))
+    with pytest.raises(ValueError, match="too large to be stored with 'P' descriptors"):
+        hdu.writeto(tmp_path / "test.fits")

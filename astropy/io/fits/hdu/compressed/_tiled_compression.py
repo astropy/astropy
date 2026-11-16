@@ -729,8 +729,16 @@ def compress_image_data(
     for irow, cbytes in enumerate(compressed_bytes):
         table["COMPRESSED_DATA"][irow, 0] = len(cbytes)
 
+    offsets = np.cumsum(table["COMPRESSED_DATA"][:-1, 0], dtype=np.int64)
+    # Storing these in 32-bit 'P' descriptors would silently wrap large offsets.
+    max_offset = np.iinfo(table["COMPRESSED_DATA"].dtype).max
+    if offsets.max(initial=0) > max_offset:
+        raise ValueError(
+            f"The compressed data is too large to be stored with 'P' descriptors "
+            f"(heap offsets exceed {max_offset} bytes)"
+        )
     table["COMPRESSED_DATA"][:1, 1] = 0
-    table["COMPRESSED_DATA"][1:, 1] = np.cumsum(table["COMPRESSED_DATA"][:-1, 0])
+    table["COMPRESSED_DATA"][1:, 1] = offsets
 
     for irow in range(len(compressed_bytes)):
         if gzip_fallback[irow]:
