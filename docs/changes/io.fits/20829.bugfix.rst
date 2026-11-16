@@ -1,0 +1,4 @@
+Reading tile-compressed images now raises a ``ValueError`` if the dimensions
+stored in ``HCOMPRESS_1`` compressed data do not match the tile shape given
+in the header, or if the ``BYTEPIX`` value for ``RICE_1`` compressed data is
+not 1, 2 or 4.
