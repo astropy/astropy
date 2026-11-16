@@ -169,7 +169,7 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args) {
 
   decompressed_values = (int *)calloc(tilesize, sizeof(int));
 
-  pl_l2pi(compressed_values, 1, decompressed_values, tilesize);
+  pl_l2pi(compressed_values, count * sizeof(char) / sizeof(short), 1, decompressed_values, tilesize);
 
   if (PyErr_Occurred() != NULL) {
     // If an error condition inside the cfitsio function, the call inside
@@ -397,14 +397,15 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args) {
 
   compressed_values = (unsigned char *)str;
 
-  dbytes = malloc((size_t) nx * ny * bytepix);
+  int na = nx * ny * bytepix;
+  dbytes = malloc((size_t) na);
 
   if (bytepix == 4) {
     decompressed_values_int = (int *)dbytes;
-    fits_hdecompress(compressed_values, smooth, decompressed_values_int, &ny, &nx, &scale, &status);
+    fits_hdecompress(compressed_values, smooth, decompressed_values_int, na, &ny, &nx, &scale, &status);
   } else {
     decompressed_values_longlong = (long long *)dbytes;
-    fits_hdecompress64(compressed_values, smooth, decompressed_values_longlong, &ny, &nx, &scale, &status);
+    fits_hdecompress64(compressed_values, smooth, decompressed_values_longlong, na, &ny, &nx, &scale, &status);
   }
 
   Py_END_ALLOW_THREADS
