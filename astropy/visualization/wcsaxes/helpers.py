@@ -10,7 +10,6 @@ from matplotlib.patches import Ellipse
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
 import astropy.units as u
-from astropy.wcs.utils import proj_plane_pixel_scales
 
 __all__ = ["add_beam", "add_scalebar"]
 
@@ -27,11 +26,14 @@ CORNERS = {
 
 
 def _degrees_per_pixel(wcs):
-    # The pixel scales are in the world units of the WCS, which are not
-    # necessarily degrees, for example with preserve_units=True
-    scales = proj_plane_pixel_scales(wcs) * [
-        u.Unit(unit or "deg").to(u.deg) for unit in wcs.world_axis_units
-    ]
+    # The pixel scale matrix is in the world units of the WCS, which are not
+    # necessarily degrees, for example with preserve_units=True. Each row is
+    # converted to degrees before summing over the world axes, since the two
+    # celestial axes can have different units.
+    factors = np.array([u.Unit(unit).to(u.deg) for unit in wcs.world_axis_units])
+    scales = np.sqrt(
+        ((factors[:, np.newaxis] * wcs.pixel_scale_matrix) ** 2).sum(axis=0)
+    )
     return np.sqrt(scales[0] * scales[1])
 
 

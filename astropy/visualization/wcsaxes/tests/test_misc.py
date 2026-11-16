@@ -984,3 +984,29 @@ def test_beam_scalebar_non_degree_world_units(cunit):
     add_scalebar(ax, 0.3 * u.deg)
     (rectangle,) = ax.artists[-1].size_bar.get_children()
     assert_allclose(rectangle.get_width(), 30)
+
+
+def test_beam_scalebar_mixed_world_units():
+    # The two celestial axes can have different units, in which case the pixel
+    # scale has to be converted to degrees before combining the world axes.
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = ["deg", "arcsec"]
+    wcs.wcs.crval = [10, (20 * u.deg).to_value(u.arcsec)]
+    wcs.wcs.cdelt = [-0.01, (0.01 * u.deg).to_value(u.arcsec)]
+    angle = np.radians(30)
+    wcs.wcs.pc = [
+        [np.cos(angle), -np.sin(angle)],
+        [np.sin(angle), np.cos(angle)],
+    ]
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    add_beam(ax, major=0.2 * u.deg, minor=0.1 * u.deg, angle=0 * u.deg)
+    (ellipse,) = ax.artists[-1].get_child().get_children()
+    assert_allclose([ellipse.width, ellipse.height], [10, 20])
+
+    add_scalebar(ax, 0.3 * u.deg)
+    (rectangle,) = ax.artists[-1].size_bar.get_children()
+    assert_allclose(rectangle.get_width(), 30)
