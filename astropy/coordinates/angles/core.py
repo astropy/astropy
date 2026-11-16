@@ -412,8 +412,7 @@ class Angle(SpecificTypeQuantity):
         if not out_of_range.any():
             return
 
-        # Catch any invalid warnings from the floor division, which
-        # infinities give.
+        # Catch any invalid warnings from the floor division.
         with np.errstate(invalid="ignore"):
             wraps = (self_angle - wrap_angle_floor) // a360
 

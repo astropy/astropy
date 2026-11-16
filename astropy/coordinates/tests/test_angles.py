@@ -1116,10 +1116,8 @@ def test_longitude_inf():
 
 
 def test_longitude_setitem_inf_elsewhere():
-    # Setting an item wraps the whole array, so check that an infinity in an
-    # element that is not being set doesn't raise a warning. np.stack and
-    # np.concatenate of representations and coordinates set items of an
-    # uninitialized array, which can hold anything.
+    # Setting an item wraps the whole array, so check that an infinity 
+    # being set as an item doesn't raise a warning.
     lon = Longitude([0, 1] * u.deg)
     lon.view(np.ndarray)[1] = np.inf
     lon[0] = 2 * u.deg
