@@ -1,0 +1,3 @@
+``SigmaClip`` and ``sigma_clip`` now raise a ``TypeError`` instead of a
+``ValueError`` for non-numeric input when ``axis`` is set, matching the
+``axis=None`` behavior.
