@@ -1116,7 +1116,7 @@ def test_longitude_inf():
 
 
 def test_longitude_setitem_inf_elsewhere():
-    # Setting an item wraps the whole array, so check that an infinity 
+    # Setting an item wraps the whole array, so check that an infinity
     # being set as an item doesn't raise a warning.
     lon = Longitude([0, 1] * u.deg)
     lon.view(np.ndarray)[1] = np.inf
