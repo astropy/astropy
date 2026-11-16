@@ -1,0 +1,13 @@
+Fixed ``biweight_midcovariance`` to raise a ``ValueError`` if the length
+of an array ``M`` does not match the number of variables. Previously, a
+1D ``data`` input with an ``M`` that had one element per observation
+silently returned a matrix with the wrong shape.
+
+Fixed ``biweight_midcorrelation`` to return NaN without a
+``RuntimeWarning`` when either input variable has a zero median
+absolute deviation.
+
+The ``biweight_location``, ``biweight_scale``, ``biweight_midvariance``,
+``biweight_midcovariance``, and ``biweight_midcorrelation`` functions
+now raise a ``ValueError`` if the tuning constant ``c`` is not
+positive.
