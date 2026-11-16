@@ -8,6 +8,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
+from astropy.io.fits.hdu.compressed._tiled_compression import _heap_descriptors
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import fitsio_param_to_astropy_param
@@ -357,3 +358,33 @@ def test_rice_decode_invalid_bytepix(bytepix):
     cbytes = Rice1(blocksize=32, bytepix=4, tilesize=64).encode(data)
     with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
         Rice1(blocksize=32, bytepix=bytepix, tilesize=64).decode(_as_array(cbytes))
+
+
+def test_heap_descriptors_beyond_2gib(tmp_path, monkeypatch):
+    # Regression test for https://github.com/astropy/astropy/issues/15482
+
+    # Like CFITSIO, 'P' descriptors are read as unsigned 32-bit integers, which
+    # allows heaps of up to 4 GiB. Negative 'Q' descriptors are invalid.
+    p_descriptors = np.array([[1, 2**31 - 1], [1, -(2**31)], [1, -1]], dtype=">i4")
+    assert_equal(
+        _heap_descriptors(p_descriptors), [[1, 2**31 - 1], [1, 2**31], [1, 2**32 - 1]]
+    )
+    with pytest.raises(ValueError, match="Negative heap descriptor"):
+        _heap_descriptors(np.array([[1, -1]], dtype=">i8"))
+
+    # Adding 'P' descriptors to a heap position beyond 2**31 bytes in the file
+    # used to overflow. Rather than writing a 2 GiB file, pretend the HDU
+    # starts 2**31 bytes later and map reads back to the real position.
+    data = np.arange(4 * 16 * 16, dtype=np.int16).reshape(4, 16, 16)
+    fits.CompImageHDU(data, tile_shape=(1, 16, 16)).writeto(tmp_path / "test.fits")
+    with fits.open(tmp_path / "test.fits") as hdul:
+        bintable = hdul[1]._bintable
+        assert bintable.header["TFORM1"].startswith("1PB")
+        get_raw_data = bintable._get_raw_data
+        monkeypatch.setattr(bintable, "_data_offset", bintable._data_offset + 2**31)
+        monkeypatch.setattr(
+            bintable,
+            "_get_raw_data",
+            lambda shape, code, offset: get_raw_data(shape, code, offset - 2**31),
+        )
+        assert_equal(hdul[1].section[1:3], data[1:3])
