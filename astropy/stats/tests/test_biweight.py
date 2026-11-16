@@ -1,5 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
+
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_almost_equal_nulp, assert_equal
@@ -743,3 +745,60 @@ def test_biweight_masked(func, unit, ignore_nan):
         exp_unit = unit**2 if func is biweight_midvariance else unit
         assert result.unit == exp_unit
         assert_equal(result.unmasked, reference * exp_unit)
+
+
+@pytest.mark.parametrize("with_nan", [False, True])
+@pytest.mark.parametrize("M", [None, 0.5])
+@pytest.mark.parametrize("axis", [None, 0, 1, (0, 1)])
+@pytest.mark.parametrize(
+    "func", [biweight_location, biweight_scale, biweight_midvariance]
+)
+def test_biweight_maskedarray(func, axis, M, with_nan):
+    """
+    Test np.ma.MaskedArray input against the equivalent astropy Masked
+    input, including fully masked slices and an unmasked NaN value.
+
+    The two differ only for slices with an unmasked NaN value, which are
+    masked for MaskedArray input and NaN for Masked input. No warnings
+    are emitted for MaskedArray input.
+    """
+    rng = np.random.default_rng(0)
+    values = rng.normal(size=(6, 9))
+    values[1, 2] = 50.0
+    if with_nan:
+        values[2, 4] = np.nan  # unmasked NaN
+    mask = rng.random(values.shape) < 0.2
+    mask[4] = True  # fully masked row
+    mask[:, 7] = True  # fully masked column
+    if M is not None and axis is not None and axis != (0, 1):
+        M = np.full(np.delete(values.shape, axis), M)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        ref = func(Masked(values, mask=mask), M=M, axis=axis)
+    ref_values = getattr(ref, "unmasked", ref)
+
+    result = func(np.ma.MaskedArray(values, mask=mask), M=M, axis=axis)
+    if axis is None or axis == (0, 1):
+        assert np.isscalar(result)
+        assert_allclose(result, ref_values, rtol=1e-14)
+        assert np.isnan(result) == with_nan
+    else:
+        assert isinstance(result, np.ma.MaskedArray)
+        expected_mask = ref.mask | np.isnan(ref_values)
+        assert_equal(result.mask, expected_mask)
+        assert_allclose(result.compressed(), ref_values[~expected_mask], rtol=1e-14)
+
+
+def test_biweight_maskedarray_not_modified():
+    """
+    Test that a MaskedArray input with no masked values and an unmasked
+    NaN value is not modified.
+    """
+    values = np.array([[1.0, 3, 5, 500, 2], [1.0, np.nan, 5, 3, 2]])
+    data = np.ma.MaskedArray(values.copy())
+    result = biweight_location(data, axis=1)
+    assert_allclose(result[0], 2.7456117)
+    assert result.mask[1]
+    assert_equal(data.data, values)
+    assert not np.any(data.mask)

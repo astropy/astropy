@@ -25,13 +25,43 @@ __all__ = [
 ]
 
 
+def _ma_median(data, axis=None):
+    """
+    Compute the median of a `~numpy.ma.MaskedArray` along ``axis``.
+
+    This gives the same result as `numpy.ma.median`, but it is much
+    faster because it uses ``nanmedian`` on the data with the masked
+    values replaced by NaN.
+    """
+    mask = np.ma.getmaskarray(data)
+    all_masked = np.all(mask, axis=axis, keepdims=True)
+    # Unmasked NaN values give a NaN median, as with np.ma.median
+    has_nan = np.any(np.isnan(data.data) & ~mask, axis=axis, keepdims=True)
+
+    # Slices that are all masked or have an unmasked NaN get their
+    # result below. Their values are set to zero here so that nanmedian
+    # does not warn about all-NaN slices.
+    values = data.filled(np.nan)
+    override = all_masked | has_nan
+    if np.any(override):
+        values = np.where(override, 0.0, values)
+
+    result = nanmedian(values, axis=axis)
+    result = np.where(has_nan.squeeze(axis=axis), np.nan, result)
+    all_masked = all_masked.squeeze(axis=axis)
+
+    if np.ndim(result) == 0:
+        return np.ma.masked if all_masked else np.float64(result)
+    return np.ma.masked_array(result, mask=all_masked)
+
+
 def _stat_functions(
     data: ArrayLike,
     ignore_nan: bool | None = False,
 ) -> tuple[Callable[..., NDArray[float]], Callable[..., NDArray[float]]]:
     # TODO: typing: update return Callables with custom callback protocol (https://mypy.readthedocs.io/en/stable/protocols.html#callback-protocols)
     if isinstance(data, np.ma.MaskedArray):
-        median_func = np.ma.median
+        median_func = _ma_median
         sum_func = np.ma.sum
 
     elif isinstance(data, Masked):
@@ -78,6 +108,19 @@ def _expand_location(M, data, axis):
         raise ValueError(msg)
 
     return np.expand_dims(M, axis=axis)
+
+
+def _mad(data, *, median_func, axis):
+    """
+    Compute the median absolute deviation of ``data`` along ``axis``.
+
+    Both medians use ``median_func``, so masked and NaN values are
+    handled the same way as for the location.
+    """
+    median = median_func(data, axis=axis)
+    if axis is not None and np.ndim(median) > 0:
+        median = np.expand_dims(median, axis=axis)
+    return median_func(np.abs(data - median), axis=axis)
 
 
 def biweight_location(
@@ -188,7 +231,7 @@ def biweight_location(
     d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
+    mad = _mad(data, median_func=median_func, axis=axis)
 
     # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
@@ -479,7 +522,7 @@ def biweight_midvariance(
     d = data - M
 
     # set up the weighting
-    mad = median_absolute_deviation(data, axis=axis, ignore_nan=ignore_nan)
+    mad = _mad(data, median_func=median_func, axis=axis)
 
     # np.ndim(mad) = 0 means axis is None or contains all axes
     # mad = 0 means data is constant or mostly constant
