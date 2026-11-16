@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_equal
 
 from astropy.io import fits
-from astropy.io.fits.hdu.compressed._codecs import PLIO1
+from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
 from astropy.utils.exceptions import AstropyUserWarning
 
@@ -285,3 +285,75 @@ def test_invalid_tile(tmp_path):
             match="decompression error: hit end of compressed byte stream",
         ):
             hdulist[1].data.sum()
+
+
+def test_hcompress_tile_shape_mismatch(tmp_path):
+    # Check that an error is raised if the dimensions stored in an HCOMPRESS_1
+    # compressed stream do not match the tile shape given in the header.
+
+    data = np.arange(128 * 128, dtype=np.int32).reshape((128, 128))
+    hdu = fits.CompImageHDU(data, compression_type="HCOMPRESS_1", tile_shape=(128, 128))
+    hdu.writeto(tmp_path / "original.fits")
+
+    # Change the image and tile shape in the header without changing the
+    # compressed data.
+    raw = (tmp_path / "original.fits").read_bytes()
+    for keyword in ("ZNAXIS1", "ZNAXIS2", "ZTILE1", "ZTILE2"):
+        original = f"{keyword:8s}= {128:20d}".encode("ascii")
+        assert raw.count(original) == 1
+        raw = raw.replace(original, f"{keyword:8s}= {64:20d}".encode("ascii"))
+    (tmp_path / "crafted.fits").write_bytes(raw)
+
+    with fits.open(tmp_path / "crafted.fits") as hdul:
+        with pytest.raises(
+            ValueError, match=r"dimensions \(128, 128\) but expected \(64, 64\)"
+        ):
+            hdul[1].data
+
+
+def _as_array(cbytes):
+    return np.frombuffer(cbytes, dtype=np.uint8)
+
+
+@pytest.mark.parametrize("bytepix", (4, 8))
+def test_hcompress_decode_invalid_stream(bytepix):
+    codec = HCompress1(scale=0, smooth=False, bytepix=bytepix, nx=6, ny=10)
+    data = np.arange(60, dtype=f"i{bytepix}")
+    cbytes = codec.encode(data)
+
+    assert_equal(codec.decode(_as_array(cbytes)), data)
+
+    # Stream dimensions with the same number of pixels but a different shape
+    settings = {"scale": 0, "smooth": False, "bytepix": bytepix}
+    with pytest.raises(ValueError, match=r"dimensions \(6, 10\) but expected"):
+        HCompress1(nx=10, ny=6, **settings).decode(_as_array(cbytes))
+
+    # Stream dimensions that are smaller than the tile
+    with pytest.raises(ValueError, match=r"dimensions \(6, 10\) but expected"):
+        HCompress1(nx=12, ny=10, **settings).decode(_as_array(cbytes))
+
+    # Zero or negative dimensions in the stream
+    for value in (0, -6):
+        crafted = cbytes[:2] + value.to_bytes(4, "big", signed=True) + cbytes[6:]
+        with pytest.raises(ValueError, match="but expected"):
+            codec.decode(_as_array(crafted))
+
+    # Invalid magic code and truncated header
+    with pytest.raises(ValueError, match="truncated or corrupt"):
+        codec.decode(_as_array(b"\x00\x00" + cbytes[2:]))
+    with pytest.raises(ValueError, match="truncated or corrupt"):
+        codec.decode(_as_array(cbytes[:24]))
+
+    # Invalid tile dimensions
+    for nx, ny in [(0, 10), (-6, 10), (2**16, 2**16)]:
+        with pytest.raises(ValueError, match="tile dimensions are invalid"):
+            HCompress1(nx=nx, ny=ny, **settings).decode(_as_array(cbytes))
+
+
+@pytest.mark.parametrize("bytepix", (0, 3, 8))
+def test_rice_decode_invalid_bytepix(bytepix):
+    # Only BYTEPIX values of 1, 2 and 4 are supported
+    data = np.arange(64, dtype="i4")
+    cbytes = Rice1(blocksize=32, bytepix=4, tilesize=64).encode(data)
+    with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
+        Rice1(blocksize=32, bytepix=bytepix, tilesize=64).decode(_as_array(cbytes))
