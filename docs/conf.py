@@ -544,6 +544,7 @@ global_substitutions: dict[str, str] = {
     # Minimum versions
     "minimum_python_version": f"{__minimum_python_version__}",
     "minimum_numpy_version": f"{min_versions['numpy']}",
+    "minimum_array_api_compat_version": f"{min_versions['array-api-compat']}",
     "minimum_pyerfa_version": f"{min_versions['pyerfa']}",
     "minimum_matplotlib_version": f"{min_versions['matplotlib']}",
     "minimum_scipy_version": f"{min_versions['scipy']}",

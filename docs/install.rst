@@ -130,6 +130,8 @@ Requirements
 
 - |PyERFA| |minimum_pyerfa_version| or later
 
+- `array-api-compat <https://data-apis.org/array-api-compat/>`_ |minimum_array_api_compat_version| or later
+
 - `PyYAML <https://pyyaml.org>`_ |minimum_pyyaml_version| or later
 
 - |packaging| |minimum_packaging_version| or later
