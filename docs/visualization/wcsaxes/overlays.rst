@@ -164,11 +164,28 @@ For example, if your WCS defines an image where the coordinate system consists o
 
     ax.scatter([34], [3.2], transform=ax.get_transform('world'))
 
-to plot a marker at (34deg, 3.2nm).
+to plot a marker at (34deg, 3.2nm). Plain numbers are assumed to be in the
+world units of the WCS, which are given by ``wcs.world_axis_units``. Values
+can also be given as `~astropy.units.Quantity` objects, which are then
+converted to the world units of the WCS::
+
+    ax.scatter(34 * u.deg, 32 * u.angstrom, transform=ax.get_transform('world'))
 
 Using ``ax.get_transform('pixel')`` is equivalent to not using any
 transformation at all (and things then behave as described in the `Pixel
-coordinates`_ section).
+coordinates`_ section). In this case, as for the limits of the axes, values are
+pixel coordinates, so any quantities have to be in pixels (``u.pix``), and
+quantities in other units raise an error.
+
+Quantities are converted by the most commonly used plotting methods, such as
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot`,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter`,
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.text` and
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.contour`, when they are used
+without a transform or with a transform returned by
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`. For other
+Matplotlib methods, and for artists that are created directly and then added to
+the axes, values should be given as plain numbers in the units described here.
 
 Celestial coordinates
 *********************
@@ -183,6 +200,11 @@ are:
 * ``'galactic'``: Galactic coordinates
 
 In addition, any valid `astropy.coordinates` coordinate frame can be passed.
+With these transforms, plain numbers are assumed to be in degrees, whatever
+the world units of the WCS are, and `~astropy.units.Quantity` objects are
+converted to degrees. To plot `~astropy.coordinates.SkyCoord` objects
+directly, see :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot_coord` and
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter_coord`.
 
 For example, you can add markers with positions defined in the FK5 system using:
 

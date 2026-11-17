@@ -19,6 +19,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-reading-int-columns`
 * :ref:`whatsnew-8.1-pyodide-wheels`
 * :ref:`whatsnew-8.1-wcs-init`
+* :ref:`whatsnew-8.1-wcsaxes-quantities`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -171,6 +172,33 @@ rather than with the desired field of view:
 >>> image_shape = [80, 40]
 >>> wcs = skycoord_to_celestial_wcs(center, pixel_shape=image_shape,
 ...                                 pixel_angular_size=[-0.005, 0.005] * u.deg)
+
+
+.. _whatsnew-8.1-wcsaxes-quantities:
+
+Plotting quantities on WCSAxes
+==============================
+
+|Quantity| values can now be passed to the most commonly used plotting methods
+of :class:`~astropy.visualization.wcsaxes.WCSAxes`, such as
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.plot` and
+:meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter`, and are converted to
+the units that the transform expects. Previously the unit was dropped, so for
+example arcseconds could be interpreted as degrees. Now the following plots
+points at the correct positions whatever the world units of the WCS are::
+
+    import astropy.units as u
+
+    ax = plt.subplot(projection=wcs)
+    ax.plot(100 * u.arcsec, 50 * u.arcsec, "o", transform=ax.get_transform("world"))
+    ax.scatter([10, 20] * u.arcmin, [5, 6] * u.arcmin, transform=ax.get_transform("icrs"))
+
+Without a transform, values are pixel coordinates, so quantities then have to
+be in pixels (``u.pix``), which also applies to the limits of the axes.
+Quantities in units that cannot be converted to those that the transform
+expects raise an error. The interpretation of plain numbers has not changed:
+these are in the world units of the WCS for ``ax.get_transform("world")`` and
+in degrees for celestial frames such as ``ax.get_transform("icrs")``.
 
 
 Contributors to the 8.1 release
