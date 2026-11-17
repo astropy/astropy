@@ -62,11 +62,11 @@ class CompImageHDU(ImageHDU):
         quantize_level=DEFAULT_QUANTIZE_LEVEL,
         quantize_method=DEFAULT_QUANTIZE_METHOD,
         dither_seed=DEFAULT_DITHER_SEED,
-        gzip_level=DEFAULT_GZIP_LEVEL,
         do_not_scale_image_data=False,
         uint=True,
         scale_back=None,
         bintable=None,
+        gzip_level=DEFAULT_GZIP_LEVEL,
     ):
         """
         Parameters
