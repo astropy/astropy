@@ -18,7 +18,7 @@ from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from ._auto import auto_assign_coord_positions
-from ._quantities import (
+from ._quantity_helpers import (
     UNKNOWN_UNIT,
     convert_grid_args,
     convert_plot_args,
