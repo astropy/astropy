@@ -1,0 +1,2 @@
+Fixed ``read_table_parquet`` raising ``KeyError`` when reading a Parquet
+file containing columns absent from the serialized Astropy table metadata header.

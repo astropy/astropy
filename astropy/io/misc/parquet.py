@@ -331,9 +331,11 @@ def read_table_parquet(
         # metadata that was serialized with the table.
         header_cols = {x["name"]: x for x in meta_hdr["datatype"]}
         for col in table.columns.values():
-            for attr in ("description", "format", "unit", "meta"):
-                if attr in header_cols[col.name]:
-                    setattr(col, attr, header_cols[col.name][attr])
+            if col.name in header_cols:
+                col_meta = header_cols[col.name]
+                for attr in ("description", "format", "unit", "meta"):
+                    if attr in col_meta:
+                        setattr(col, attr, col_meta[attr])
 
     # Convert all compound columns to astropy objects
     # (e.g. time.jd1, time.jd2 into a single time column)

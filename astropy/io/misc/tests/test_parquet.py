@@ -1048,3 +1048,33 @@ def test_parquet_read_pandas(tmp_path):
         values = _default_values(dtype)
         assert np.all(t2[str(dtype)] == values)
         assert t2[str(dtype)].dtype == dtype
+
+
+def test_parquet_read_column_not_in_table_meta(tmp_path):
+    """
+    Test reading a parquet file that has astropy table_meta_yaml metadata
+    but contains an extra column added externally (not present in the YAML metadata).
+    Regression test for issue #20639.
+    """
+    pa, parquet = get_pyarrow()
+    filename = tmp_path / "test_extra_column.parquet"
+
+    t = Table()
+    t["a"] = [1, 2, 3] * u.m
+    t["a"].description = "length"
+    t["b"] = ["x", "y", "z"]
+    t.write(filename, format="parquet")
+
+    # Append an extra column with pyarrow, preserving the existing schema metadata
+    pa_table = parquet.read_table(filename)
+    new_col = pa.array([10, 20, 30])
+    pa_table_with_extra = pa_table.append_column("extra", new_col)
+    parquet.write_table(pa_table_with_extra, filename)
+
+    # Read back with astropy Table.read - should succeed without KeyError
+    t_read = Table.read(filename, format="parquet")
+
+    assert t_read.colnames == ["a", "b", "extra"]
+    assert t_read["a"].unit == u.m
+    assert t_read["a"].description == "length"
+    assert_array_equal(t_read["extra"], [10, 20, 30])
