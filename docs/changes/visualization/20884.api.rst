@@ -1,0 +1,7 @@
+|Quantity| values passed to the most commonly used plotting methods of
+``WCSAxes``, such as ``plot`` and ``scatter``, are now converted to the units
+that the transform expects, which are the world units of the WCS for
+``ax.get_transform("world")``, degrees for celestial frames such as
+``ax.get_transform("icrs")``, and pixels if no transform is used. Previously the
+unit was ignored. Quantities that cannot be converted to these units, for example
+quantities in degrees plotted without a transform, now raise an error.
