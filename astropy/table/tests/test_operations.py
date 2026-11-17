@@ -2626,6 +2626,25 @@ def test_get_out_class():
         _get_out_class([q, c])
 
 
+@pytest.mark.parametrize("operation", [table.vstack, table.join])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_incompatible_column_classes_report_name(operation, reverse):
+    class CustomColumn(Column):
+        pass
+
+    tables = [
+        Table([MaskedColumn([1, 2], name="target")]),
+        Table([CustomColumn([1, 2], name="target")]),
+    ]
+    if reverse:
+        tables.reverse()
+    with pytest.raises(ValueError, match="unmergeable object classes.*column 'target'"):
+        if operation is table.vstack:
+            operation(tables)
+        else:
+            operation(*tables)
+
+
 def test_masking_required_exception():
     """
     Test that outer join, hstack and vstack fail for a mixin column which

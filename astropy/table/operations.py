@@ -103,13 +103,13 @@ def _get_list_of_tables(tables: TableLike | Sequence[TableLike]) -> list[Table]:
     return tables
 
 
-def _get_out_class(objs: Sequence[Any]) -> type:
+def _get_out_class(objs: Sequence[Any], col_name: str | None = None) -> type:
     """
     From a list of input objects ``objs`` get merged output object class.
 
     This is just taken as the deepest subclass. This doesn't handle complicated
     inheritance schemes, but as a special case, classes which share ``info``
-    are taken to be compatible.
+    are taken to be compatible. If given, ``col_name`` is included in errors.
     """
     out_class = objs[0].__class__
     for obj in objs[1:]:
@@ -122,9 +122,10 @@ def _get_out_class(objs: Sequence[Any]) -> type:
         )
         for obj in objs
     ):
-        raise ValueError(
-            f"unmergeable object classes {[type(obj).__name__ for obj in objs]}"
-        )
+        message = f"unmergeable object classes {[type(obj).__name__ for obj in objs]}"
+        if col_name is not None:
+            message += f" in column {col_name!r}"
+        raise ValueError(message)
 
     return out_class
 
@@ -1487,7 +1488,7 @@ def _join(  # ruff: ignore[PLR0917]
         if left_name and right_name:  # this is a key which comes from left and right
             cols = [left[left_name], right[right_name]]
 
-            col_cls = _get_out_class(cols)
+            col_cls = _get_out_class(cols, col_name=out_name)
             if not hasattr(col_cls.info, "new_like"):
                 raise NotImplementedError(
                     f"join unavailable for mixin column type(s): {col_cls.__name__}"
@@ -1846,7 +1847,7 @@ def _vstack(
         # List of input arrays that contribute to this output column
         cols = [arr[name] for arr, name in zip(arrays, in_names) if name is not None]
 
-        col_cls = _get_out_class(cols)
+        col_cls = _get_out_class(cols, col_name=out_name)
         if not hasattr(col_cls.info, "new_like"):
             raise NotImplementedError(
                 f"vstack unavailable for mixin column type(s): {col_cls.__name__}"
