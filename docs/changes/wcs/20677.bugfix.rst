@@ -1,3 +1,0 @@
-Fixed slicing of ``astropy.wcs.WCS`` objects with steps greater than 1
-when non-diagnonal CD or PC matrices were present, or when SIP distortions
-were present.

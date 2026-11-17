@@ -1,2 +1,0 @@
-Fixed an error when saving a figure containing ``WCSAxes`` with the PGF
-backend and ``layout="constrained"``.
