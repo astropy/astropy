@@ -10,7 +10,6 @@ from matplotlib.artist import Artist
 from matplotlib.axes import Axes, subplot_class_factory
 from matplotlib.transforms import Affine2D, Bbox, Transform
 
-from astropy import units as u
 from astropy.coordinates import BaseCoordinateFrame, SkyCoord
 from astropy.utils.compat.optional_deps import HAS_PIL
 from astropy.utils.decorators import deprecated_renamed_argument
@@ -19,10 +18,11 @@ from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from ._auto import auto_assign_coord_positions
 from ._quantity_helpers import (
-    UNKNOWN_UNIT,
     convert_grid_args,
     convert_plot_args,
     convert_quantities,
+    get_frame_input_units,
+    get_transform_input_units,
 )
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
@@ -268,7 +268,7 @@ class WCSAxes(Axes):
         # go to all the segments that make up the contour map.
 
         args = convert_grid_args(
-            args, *self._get_transform_input_units(kwargs.get("transform"))
+            args, *get_transform_input_units(self, kwargs.get("transform"))
         )
         transform = kwargs.pop("transform", None)
 
@@ -300,7 +300,7 @@ class WCSAxes(Axes):
         # See notes for contour above.
 
         args = convert_grid_args(
-            args, *self._get_transform_input_units(kwargs.get("transform"))
+            args, *get_transform_input_units(self, kwargs.get("transform"))
         )
         transform = kwargs.pop("transform", None)
 
@@ -898,47 +898,8 @@ class WCSAxes(Axes):
         known.
         """
         transform = self._get_transform_no_transdata(frame).inverted() + self.transData
-        transform._wcsaxes_input_units = self._get_frame_input_units(frame)
+        transform._wcsaxes_input_units = get_frame_input_units(self, frame)
         return transform
-
-    def _get_frame_input_units(self, frame):
-        # The units in which the transform returned by get_transform(frame)
-        # expects its input x and y values to be (see UNKNOWN_UNIT)
-
-        if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)) or (
-            isinstance(frame, str) and frame == "pixel"
-        ):
-            # For a WCS, the values are pixel coordinates in that WCS
-            return self._get_transform_input_units(None)
-
-        if isinstance(frame, str) and frame == "world":
-            # The world units are not known if the axes were created with a
-            # transform rather than a WCS, and there is no single unit for
-            # each of x and y if there are more than two world coordinates
-            units = getattr(self._transform_pixel2world, "units_out", None)
-            if units is not None and len(units) <= 2:
-                # For a 1D WCS, y is not a world coordinate
-                return (*(u.Unit(unit) for unit in units), None)[:2]
-
-        elif not isinstance(frame, Transform):
-            # Celestial frames
-            return (u.deg, u.deg)
-
-        return (UNKNOWN_UNIT, UNKNOWN_UNIT)
-
-    def _get_transform_input_units(self, transform):
-        # The units in which the transform given to a plotting method expects
-        # its input x and y values to be (see UNKNOWN_UNIT). These are recorded
-        # by get_transform, and are not known for any other transform.
-
-        if transform is None or transform is self.transData:
-            # Pixel coordinates, except for the y axis of 1D plots, which
-            # shows data values
-            if self.frame_class is RectangularFrame1D:
-                return (u.pix, None)
-            return (u.pix, u.pix)
-
-        return getattr(transform, "_wcsaxes_input_units", (UNKNOWN_UNIT, UNKNOWN_UNIT))
 
     def _get_transform_no_transdata(self, frame):
         """
@@ -950,6 +911,9 @@ class WCSAxes(Axes):
             The frame to transform to, as for
             `~astropy.visualization.wcsaxes.WCSAxes.get_transform`.
         """
+        # If the frames that are accepted here or the units of the values that
+        # the transforms expect change, get_frame_input_units in
+        # _quantity_helpers.py has to be updated to match.
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
             if isinstance(frame, BaseHighLevelWCS):
                 frame = frame.low_level_wcs

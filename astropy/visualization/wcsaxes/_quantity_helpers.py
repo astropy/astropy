@@ -3,7 +3,12 @@
 import functools
 import inspect
 
+from matplotlib.transforms import Transform
+
 from astropy import units as u
+from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
+
+from .frame import RectangularFrame1D
 
 # Matplotlib discards the units of quantities before they reach the transform
 # of an artist, so the plotting methods of WCSAxes convert quantities to the
@@ -12,6 +17,48 @@ from astropy import units as u
 # coordinates (in which case quantities are passed on unchanged), or the
 # following if the transform is not one for which the units are known.
 UNKNOWN_UNIT = object()
+
+
+def get_frame_input_units(ax, frame):
+    # The units in which the transform returned by ax.get_transform(frame)
+    # expects its input x and y values to be (see UNKNOWN_UNIT)
+
+    if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)) or (
+        isinstance(frame, str) and frame == "pixel"
+    ):
+        # For a WCS, the values are pixel coordinates in that WCS
+        return get_transform_input_units(ax, None)
+
+    if isinstance(frame, str) and frame == "world":
+        # The world units are not known if the axes were created with a
+        # transform rather than a WCS, and there is no single unit for
+        # each of x and y if there are more than two world coordinates
+        units = getattr(ax._transform_pixel2world, "units_out", None)
+        if units is not None and len(units) <= 2:
+            # For a 1D WCS, y is not a world coordinate
+            return (*(u.Unit(unit) for unit in units), None)[:2]
+
+    elif not isinstance(frame, Transform):
+        # Celestial frames
+        return (u.deg, u.deg)
+
+    return (UNKNOWN_UNIT, UNKNOWN_UNIT)
+
+
+def get_transform_input_units(ax, transform):
+    # The units in which the transform given to a plotting method of the axes
+    # expects its input x and y values to be (see UNKNOWN_UNIT). These are
+    # recorded by WCSAxes.get_transform, and are not known for any other
+    # transform.
+
+    if transform is None or transform is ax.transData:
+        # Pixel coordinates, except for the y axis of 1D plots, which
+        # shows data values
+        if ax.frame_class is RectangularFrame1D:
+            return (u.pix, None)
+        return (u.pix, u.pix)
+
+    return getattr(transform, "_wcsaxes_input_units", (UNKNOWN_UNIT, UNKNOWN_UNIT))
 
 
 def to_value(value, unit):
@@ -77,7 +124,7 @@ def convert_quantities(method, x=(), y=(), convert_args=None):
 
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        x_unit, y_unit = self._get_transform_input_units(kwargs.get("transform"))
+        x_unit, y_unit = get_transform_input_units(self, kwargs.get("transform"))
         if convert_args is not None:
             args = convert_args(args, x_unit, y_unit)
         args = list(args)
