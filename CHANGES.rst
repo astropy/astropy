@@ -1,3 +1,142 @@
+Version 8.0.3 (2026-11-17)
+==========================
+
+
+Bug Fixes
+---------
+
+astropy.io.ascii
+^^^^^^^^^^^^^^^^
+
+- Fixed the fast ASCII reader corrupting the collected comment lines when a comment
+  appears after the header line. Comments read before the header were truncated and
+  replaced by spurious empty entries in ``table.meta['comments']``. [#20464]
+
+- Fixed a bug where masks attached to a ``QTable`` 's columns would be lost
+  on exports to MRT. [#20728]
+
+astropy.io.fits
+^^^^^^^^^^^^^^^
+
+- Fixed a bug in :class:`~astropy.io.fits.FITS_rec` where an empty entry in a
+  variable-length array column that has a ``TDIM`` (``dim``) set was reshaped
+  using the column dimension, producing a spurious shape such as ``(0, 5)``
+  instead of the natural ``(0,)`` required by the FITS standard. [#20128]
+
+- Fixed slicing of a ``GroupData`` object created from arrays rather than read
+  from a file, which raised ``TypeError: 'NoneType' object is not subscriptable``. [#20514]
+
+- Fix handling of ``ignore_blank`` keyword for uncompressed integer data.
+  Set to True, will keep original integer data with 'BLANK' values,
+  to False, convert to float with NaNs, for both signed and unsigned
+  integers, and primary as well as extension HDUs. [#20517]
+
+- Reading tile-compressed images now raises a ``ValueError`` if the dimensions
+  stored in ``HCOMPRESS_1`` compressed data do not match the tile shape given
+  in the header, or if the ``BYTEPIX`` value for ``RICE_1`` compressed data is
+  not 1, 2 or 4. [#20829]
+
+astropy.io.misc
+^^^^^^^^^^^^^^^
+
+- Loading a numpy array or void scalar with an object dtype from YAML now always raises
+  a ``TypeError``. Previously only the exact spelling ``dtype: object`` was refused, so
+  others such as ``O``, or a structured dtype with an object field, built an array from
+  pointers in the YAML buffer. Accessing that array could crash the interpreter, and
+  this could be triggered by the metadata of an ECSV file. Dumping a numpy void scalar
+  that contains objects to YAML now also raises a ``TypeError`` instead of writing out
+  memory addresses. [#20792]
+
+astropy.io.votable
+^^^^^^^^^^^^^^^^^^
+
+- Reading a TABLEDATA table with ``invalid="mask"`` put values in the wrong
+  columns since astropy 7.0: when a value could not be converted, each value
+  after it in the row moved one column to the left. That value is now masked
+  and the rest of the row stays in place. [#20836]
+
+astropy.stats
+^^^^^^^^^^^^^
+
+- Fixed ``sigma_clip`` and ``SigmaClip`` with ``axis=None`` so that the
+  masked output masks all values when a clipping iteration rejects every
+  remaining value. Previously, no values were masked and the returned
+  bounds were NaN, unlike the ``masked=False`` output and the output with
+  ``axis`` set. [#20852]
+
+- Fixed ``biweight_location``, ``biweight_scale``, and
+  ``biweight_midvariance`` so that a scalar initial location guess
+  (``M``) works with ``axis=None`` and with an integer ``axis`` on
+  multidimensional data. Previously, an ``AttributeError`` or
+  ``AxisError`` was raised. These functions now raise a ``ValueError``
+  if an array ``M`` does not have the shape of the input data reduced
+  along ``axis``, including any array ``M`` when ``axis=None``.
+  Previously, such inputs could silently return incorrect results.
+
+  Fixed ``biweight_location`` to return NaN, instead of the input ``M``,
+  when the data contain NaN values and ``ignore_nan=False``.
+
+  Also clarified in the ``biweight_location`` docstring that when the MAD
+  is zero, ``M`` (the median, or the input initial location guess if it
+  was provided) is returned. [#20858]
+
+astropy.time
+^^^^^^^^^^^^
+
+- Leap seconds have been discontinued (CGPM 2026, Resolution 5), so the
+  leap-second table built into ERFA is final. ``Time`` therefore no longer checks
+  whether that table has expired on the first conversion to or from UTC. That
+  check read a file, and once the available leap-second files were within 150
+  days of expiring it would try to download newer ones, warning if it could not
+  find an unexpired table. Conversion results are unchanged. For pyerfa versions
+  that still consider the built-in table expired, ``LeapSeconds.from_erfa()`` now
+  sets ``erfa.leap_seconds.expires`` to 180 days in the future, so that
+  ``erfa.leap_seconds.expired`` is ``False``, consistent with newer pyerfa. [#20627]
+
+astropy.visualization
+^^^^^^^^^^^^^^^^^^^^^
+
+- Fixed ``add_beam`` and ``add_scalebar`` drawing beams and scale bars at the
+  wrong size, and contour-type grids (``grid_type="contours"``) being drawn
+  incorrectly or raising an error, in ``WCSAxes`` for celestial WCS with world
+  units other than degrees, such as WCS created with ``preserve_units=True``
+  from a header in arcseconds. [#20780]
+
+- Fixed an error when saving a figure containing ``WCSAxes`` with the PGF
+  backend and ``layout="constrained"``. [#20783]
+
+astropy.wcs
+^^^^^^^^^^^
+
+- Fix a bug that caused a crash if observer information was present in a ``WCS`` but
+  neither ``mjdobs`` nor ``mjdavg`` was set, or ``specsys`` was not set. A warning is now emitted if this
+  is the case and the observer is ignored. [#20051]
+
+- Fixed several bugs related to slicing WCS objects:
+
+  * Slicing with a step gave a wrong ``cdelt`` for WCS objects with non-SI units on which ``wcs.set()`` had not yet been called
+  * Slicing with a step failed with ``ValueError: assignment destination is read-only`` for WCS objects created with ``preserve_units=True`` and non-SI units
+  * ``pixel_bounds`` were not updated when all items were slices (e.g. ``wcs[2:5]``)
+  * ``SlicedLowLevelWCS.pixel_bounds`` failed when the bounds were `None` for only some dimensions [#20541]
+
+- Fix a bug that caused ``world_axis_object_classes``, ``pixel_to_world``, and
+  ``world_to_pixel`` to use a stale observer location if ``obsgeo`` was changed
+  on a ``WCS`` after it had already been used. [#20624]
+
+- Fixed a use-after-free when deallocating ``Celprm`` objects (and ``Prjprm``
+  objects referencing them) obtained from a ``Wcsprm``, such as ``WCS().wcs.cel``,
+  which could cause segmentation faults on some systems. [#20675]
+
+- Fixed slicing of ``astropy.wcs.WCS`` objects with steps greater than 1
+  when non-diagnonal CD or PC matrices were present, or when SIP distortions
+  were present. [#20677]
+
+
+Other Changes and Additions
+---------------------------
+
+- Updated the bundled CFITSIO library to 4.7.0. [#20255]
+
 Version 8.0.2 (2026-10-15)
 ==========================
 
