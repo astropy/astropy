@@ -3,9 +3,8 @@
 import functools
 import inspect
 
-from matplotlib.transforms import Transform
-
 from astropy import units as u
+from astropy.coordinates import BaseCoordinateFrame
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from .frame import RectangularFrame1D
@@ -38,8 +37,9 @@ def get_frame_input_units(ax, frame):
             # For a 1D WCS, y is not a world coordinate
             return (*(u.Unit(unit) for unit in units), None)[:2]
 
-    elif not isinstance(frame, Transform):
-        # Celestial frames
+    elif isinstance(frame, (str, BaseCoordinateFrame)):
+        # The name of a coordinate frame or a coordinate frame, for which the
+        # values are the longitude and latitude in degrees
         return (u.deg, u.deg)
 
     return (UNKNOWN_UNIT, UNKNOWN_UNIT)
