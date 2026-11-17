@@ -21,13 +21,13 @@ class BaseChecksumTests(FitsTestCase):
 
         # Monkey-patch the _get_timestamp method so that the checksum
         # timestamps (and hence the checksum themselves) are always the same
-        self._old_get_timestamp = _ValidHDU._get_timestamp
-        _ValidHDU._get_timestamp = lambda self: "2013-12-20T13:36:10"
+        self._old_get_timestamp_utc = _ValidHDU._get_timestamp_utc
+        _ValidHDU._get_timestamp_utc = lambda self: "2013-12-20T13:36:10"
 
     def teardown_method(self):
         super().teardown_method()
         warnings.filters = self._oldfilters
-        _ValidHDU._get_timestamp = self._old_get_timestamp
+        _ValidHDU._get_timestamp_utc = self._old_get_timestamp_utc
 
 
 class TestChecksumFunctions(BaseChecksumTests):
