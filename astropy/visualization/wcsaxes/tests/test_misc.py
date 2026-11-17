@@ -10,6 +10,7 @@ from matplotlib.backend_bases import KeyEvent
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.contour import QuadContourSet
 from matplotlib.figure import Figure
+from matplotlib.transforms import Affine2D
 from numpy.testing import assert_allclose
 from packaging.version import Version
 
@@ -18,6 +19,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.visualization import quantity_support
 from astropy.visualization.wcsaxes.core import WCSAxes
 from astropy.visualization.wcsaxes.frame import (
     EllipticalFrame,
@@ -1063,3 +1065,287 @@ def test_beam_scalebar_mixed_world_units():
     add_scalebar(ax, 0.3 * u.deg)
     (rectangle,) = ax.artists[-1].size_bar.get_children()
     assert_allclose(rectangle.get_width(), 30)
+
+
+def _celestial_wcs(cunit):
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = [cunit, cunit]
+    wcs.wcs.crpix = [50.5, 50.5]
+    wcs.wcs.crval = [(10 * u.deg).to_value(cunit), (20 * u.deg).to_value(cunit)]
+    wcs.wcs.cdelt = [(-0.01 * u.deg).to_value(cunit), (0.01 * u.deg).to_value(cunit)]
+    wcs.wcs.set()
+    return wcs
+
+
+@pytest.fixture
+def celestial_axes():
+    fig = Figure()
+    FigureCanvasAgg(fig)
+    return fig.add_subplot(1, 1, 1, projection=_celestial_wcs("arcsec"))
+
+
+@pytest.mark.parametrize("cunit", ["deg", "arcsec"])
+@pytest.mark.parametrize("frame", ["world", "icrs", "galactic"])
+@pytest.mark.parametrize("unit", [u.deg, u.arcsec])
+def test_plot_quantity_with_transform(cunit, frame, unit):
+    # Regression test for a bug that caused the unit of a Quantity plotted
+    # with a world or frame transform to be ignored.
+    # https://github.com/astropy/astropy/issues/20777
+    wcs = _celestial_wcs(cunit)
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    transform = ax.get_transform(frame)
+    world_to_pixel = transform - ax.transData
+
+    coord = SkyCoord(10.1, 20.1, unit="deg")
+    sph = coord.transform_to("icrs" if frame == "world" else frame).spherical
+    lon, lat = sph.lon.to(unit), sph.lat.to(unit)
+
+    expected = [wcs.world_to_pixel(coord)]
+    (line,) = ax.plot(lon, lat, "o", transform=transform)
+    assert_allclose(world_to_pixel.transform(line.get_xydata()), expected)
+    points = ax.scatter(lon, lat, transform=transform)
+    assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
+    text = ax.text(lon, lat, "label", transform=transform)
+    position = np.array([text.get_position()])
+    assert_allclose(world_to_pixel.transform(position), expected)
+    # Lists of Quantity scalars are also converted
+    (line,) = ax.plot([lon], [lat], "o", transform=transform)
+    assert_allclose(world_to_pixel.transform(line.get_xydata()), expected)
+    points = ax.scatter([lon], [lat], transform=transform)
+    assert_allclose(world_to_pixel.transform(points.get_offsets()), expected)
+
+
+_X = [10.1, 10.2, 10.3] * u.deg
+_Y = [20.1, 20.2, 20.4] * u.deg
+_X2D, _Y2D = np.meshgrid(_X, _Y)
+_Z2D = np.arange(9).reshape(3, 3)
+
+# Plotting methods that accept a transform, called with the functions x and y
+# applied to the coordinates
+QUANTITY_PLOT_CALLS = {
+    "plot": lambda ax, x, y, **kwargs: ax.plot(x(_X), y(_Y), **kwargs),
+    "plot_scalars": lambda ax, x, y, **kwargs: ax.plot(
+        x(_X[0]), y(_Y[0]), "o", **kwargs
+    ),
+    "plot_groups": lambda ax, x, y, **kwargs: ax.plot(
+        x(_X), y(_Y), "o", x(_X), y(_Y[::-1]), x(_X[:2]), y(_Y[:2]), "-", **kwargs
+    ),
+    "step": lambda ax, x, y, **kwargs: ax.step(x(_X), y(_Y), **kwargs),
+    "fill": lambda ax, x, y, **kwargs: ax.fill(x(_X), y(_Y), "r", **kwargs),
+    "scatter": lambda ax, x, y, **kwargs: ax.scatter(x(_X), y(_Y), **kwargs),
+    "scatter_keywords": lambda ax, x, y, **kwargs: ax.scatter(
+        x=x(_X), y=y(_Y), **kwargs
+    ),
+    "text": lambda ax, x, y, **kwargs: ax.text(x(_X[0]), y(_Y[0]), "label", **kwargs),
+    "errorbar": lambda ax, x, y, **kwargs: ax.errorbar(
+        x(_X), y(_Y), xerr=x(_X / 500), yerr=y(_Y / 500), capsize=3, **kwargs
+    ),
+    "fill_between": lambda ax, x, y, **kwargs: ax.fill_between(
+        x(_X), y(_Y), y(_Y[0]), **kwargs
+    ),
+    "fill_betweenx": lambda ax, x, y, **kwargs: ax.fill_betweenx(
+        y(_Y), x(_X), x(_X[0]), **kwargs
+    ),
+    "hlines": lambda ax, x, y, **kwargs: ax.hlines(y(_Y), x(_X[0]), x(_X[2]), **kwargs),
+    "vlines": lambda ax, x, y, **kwargs: ax.vlines(x(_X), y(_Y[0]), y(_Y[2]), **kwargs),
+    "arrow": lambda ax, x, y, **kwargs: ax.arrow(
+        x(_X[0]), y(_Y[0]), x(_X[1] - _X[0]), y(_Y[2] - _Y[0]), **kwargs
+    ),
+    "quiver": lambda ax, x, y, **kwargs: ax.quiver(
+        x(_X), y(_Y), [1, 1, 1], [1, 0, 1], **kwargs
+    ),
+    "pcolor": lambda ax, x, y, **kwargs: ax.pcolor(x(_X2D), y(_Y2D), _Z2D, **kwargs),
+    "pcolormesh": lambda ax, x, y, **kwargs: ax.pcolormesh(
+        x(_X2D), y(_Y2D), _Z2D, **kwargs
+    ),
+    "contour": lambda ax, x, y, **kwargs: ax.contour(x(_X2D), y(_Y2D), _Z2D, **kwargs),
+    "contourf": lambda ax, x, y, **kwargs: ax.contourf(
+        x(_X2D), y(_Y2D), _Z2D, **kwargs
+    ),
+}
+
+# Methods that do not accept a transform, so are always in pixel coordinates
+QUANTITY_PIXEL_CALLS = {
+    "axvline": lambda ax, x: ax.axvline(x(_X[0])),
+    "axhline": lambda ax, x: ax.axhline(x(_Y[0])),
+    "axvspan": lambda ax, x: ax.axvspan(x(_X[0]), x(_X[1])),
+    "axhspan": lambda ax, x: ax.axhspan(x(_Y[0]), x(_Y[1])),
+    "set_xlim": lambda ax, x: ax.set_xlim(x(_X[0]), x(_X[1])),
+    "set_xlim_tuple": lambda ax, x: ax.set_xlim((x(_X[0]), x(_X[1]))),
+    "set_xlim_keyword": lambda ax, x: ax.set_xlim(xmax=x(_X[1])),
+    "set_ylim": lambda ax, x: ax.set_ylim(x(_Y[:2])),
+    "set_ylim_keyword": lambda ax, x: ax.set_ylim(top=x(_Y[1])),
+}
+
+
+def _render(call, *args, frame=None):
+    fig = Figure(figsize=(2, 2), dpi=50)
+    FigureCanvasAgg(fig)
+    ax = fig.add_subplot(1, 1, 1, projection=_celestial_wcs("arcsec"))
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
+    kwargs = {} if frame is None else {"transform": ax.get_transform(frame)}
+    call(ax, *args, **kwargs)
+    fig.canvas.draw()
+    return np.asarray(fig.canvas.buffer_rgba()).copy()
+
+
+@pytest.mark.parametrize("call", QUANTITY_PLOT_CALLS.values(), ids=QUANTITY_PLOT_CALLS)
+@pytest.mark.parametrize(("frame", "unit"), [("world", u.arcsec), ("icrs", u.deg)])
+def test_quantity_same_as_values_in_transform_units(call, frame, unit):
+    # Quantities have to give the same result as plain values in the units
+    # that the transform expects, which for an arcsecond WCS are arcseconds
+    # for the world transform and degrees for a celestial frame transform.
+    def to_arcmin(q):
+        return q.to(u.arcmin)
+
+    def to_value(q):
+        return q.to_value(unit)
+
+    expected = _render(call, to_value, to_value, frame=frame)
+    assert np.array_equal(_render(call, to_arcmin, to_arcmin, frame=frame), expected)
+    # Including when only one of the coordinates is a Quantity
+    assert np.array_equal(_render(call, to_arcmin, to_value, frame=frame), expected)
+    # Make sure that the comparison is sensitive to the units
+    assert not np.array_equal(
+        _render(call, lambda q: q.value, lambda q: q.value, frame="world"),
+        _render(call, lambda q: q.value, lambda q: q.value, frame="icrs"),
+    )
+
+
+@pytest.mark.parametrize("call", QUANTITY_PLOT_CALLS.values(), ids=QUANTITY_PLOT_CALLS)
+def test_quantity_without_transform(celestial_axes, call):
+    # Without a transform, or with the pixel or data transforms, coordinates
+    # are pixel coordinates, so quantities have to be in pixels
+    for kwargs in [
+        {},
+        {"transform": celestial_axes.transData},
+        {"transform": celestial_axes.get_transform("pixel")},
+        {"transform": celestial_axes.get_transform(_celestial_wcs("deg"))},
+    ]:
+        with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+            call(celestial_axes, lambda q: q, lambda q: q, **kwargs)
+        call(celestial_axes, lambda q: q.value * u.pix, lambda q: q.value, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "call", QUANTITY_PIXEL_CALLS.values(), ids=QUANTITY_PIXEL_CALLS
+)
+def test_quantity_pixel_only_methods(celestial_axes, call):
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        call(celestial_axes, lambda q: q)
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        call(celestial_axes, lambda q: q.value * u.one)
+    call(celestial_axes, lambda q: q.value * u.pix)
+    call(celestial_axes, lambda q: q.value)
+
+
+def test_pixel_quantity_values(celestial_axes):
+    ax = celestial_axes
+    (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.pix)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+    # Including with prefixed pixel units, and for a single y argument
+    (line,) = ax.plot([0.001, 0.002] * u.kpix, [3, 4])
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+    (line,) = ax.plot([3, 4] * u.pix, "o")
+    assert_allclose(line.get_xydata(), [[0, 3], [1, 4]])
+    points = ax.scatter([1, 2] * u.pix, [3, 4] * u.pix)
+    assert_allclose(points.get_offsets(), [[1, 3], [2, 4]])
+    line = ax.axvline(3 * u.pix)
+    assert_allclose(line.get_xdata(), [3, 3])
+    ax.set_xlim(10 * u.pix, 20 * u.pix)
+    ax.set_ylim([30, 40] * u.pix)
+    assert ax.get_xlim() == (10, 20)
+    assert ax.get_ylim() == (30, 40)
+
+
+def test_plot_quantity_incompatible_unit(celestial_axes):
+    ax = celestial_axes
+    with pytest.raises(u.UnitConversionError, match="expects units of 'arcsec'"):
+        ax.plot(1 * u.m, 1 * u.deg, transform=ax.get_transform("world"))
+    with pytest.raises(u.UnitConversionError, match="expects units of 'deg'"):
+        ax.scatter(1 * u.deg, 1 * u.pix, transform=ax.get_transform("icrs"))
+
+
+def test_plot_quantity_unknown_transform(celestial_axes):
+    # The units that arbitrary transforms expect are not known
+    ax = celestial_axes
+    for transform in [
+        ax.transAxes,
+        Affine2D().translate(1, 1) + ax.get_transform("world"),
+        ax.get_transform(Affine2D()),
+    ]:
+        with pytest.raises(TypeError, match="units that other transforms expect"):
+            ax.plot([0.1, 0.2] * u.deg, [0.1, 0.2] * u.deg, transform=transform)
+        ax.plot([0.1, 0.2], [0.1, 0.2], transform=transform)
+
+
+def test_plot_quantity_with_quantity_support(celestial_axes):
+    # Quantities are converted before Matplotlib sees them, so the result does
+    # not depend on whether quantity_support is enabled
+    ax = celestial_axes
+    transform = ax.get_transform("world")
+    with quantity_support():
+        (line,) = ax.plot(10.1 * u.deg, 20.1 * u.deg, "o", transform=transform)
+        with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+            ax.plot(10.1 * u.deg, 20.1 * u.deg, "o")
+    assert_allclose(line.get_xydata(), [[36360, 72360]])
+    assert ax.xaxis.get_units() is None
+
+
+def test_plot_quantity_1d():
+    # For 1D frames, only the x axis is a world coordinate
+    wcs = WCS(naxis=1)
+    wcs.wcs.ctype = ["WAVE"]
+    wcs.wcs.cunit = ["um"]
+    wcs.wcs.crval = [1]
+    wcs.wcs.crpix = [1]
+    wcs.wcs.cdelt = [0.01]
+    wcs.wcs.set()
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    transform = ax.get_transform("world")
+    (line,) = ax.plot(15000 * u.AA, 3 * u.Jy, "o", transform=transform)
+    assert_allclose((transform - ax.transData).transform(line.get_xydata()), [[50, 3]])
+    # Without a transform, x is in pixels and y is not a coordinate
+    (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.Jy)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+    (line,) = ax.plot([3, 4] * u.Jy)
+    assert_allclose(line.get_xydata(), [[0, 3], [1, 4]])
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        ax.plot([1, 2] * u.um, [3, 4] * u.Jy)
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        ax.set_xlim(1 * u.um, 2 * u.um)
+
+
+def test_plot_quantity_1d_slice_of_2d():
+    # For a 1D slice of a celestial WCS, the y axis also shows data values
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=WCS(TARGET_HEADER), slices=("x", 0))
+    (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.Jy)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+
+
+def test_reset_wcs_keeps_quantity_positions():
+    # Quantities are converted when plotted, to the units of the WCS that the
+    # transform uses, so resetting the WCS to one with different units does
+    # not move existing artists.
+    def get_pixel_position(line):
+        world_to_pixel = line.get_transform() - line.axes.transData
+        return world_to_pixel.transform(line.get_xydata())
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=_celestial_wcs("deg"))
+    (line,) = ax.plot(10.1 * u.deg, 20.2 * u.deg, transform=ax.get_transform("world"))
+    expected = get_pixel_position(line)
+
+    ax.reset_wcs(_celestial_wcs("arcsec"))
+    assert_allclose(get_pixel_position(line), expected)
+
+    # New artists use the units of the new WCS
+    (line,) = ax.plot(10.1 * u.deg, 20.2 * u.deg, transform=ax.get_transform("world"))
+    assert_allclose(line.get_xydata(), [[36360, 72720]])
+    assert_allclose(get_pixel_position(line), expected, rtol=1e-5)
