@@ -31,6 +31,7 @@ from .settings import (
     COMPRESSION_TYPES,
     DEFAULT_COMPRESSION_TYPE,
     DEFAULT_DITHER_SEED,
+    DEFAULT_GZIP_LEVEL,
     DEFAULT_HCOMP_SCALE,
     DEFAULT_HCOMP_SMOOTH,
     DEFAULT_QUANTIZE_LEVEL,
@@ -61,6 +62,7 @@ class CompImageHDU(ImageHDU):
         quantize_level=DEFAULT_QUANTIZE_LEVEL,
         quantize_method=DEFAULT_QUANTIZE_METHOD,
         dither_seed=DEFAULT_DITHER_SEED,
+        gzip_level=DEFAULT_GZIP_LEVEL,
         do_not_scale_image_data=False,
         uint=True,
         scale_back=None,
@@ -110,6 +112,11 @@ class CompImageHDU(ImageHDU):
             Random seed to use for dithering; can be either an integer in the
             range 1 to 1000 (inclusive), ``DITHER_SEED_CLOCK`` (0; default), or
             ``DITHER_SEED_CHECKSUM`` (-1); see note below
+
+        gzip_level : int, optional
+            Compression level to use for gzip. This should be an integer
+            between 0 and 9, where 0 means no compression, 1 means the fastest,
+            lightest compression, and 9 means the slowest, best compression.
 
         do_not_scale_image_data : bool, optional
             If `True`, image data is not scaled using BSCALE/BZERO values
@@ -296,6 +303,11 @@ class CompImageHDU(ImageHDU):
         compression_type = CMTYPE_ALIASES.get(compression_type, compression_type)
 
         self._bintable = None
+
+        if _is_int(gzip_level) and 0 <= gzip_level <= 9:
+            self.gzip_level = gzip_level
+        else:
+            raise ValueError("gzip_level should be an integer between 0 and 9")
 
         if data is DELAYED or bintable is not None:
             # NOTE: for now we don't ever read in CompImageHDU directly from
@@ -572,7 +584,11 @@ class CompImageHDU(ImageHDU):
             return
 
         heap = compress_image_data(
-            self.data, self.compression_type, bintable.header, bintable.columns
+            self.data,
+            self.compression_type,
+            self.gzip_level,
+            bintable.header,
+            bintable.columns,
         )
 
         dtype = bintable.columns.dtype.newbyteorder(">")

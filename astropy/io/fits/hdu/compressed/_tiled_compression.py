@@ -515,6 +515,7 @@ def decompress_image_data_section(
 def compress_image_data(
     image_data,
     compression_type,
+    gzip_level,
     compressed_header,
     compressed_coldefs,
 ):
@@ -530,6 +531,8 @@ def compress_image_data(
         The image data to compress
     compression_type : str
         The compression algorithm
+    gzip_level : int
+        The gzip compression level (0-9)
     compressed_header : `~astropy.io.fits.Header`
         The header of the compressed binary table
     compressed_coldefs : `~astropy.io.fits.ColDefs`
@@ -694,8 +697,12 @@ def compress_image_data(
             gzip_fallback.append(False)
 
         if gzip_fallback[-1]:
-            cbytes = _compress_tile(tile_data, algorithm="GZIP_1")
+            cbytes = _compress_tile(
+                tile_data, algorithm="GZIP_1", gzip_level=gzip_level
+            )
         else:
+            if compression_type in ("GZIP_1", "GZIP_2"):
+                settings["gzip_level"] = gzip_level
             cbytes = _compress_tile(tile_data, algorithm=compression_type, **settings)
         compressed_bytes.append(cbytes)
 

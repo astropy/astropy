@@ -17,7 +17,7 @@ def _validate_tile_shape(*, tile_shape, compression_type, image_header):
         tile_shape = []
     elif len(tile_shape) != naxis:
         warnings.warn(
-            "Provided tile size not appropriate for the data.  "
+            f"Provided tile size {tile_shape} not appropriate for the data (which has naxis={naxis}). "
             "Default tile size will be used.",
             AstropyUserWarning,
         )

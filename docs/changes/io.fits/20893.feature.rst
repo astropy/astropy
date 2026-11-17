@@ -1,0 +1,2 @@
+Added the ability to specify ``gzip_level=`` in ``CompImageHDU`` in order
+to set the gzip compression level when writing out data.
