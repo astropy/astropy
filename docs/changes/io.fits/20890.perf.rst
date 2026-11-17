@@ -1,0 +1,2 @@
+Lower gzip compression level from 9 to 6, matching new default in Python 3.15.
+Cuts typical compression time in half for nearly the same file size.

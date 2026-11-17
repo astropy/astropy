@@ -146,7 +146,7 @@ class Gzip1(Codec):
             dbytes = np.ascontiguousarray(be_arr)
         else:
             dbytes = be_arr.tobytes()
-        return gzip_compress(dbytes)
+        return gzip_compress(dbytes, compresslevel=6)
 
 
 class Gzip2(Codec):
@@ -227,7 +227,7 @@ class Gzip2(Codec):
         itemsize = array.dtype.itemsize
         array = array.view(np.uint8)
         shuffled_buffer = array.reshape((-1, itemsize)).T.ravel().tobytes()
-        return gzip_compress(shuffled_buffer)
+        return gzip_compress(shuffled_buffer, compresslevel=6)
 
 
 class Rice1(Codec):
