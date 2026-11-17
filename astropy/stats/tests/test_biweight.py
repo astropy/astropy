@@ -747,6 +747,33 @@ def test_biweight_masked(func, unit, ignore_nan):
         assert_equal(result.unmasked, reference * exp_unit)
 
 
+@pytest.mark.parametrize("ignore_nan", [False, True])
+@pytest.mark.parametrize("axis", [None, 0, 1])
+@pytest.mark.parametrize(
+    "func", [biweight_location, biweight_scale, biweight_midvariance]
+)
+def test_biweight_m_none_equals_median(func, axis, ignore_nan):
+    """
+    Test that M=None gives the same result as an input M equal to the
+    median, for plain, Quantity, and masked data.
+    """
+    rng = np.random.default_rng(0)
+    values = rng.normal(5, 2, size=(20, 31))
+    values[3, 5] = 100.0
+    if ignore_nan:
+        values[4, 6] = np.nan
+    mask = np.zeros(values.shape, dtype=bool)
+    mask[7, 8] = True
+    median_func = np.nanmedian if ignore_nan else np.median
+
+    for data in (values, values * u.km, Masked(values, mask=mask)):
+        M = median_func(data, axis=axis)
+        assert_equal(
+            func(data, axis=axis, ignore_nan=ignore_nan),
+            func(data, M=M, axis=axis, ignore_nan=ignore_nan),
+        )
+
+
 @pytest.mark.parametrize("with_nan", [False, True])
 @pytest.mark.parametrize("M", [None, 0.5])
 @pytest.mark.parametrize("axis", [None, 0, 1, (0, 1)])
