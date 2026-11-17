@@ -1,0 +1,3 @@
+Fixed ``poisson_conf_interval`` with ``interval="kraft-burrows-nousek"``
+raising ``ValueError: math domain error`` for zero counts or a background
+of zero.
