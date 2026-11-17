@@ -307,7 +307,7 @@ class CompImageHDU(ImageHDU):
         if _is_int(gzip_level) and 0 <= gzip_level <= 9:
             self.gzip_level = gzip_level
         else:
-            raise ValueError("gzip_level should be an integer between 0 and 9")
+            raise ValueError("gzip_level should be an integer between 0 and 9, inclusive")
 
         if data is DELAYED or bintable is not None:
             # NOTE: for now we don't ever read in CompImageHDU directly from
