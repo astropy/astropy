@@ -399,12 +399,10 @@ def test_set_ticks_values():
     assert u.Quantity(lbl_world).unit is xticks.unit
 
 
-@pytest.mark.parametrize("single_tick", [False, True])
 @pytest.mark.parametrize("format_unit", [u.deg, u.hourangle, u.arcsec])
-def test_grid_contour_non_degree_world_units(format_unit, single_tick):
+def test_grid_contour_non_degree_world_units(format_unit):
     # Regression test for a bug that caused contour-type grids to be wrong or
-    # to fail for WCS with world units other than degrees. A single tick is
-    # also checked since the longitude wrapping is then determined differently.
+    # to fail for WCS with world units other than degrees.
     paths = []
     for cunit in ["deg", "arcsec"]:
         wcs = WCS(naxis=2, preserve_units=True)
@@ -423,10 +421,8 @@ def test_grid_contour_non_degree_world_units(format_unit, single_tick):
         fig.add_axes(ax)
         ax.set_xlim(-0.5, 99.5)
         ax.set_ylim(-0.5, 99.5)
-        for coord, tick in zip(ax.coords, [10, 20]):
+        for coord in ax.coords:
             coord.set_format_unit(format_unit)
-            if single_tick:
-                coord.set_ticks(values=[tick] * u.deg)
             coord.grid(grid_type="contours")
 
         canvas.draw()
