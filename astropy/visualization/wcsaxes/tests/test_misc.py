@@ -22,6 +22,7 @@ from astropy.visualization.wcsaxes.frame import (
     RectangularFrame,
     RectangularFrame1D,
 )
+from astropy.visualization.wcsaxes.helpers import add_beam, add_scalebar
 from astropy.visualization.wcsaxes.ticklabels import TickLabels
 from astropy.visualization.wcsaxes.transforms import CurvedTransform
 from astropy.visualization.wcsaxes.utils import get_coord_meta
@@ -985,3 +986,51 @@ def test_auto_assign_coord_positions_no_consistent_option(
     ax.coords[1].set_ticklabel_position("#")
 
     fig.savefig(tmp_path / "plot.png")
+
+
+@pytest.mark.parametrize("cunit", ["deg", "arcsec"])
+def test_beam_scalebar_non_degree_world_units(cunit):
+    # Regression test for a bug that caused beams and scale bars to have the
+    # wrong size for WCS with world units other than degrees.
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = [cunit, cunit]
+    wcs.wcs.crval = [(10 * u.deg).to_value(cunit), (20 * u.deg).to_value(cunit)]
+    wcs.wcs.cdelt = [(-0.01 * u.deg).to_value(cunit), (0.01 * u.deg).to_value(cunit)]
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    add_beam(ax, major=0.2 * u.deg, minor=0.1 * u.deg, angle=0 * u.deg)
+    (ellipse,) = ax.artists[-1].get_child().get_children()
+    assert_allclose([ellipse.width, ellipse.height], [10, 20])
+
+    add_scalebar(ax, 0.3 * u.deg)
+    (rectangle,) = ax.artists[-1].size_bar.get_children()
+    assert_allclose(rectangle.get_width(), 30)
+
+
+def test_beam_scalebar_mixed_world_units():
+    # The two celestial axes can have different units, in which case the pixel
+    # scale has to be converted to degrees before combining the world axes.
+    wcs = WCS(naxis=2, preserve_units=True)
+    wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
+    wcs.wcs.cunit = ["deg", "arcsec"]
+    wcs.wcs.crval = [10, (20 * u.deg).to_value(u.arcsec)]
+    wcs.wcs.cdelt = [-0.01, (0.01 * u.deg).to_value(u.arcsec)]
+    angle = np.radians(30)
+    wcs.wcs.pc = [
+        [np.cos(angle), -np.sin(angle)],
+        [np.sin(angle), np.cos(angle)],
+    ]
+
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+
+    add_beam(ax, major=0.2 * u.deg, minor=0.1 * u.deg, angle=0 * u.deg)
+    (ellipse,) = ax.artists[-1].get_child().get_children()
+    assert_allclose([ellipse.width, ellipse.height], [10, 20])
+
+    add_scalebar(ax, 0.3 * u.deg)
+    (rectangle,) = ax.artists[-1].size_bar.get_children()
+    assert_allclose(rectangle.get_width(), 30)
