@@ -1,0 +1,12 @@
+Improved the performance of the biweight functions:
+
+- ``biweight_location``, ``biweight_scale``, ``biweight_midvariance``,
+  and ``biweight_midcovariance`` are faster by a factor of about 1.3 to
+  1.4 when ``M`` is not input, by not computing the median of the data
+  twice.
+- ``biweight_scale`` and ``biweight_midvariance`` are faster by a
+  factor of about 1.3 by avoiding a slow fourth-power calculation.
+- ``biweight_location``, ``biweight_scale``, and
+  ``biweight_midvariance`` are faster by a factor of up to about 8 for
+  ``numpy.ma.MaskedArray`` input, by computing medians with
+  ``nanmedian`` instead of ``numpy.ma.median``.

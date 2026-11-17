@@ -1,0 +1,4 @@
+Fixed ``biweight_location``, ``biweight_scale``, and
+``biweight_midvariance`` sometimes raising a ``ValueError`` for a
+``numpy.ma.MaskedArray`` input with an unmasked NaN value when ``axis``
+is ``None`` or includes all axes. NaN is now returned.
