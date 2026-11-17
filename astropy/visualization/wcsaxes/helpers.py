@@ -10,7 +10,6 @@ from matplotlib.patches import Ellipse
 from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 
 import astropy.units as u
-from astropy.wcs.utils import proj_plane_pixel_scales
 
 __all__ = ["add_beam", "add_scalebar"]
 
@@ -24,6 +23,18 @@ CORNERS = {
     "bottom": 8,
     "top": 9,
 }
+
+
+def _degrees_per_pixel(wcs):
+    # The pixel scale matrix is in the world units of the WCS, which are not
+    # necessarily degrees, for example with preserve_units=True. Each row is
+    # converted to degrees before summing over the world axes, since the two
+    # celestial axes can have different units.
+    factors = np.array([u.Unit(unit).to(u.deg) for unit in wcs.world_axis_units])
+    scales = np.sqrt(
+        ((factors[:, np.newaxis] * wcs.pixel_scale_matrix) ** 2).sum(axis=0)
+    )
+    return np.sqrt(scales[0] * scales[1])
 
 
 def add_beam(
@@ -101,10 +112,7 @@ def add_beam(
         angle = angle.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
-        sx = pix_scale[0]
-        sy = pix_scale[1]
-        degrees_per_pixel = np.sqrt(sx * sy)
+        degrees_per_pixel = _degrees_per_pixel(ax.wcs)
     else:
         raise ValueError("Cannot show beam when WCS is not celestial")
 
@@ -174,10 +182,7 @@ def add_scalebar(
         length = length.to(u.degree).value
 
     if ax.wcs.is_celestial:
-        pix_scale = proj_plane_pixel_scales(ax.wcs)
-        sx = pix_scale[0]
-        sy = pix_scale[1]
-        degrees_per_pixel = np.sqrt(sx * sy)
+        degrees_per_pixel = _degrees_per_pixel(ax.wcs)
     else:
         raise ValueError("Cannot show scalebar when WCS is not celestial")
 
