@@ -194,7 +194,7 @@ points at the correct positions whatever the world units of the WCS are::
     ax.scatter([10, 20] * u.arcmin, [5, 6] * u.arcmin, transform=ax.get_transform("icrs"))
 
 Without a transform, values are pixel coordinates, so quantities then have to
-be in pixels (``u.pix``), which also applies to the limits of the axes.
+be in pixels (``u.pix``).
 Quantities in units that cannot be converted to those that the transform
 expects raise an error. The interpretation of plain numbers has not changed:
 these are in the world units of the WCS for ``ax.get_transform("world")`` and

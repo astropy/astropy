@@ -1,7 +1,5 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import functools
-import inspect
 from collections import defaultdict
 from contextlib import nullcontext
 from functools import partial
@@ -20,6 +18,12 @@ from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from ._auto import auto_assign_coord_positions
+from ._quantities import (
+    UNKNOWN_UNIT,
+    convert_grid_args,
+    convert_plot_args,
+    convert_quantities,
+)
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
 from .transforms import CoordinateTransform
@@ -32,103 +36,6 @@ VISUAL_PROPERTIES = ["facecolor", "edgecolor", "linewidth", "alpha", "linestyle"
 
 if HAS_PIL:
     from PIL.Image import Image, Transpose
-
-
-# Matplotlib discards the units of quantities before they reach the transform
-# of an artist, so the plotting methods of WCSAxes convert quantities to the
-# units that the transform expects before calling Matplotlib. For each of the
-# x and y coordinates these units are either a unit, None if values are not
-# coordinates (in which case quantities are passed on unchanged), or the
-# following if the transform is not one for which the units are known.
-_UNKNOWN_UNIT = object()
-
-
-def _to_value(value, unit):
-    # Convert a Quantity, or a list or tuple that contains quantities, to plain
-    # values in the given unit, and return anything else unchanged
-    if unit is None or not (
-        isinstance(value, u.Quantity)
-        or (
-            isinstance(value, (list, tuple))
-            and any(isinstance(item, u.Quantity) for item in value)
-        )
-    ):
-        return value
-    if unit is _UNKNOWN_UNIT:
-        raise TypeError(
-            "Quantities can only be plotted on WCSAxes without a transform, in "
-            "which case they have to be in pixels, or with a transform returned "
-            "by WCSAxes.get_transform, since the units that other transforms "
-            "expect are not known"
-        )
-    try:
-        return u.Quantity(value).to_value(unit)
-    except u.UnitConversionError as exc:
-        if unit == u.pix:
-            expected = (
-                "pixel coordinates are expected unless a transform is given, for "
-                "example transform=ax.get_transform('world')"
-            )
-        else:
-            expected = f"the transform expects units of '{unit}'"
-        raise u.UnitConversionError(f"{exc}: {expected}") from None
-
-
-def _convert_plot_args(args, x_unit, y_unit):
-    # Convert quantities in arguments given as ([x], y, [fmt]) groups
-    args = list(args)
-    converted = []
-    while args:
-        group = [args.pop(0)]
-        if args and not isinstance(args[0], str):
-            group.append(args.pop(0))
-        units = (x_unit, y_unit)[-len(group) :]
-        converted += [_to_value(value, unit) for value, unit in zip(group, units)]
-        if args and isinstance(args[0], str):
-            converted.append(args.pop(0))
-    return converted
-
-
-def _convert_grid_args(args, x_unit, y_unit, n_min=3):
-    # Convert quantities in arguments given as (X, Y, ...), where X and Y are
-    # optional and present if there are at least n_min arguments
-    if len(args) < n_min:
-        return args
-    return [_to_value(args[0], x_unit), _to_value(args[1], y_unit), *args[2:]]
-
-
-def _convert_quantities(method, x=(), y=(), convert_args=None):
-    # Wrap a Matplotlib plotting method so that quantities are converted to
-    # the units expected by the transform, for the x and y coordinates given
-    # either by the names of arguments or, for methods with a variable number
-    # of positional arguments, found by one of the functions above
-    names = list(inspect.signature(method).parameters)[1:]
-
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        x_unit, y_unit = self._get_units(kwargs.get("transform"))
-        if convert_args is not None:
-            args = convert_args(args, x_unit, y_unit)
-        args = list(args)
-        for name, unit in [(name, x_unit) for name in x] + [
-            (name, y_unit) for name in y
-        ]:
-            if (index := names.index(name)) < len(args):
-                args[index] = _to_value(args[index], unit)
-            elif name in kwargs:
-                kwargs[name] = _to_value(kwargs[name], unit)
-        return method(self, *args, **kwargs)
-
-    wrapper.__doc__ = f"""
-        Call :meth:`matplotlib.axes.Axes.{method.__name__}`.
-
-        This is the same as the Matplotlib method, except that coordinates
-        given as `~astropy.units.Quantity` objects are converted to the units
-        that the transform expects (see
-        :meth:`~astropy.visualization.wcsaxes.WCSAxes.get_transform`), or to
-        pixels if no transform is used.
-        """
-    return wrapper
 
 
 class _WCSAxesArtist(Artist):
@@ -360,7 +267,9 @@ class WCSAxes(Axes):
         # the Matplotlib one with no transform, then apply the transform in one
         # go to all the segments that make up the contour map.
 
-        args = _convert_grid_args(args, *self._get_units(kwargs.get("transform")))
+        args = convert_grid_args(
+            args, *self._get_transform_input_units(kwargs.get("transform"))
+        )
         transform = kwargs.pop("transform", None)
 
         cset = super().contour(*args, **kwargs)
@@ -390,7 +299,9 @@ class WCSAxes(Axes):
         """
         # See notes for contour above.
 
-        args = _convert_grid_args(args, *self._get_units(kwargs.get("transform")))
+        args = convert_grid_args(
+            args, *self._get_transform_input_units(kwargs.get("transform"))
+        )
         transform = kwargs.pop("transform", None)
 
         cset = super().contourf(*args, **kwargs)
@@ -404,39 +315,13 @@ class WCSAxes(Axes):
 
         return cset
 
-    def _get_units(self, transform):
-        # The units that the transform given to a plotting method expects for
-        # the x and y coordinates (see _UNKNOWN_UNIT)
-        if transform is None or transform is self.transData:
-            # Pixel coordinates, except for the y axis of 1D plots, which
-            # shows data values
-            if self.frame_class is RectangularFrame1D:
-                return (u.pix, None)
-            return (u.pix, u.pix)
-        return getattr(transform, "_wcsaxes_units", (_UNKNOWN_UNIT, _UNKNOWN_UNIT))
-
-    plot = _convert_quantities(Axes.plot, convert_args=_convert_plot_args)
-    fill = _convert_quantities(Axes.fill, convert_args=_convert_plot_args)
-    pcolor = _convert_quantities(Axes.pcolor, convert_args=_convert_grid_args)
-    pcolormesh = _convert_quantities(Axes.pcolormesh, convert_args=_convert_grid_args)
-    quiver = _convert_quantities(
-        Axes.quiver, convert_args=partial(_convert_grid_args, n_min=4)
-    )
-    scatter = _convert_quantities(Axes.scatter, x=["x"], y=["y"])
-    text = _convert_quantities(Axes.text, x=["x"], y=["y"])
-    errorbar = _convert_quantities(Axes.errorbar, x=["x", "xerr"], y=["y", "yerr"])
-    fill_between = _convert_quantities(Axes.fill_between, x=["x"], y=["y1", "y2"])
-    fill_betweenx = _convert_quantities(Axes.fill_betweenx, x=["x1", "x2"], y=["y"])
-    vlines = _convert_quantities(Axes.vlines, x=["x"], y=["ymin", "ymax"])
-    hlines = _convert_quantities(Axes.hlines, x=["xmin", "xmax"], y=["y"])
-    arrow = _convert_quantities(Axes.arrow, x=["x", "dx"], y=["y", "dy"])
-    # The following do not take a transform, so the values are in pixels
-    axvline = _convert_quantities(Axes.axvline, x=["x"])
-    axhline = _convert_quantities(Axes.axhline, y=["y"])
-    axvspan = _convert_quantities(Axes.axvspan, x=["xmin", "xmax"])
-    axhspan = _convert_quantities(Axes.axhspan, y=["ymin", "ymax"])
-    set_xlim = _convert_quantities(Axes.set_xlim, x=["left", "right", "xmin", "xmax"])
-    set_ylim = _convert_quantities(Axes.set_ylim, y=["bottom", "top", "ymin", "ymax"])
+    plot = convert_quantities(Axes.plot, convert_args=convert_plot_args)
+    fill = convert_quantities(Axes.fill, convert_args=convert_plot_args)
+    pcolor = convert_quantities(Axes.pcolor, convert_args=convert_grid_args)
+    pcolormesh = convert_quantities(Axes.pcolormesh, convert_args=convert_grid_args)
+    scatter = convert_quantities(Axes.scatter, x=["x"], y=["y"])
+    text = convert_quantities(Axes.text, x=["x"], y=["y"])
+    errorbar = convert_quantities(Axes.errorbar, x=["x", "xerr"], y=["y", "yerr"])
 
     def _transform_plot_args(self, *args, **kwargs):
         """
@@ -1013,25 +898,47 @@ class WCSAxes(Axes):
         known.
         """
         transform = self._get_transform_no_transdata(frame).inverted() + self.transData
-        transform._wcsaxes_units = self._get_transform_units(frame)
+        transform._wcsaxes_input_units = self._get_frame_input_units(frame)
         return transform
 
-    def _get_transform_units(self, frame):
-        # The units of the x and y values that the transform returned by
-        # get_transform expects (see _UNKNOWN_UNIT)
+    def _get_frame_input_units(self, frame):
+        # The units in which the transform returned by get_transform(frame)
+        # expects its input x and y values to be (see UNKNOWN_UNIT)
+
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)) or (
             isinstance(frame, str) and frame == "pixel"
         ):
             # For a WCS, the values are pixel coordinates in that WCS
-            return self._get_units(None)
+            return self._get_transform_input_units(None)
+
         if isinstance(frame, str) and frame == "world":
+            # The world units are not known if the axes were created with a
+            # transform rather than a WCS, and there is no single unit for
+            # each of x and y if there are more than two world coordinates
             units = getattr(self._transform_pixel2world, "units_out", None)
             if units is not None and len(units) <= 2:
                 # For a 1D WCS, y is not a world coordinate
                 return (*(u.Unit(unit) for unit in units), None)[:2]
+
         elif not isinstance(frame, Transform):
+            # Celestial frames
             return (u.deg, u.deg)
-        return (_UNKNOWN_UNIT, _UNKNOWN_UNIT)
+
+        return (UNKNOWN_UNIT, UNKNOWN_UNIT)
+
+    def _get_transform_input_units(self, transform):
+        # The units in which the transform given to a plotting method expects
+        # its input x and y values to be (see UNKNOWN_UNIT). These are recorded
+        # by get_transform, and are not known for any other transform.
+
+        if transform is None or transform is self.transData:
+            # Pixel coordinates, except for the y axis of 1D plots, which
+            # shows data values
+            if self.frame_class is RectangularFrame1D:
+                return (u.pix, None)
+            return (u.pix, u.pix)
+
+        return getattr(transform, "_wcsaxes_input_units", (UNKNOWN_UNIT, UNKNOWN_UNIT))
 
     def _get_transform_no_transdata(self, frame):
         """

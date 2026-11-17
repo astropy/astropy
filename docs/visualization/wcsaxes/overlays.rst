@@ -173,9 +173,9 @@ converted to the world units of the WCS::
 
 Using ``ax.get_transform('pixel')`` is equivalent to not using any
 transformation at all (and things then behave as described in the `Pixel
-coordinates`_ section). In this case, as for the limits of the axes, values are
-pixel coordinates, so any quantities have to be in pixels (``u.pix``), and
-quantities in other units raise an error.
+coordinates`_ section). In this case, values are pixel coordinates, so any
+quantities have to be in pixels (``u.pix``), and quantities in other units raise
+an error.
 
 Quantities are converted by the most commonly used plotting methods, such as
 :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot`,

@@ -1142,20 +1142,6 @@ QUANTITY_PLOT_CALLS = {
     "errorbar": lambda ax, x, y, **kwargs: ax.errorbar(
         x(_X), y(_Y), xerr=x(_X / 500), yerr=y(_Y / 500), capsize=3, **kwargs
     ),
-    "fill_between": lambda ax, x, y, **kwargs: ax.fill_between(
-        x(_X), y(_Y), y(_Y[0]), **kwargs
-    ),
-    "fill_betweenx": lambda ax, x, y, **kwargs: ax.fill_betweenx(
-        y(_Y), x(_X), x(_X[0]), **kwargs
-    ),
-    "hlines": lambda ax, x, y, **kwargs: ax.hlines(y(_Y), x(_X[0]), x(_X[2]), **kwargs),
-    "vlines": lambda ax, x, y, **kwargs: ax.vlines(x(_X), y(_Y[0]), y(_Y[2]), **kwargs),
-    "arrow": lambda ax, x, y, **kwargs: ax.arrow(
-        x(_X[0]), y(_Y[0]), x(_X[1] - _X[0]), y(_Y[2] - _Y[0]), **kwargs
-    ),
-    "quiver": lambda ax, x, y, **kwargs: ax.quiver(
-        x(_X), y(_Y), [1, 1, 1], [1, 0, 1], **kwargs
-    ),
     "pcolor": lambda ax, x, y, **kwargs: ax.pcolor(x(_X2D), y(_Y2D), _Z2D, **kwargs),
     "pcolormesh": lambda ax, x, y, **kwargs: ax.pcolormesh(
         x(_X2D), y(_Y2D), _Z2D, **kwargs
@@ -1164,19 +1150,6 @@ QUANTITY_PLOT_CALLS = {
     "contourf": lambda ax, x, y, **kwargs: ax.contourf(
         x(_X2D), y(_Y2D), _Z2D, **kwargs
     ),
-}
-
-# Methods that do not accept a transform, so are always in pixel coordinates
-QUANTITY_PIXEL_CALLS = {
-    "axvline": lambda ax, x: ax.axvline(x(_X[0])),
-    "axhline": lambda ax, x: ax.axhline(x(_Y[0])),
-    "axvspan": lambda ax, x: ax.axvspan(x(_X[0]), x(_X[1])),
-    "axhspan": lambda ax, x: ax.axhspan(x(_Y[0]), x(_Y[1])),
-    "set_xlim": lambda ax, x: ax.set_xlim(x(_X[0]), x(_X[1])),
-    "set_xlim_tuple": lambda ax, x: ax.set_xlim((x(_X[0]), x(_X[1]))),
-    "set_xlim_keyword": lambda ax, x: ax.set_xlim(xmax=x(_X[1])),
-    "set_ylim": lambda ax, x: ax.set_ylim(x(_Y[:2])),
-    "set_ylim_keyword": lambda ax, x: ax.set_ylim(top=x(_Y[1])),
 }
 
 
@@ -1230,18 +1203,6 @@ def test_quantity_without_transform(celestial_axes, call):
         call(celestial_axes, lambda q: q.value * u.pix, lambda q: q.value, **kwargs)
 
 
-@pytest.mark.parametrize(
-    "call", QUANTITY_PIXEL_CALLS.values(), ids=QUANTITY_PIXEL_CALLS
-)
-def test_quantity_pixel_only_methods(celestial_axes, call):
-    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
-        call(celestial_axes, lambda q: q)
-    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
-        call(celestial_axes, lambda q: q.value * u.one)
-    call(celestial_axes, lambda q: q.value * u.pix)
-    call(celestial_axes, lambda q: q.value)
-
-
 def test_pixel_quantity_values(celestial_axes):
     ax = celestial_axes
     (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.pix)
@@ -1253,12 +1214,22 @@ def test_pixel_quantity_values(celestial_axes):
     assert_allclose(line.get_xydata(), [[0, 3], [1, 4]])
     points = ax.scatter([1, 2] * u.pix, [3, 4] * u.pix)
     assert_allclose(points.get_offsets(), [[1, 3], [2, 4]])
-    line = ax.axvline(3 * u.pix)
-    assert_allclose(line.get_xdata(), [3, 3])
-    ax.set_xlim(10 * u.pix, 20 * u.pix)
-    ax.set_ylim([30, 40] * u.pix)
-    assert ax.get_xlim() == (10, 20)
-    assert ax.get_ylim() == (30, 40)
+
+
+@pytest.mark.parametrize("unit", [u.kpix, u.mpix, u.Unit(2 * u.pix)])
+@pytest.mark.parametrize("use_transform", [False, True])
+def test_pixel_derived_quantity_values(celestial_axes, unit, use_transform):
+    # Units that are derived from pixels are converted to pixels
+    ax = celestial_axes
+    kwargs = {"transform": ax.get_transform("pixel")} if use_transform else {}
+    x = ([1, 2] * u.pix).to(unit)
+    y = ([3, 4] * u.pix).to(unit)
+    (line,) = ax.plot(x, y, **kwargs)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+    points = ax.scatter(x, y, **kwargs)
+    assert_allclose(points.get_offsets(), [[1, 3], [2, 4]])
+    text = ax.text(x[0], y[0], "label", **kwargs)
+    assert_allclose(text.get_position(), [1, 3])
 
 
 def test_plot_quantity_incompatible_unit(celestial_axes):
@@ -1280,6 +1251,26 @@ def test_plot_quantity_unknown_transform(celestial_axes):
         with pytest.raises(TypeError, match="units that other transforms expect"):
             ax.plot([0.1, 0.2] * u.deg, [0.1, 0.2] * u.deg, transform=transform)
         ax.plot([0.1, 0.2], [0.1, 0.2], transform=transform)
+
+
+def test_plot_quantity_axes_without_wcs():
+    # The world units are not known for axes created with a transform
+    fig = Figure()
+    coord_meta = {
+        "type": ("longitude", "latitude"),
+        "wrap": (None, None),
+        "unit": (u.deg, u.deg),
+        "name": ("lon", "lat"),
+    }
+    ax = WCSAxes(fig, [0.1, 0.1, 0.8, 0.8], transform=Affine2D(), coord_meta=coord_meta)
+    fig.add_axes(ax)
+    transform = ax.get_transform("world")
+    with pytest.raises(TypeError, match="units that other transforms expect"):
+        ax.plot([1, 2] * u.deg, [1, 2] * u.deg, transform=transform)
+    ax.plot([1, 2], [1, 2], transform=transform)
+    # Pixel coordinates are still known
+    (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.pix)
+    assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
 
 
 def test_plot_quantity_with_quantity_support(celestial_axes):
@@ -1317,8 +1308,6 @@ def test_plot_quantity_1d():
     assert_allclose(line.get_xydata(), [[0, 3], [1, 4]])
     with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
         ax.plot([1, 2] * u.um, [3, 4] * u.Jy)
-    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
-        ax.set_xlim(1 * u.um, 2 * u.um)
 
 
 def test_plot_quantity_1d_slice_of_2d():
