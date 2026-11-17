@@ -1136,7 +1136,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
     """
     from scipy.integrate import quad
     from scipy.optimize import brentq
-    from scipy.special import gammaln
+    from scipy.special import gammaln, xlogy
 
     B = float(B)
 
@@ -1144,7 +1144,8 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         n = np.arange(N + 1, dtype=np.float64)
         # version of math.exp(-B) * np.sum(np.power(B, n) / factorial(n))
         # which is safe for large N
-        return 1.0 / np.sum(np.exp(n * math.log(B) - B - gammaln(n + 1)))
+        # xlogy gives 0 * log(0) = 0, so B = 0 is handled
+        return 1.0 / np.sum(np.exp(xlogy(n, B) - B - gammaln(n + 1)))
 
     # The parameters of eqn8 do not vary between calls so we can calculate the
     # result once and reuse it. The same is True for the factorial of N.
@@ -1157,7 +1158,7 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         # We use gammaln to avoid overflow for large N.
         # It is identical to eqn8_res * (math.exp(-SpB) * SpB**N / factorial_N)
         # See https://en.wikipedia.org/wiki/Poisson_distribution#Computational_methods
-        return eqn8_res * math.exp(N * math.log(SpB) - SpB - gammaln(N + 1))
+        return eqn8_res * math.exp(xlogy(N, SpB) - SpB - gammaln(N + 1))
 
     def eqn9_left(S_min: float, S_max: float, N: int, B: float) -> tuple[float, float]:
         return quad(eqn7, S_min, S_max, args=(N, B), limit=500)
@@ -1172,7 +1173,9 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
         eqn7(S_min) here.
         """
         y_S_max = eqn7(S_max, N, B)
-        if eqn7(0, N, B) >= y_S_max:
+        # If B >= N, the most probable value N - B is <= 0, so s_min is 0
+        # (same as in the mpmath implementation).
+        if (B >= N) or (eqn7(0, N, B) >= y_S_max):
             return 0.0
         else:
             return brentq(lambda x: eqn7(x, N, B) - y_S_max, 0, N - B)
@@ -1184,7 +1187,8 @@ def _scipy_kraft_burrows_nousek(N: int, B: float, CL: float) -> tuple[float, flo
 
     # max(100, np.sqrt(N) * 10 + N) chosen to represent ~10 sigma over input number
     # while never being smaller than 100
-    S_max = brentq(func, N - B, max(100, np.sqrt(N) * 10 + N))
+    # The source count cannot be negative, so start the search at max(N - B, 0)
+    S_max = brentq(func, max(N - B, 0.0), max(100, np.sqrt(N) * 10 + N))
     S_min = find_s_min(S_max, N, B)
     return S_min, S_max
 

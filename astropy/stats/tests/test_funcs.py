@@ -694,6 +694,37 @@ def test_scipy_poisson_limit():
     assert_allclose(conf[:, 1], (0.81, 8.99), rtol=5e-3)
 
 
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+@pytest.mark.parametrize("background", [0.0, 0.5, 1.0, 5.0])
+def test_scipy_poisson_limit_zero_counts(background):
+    """Regression test for gh-20880: N = 0 used to raise a math domain error.
+
+    For zero counts the posterior is proportional to exp(-S) for any background,
+    so the upper limit is -ln(1 - CL).
+    """
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(0, background, 0.9),
+        (0, -np.log(0.1)),
+        rtol=1e-6,
+    )
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="requires scipy")
+def test_scipy_poisson_limit_zero_background():
+    """Regression test for gh-20880: B = 0 used to raise a math domain error.
+
+    Test numbers are from table 1 in Kraft, Burrows and Nousek (1991), as in
+    test_mpmath_poisson_limit.
+    """
+    assert_allclose(
+        funcs._scipy_kraft_burrows_nousek(5, 0.0, 0.99), (1.17, 13.32), rtol=5e-3
+    )
+    conf = funcs.poisson_conf_interval(
+        0, "kraft-burrows-nousek", background=0.0, confidence_level=0.9
+    )
+    assert_allclose(conf.ravel(), (0, -np.log(0.1)), rtol=1e-6)
+
+
 @pytest.mark.skipif(not HAS_MPMATH, reason="requires mpmath")
 def test_mpmath_poisson_limit():
     assert_allclose(
