@@ -5,7 +5,7 @@ import abc
 import functools
 import operator
 import warnings
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, Any, ClassVar, Final
 
 import numpy as np
 
@@ -17,6 +17,9 @@ from astropy.utils.data_info import MixinInfo
 from astropy.utils.decorators import deprecated
 from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
+
+if TYPE_CHECKING:
+    from .cartesian import CartesianRepresentation
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -1671,7 +1674,7 @@ class BasePhysicalDifferential(BaseDifferential):
     ``d_phi = rho * dphi/dt`` in km/s.
     """
 
-    def __init__(self, *args: Any, copy: bool=True, **kwargs: Any) -> None:
+    def __init__(self, *args: Any, copy: bool = True, **kwargs: Any) -> None:
         super().__init__(*args, copy=copy, **kwargs)
         unit0 = getattr(self, self.components[0]).unit
         if not all(
@@ -1682,7 +1685,9 @@ class BasePhysicalDifferential(BaseDifferential):
             )
 
     @classmethod
-    def _get_base_vectors(cls, base: BaseRepresentation) -> tuple[dict[str,CartesianRepresentation],dict[str,u.Quantity]]:
+    def _get_base_vectors(
+        cls, base: BaseRepresentation
+    ) -> tuple[dict[str, "CartesianRepresentation"], dict[str, u.Quantity]]:
         """Get unit vectors and (unity) scale factors from base."""
         cls._check_base(base)
         one = np.broadcast_to(1.0 * u.one, base.shape, subok=True)

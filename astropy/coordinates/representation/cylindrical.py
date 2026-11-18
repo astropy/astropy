@@ -2,6 +2,7 @@
 """Cylindrical representations and differentials."""
 
 import operator
+from typing import ClassVar
 
 import numpy as np
 
@@ -210,5 +211,11 @@ class CylindricalPhysicalDifferential(BasePhysicalDifferential):
 
     base_representation: ClassVar = CylindricalRepresentation
 
-    def __init__(self, d_rho: u.Quantity, d_phi: u.Quantity | None=None, d_z: u.Quantity | None=None, copy: bool=True) -> None:
+    def __init__(
+        self,
+        d_rho: u.Quantity,
+        d_phi: u.Quantity | None = None,
+        d_z: u.Quantity | None = None,
+        copy: bool = True,
+    ) -> None:
         super().__init__(d_rho, d_phi, d_z, copy=copy)

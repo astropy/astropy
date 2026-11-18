@@ -2,6 +2,7 @@
 """Spherical representations and differentials."""
 
 import operator
+from typing import ClassVar
 
 import numpy as np
 from erfa import ufunc as erfa_ufunc
@@ -640,21 +641,21 @@ class SphericalRepresentation(BaseRepresentation):
         # flips the lon and distance unit vectors. For a typical differential, this
         # means that d_lon is unchanged, d_lat changes sign with the scale (like lat),
         # and d_distance scales by |scale| (like the distance).
-        diff_ops = (operator.pos, lat_op, distance_op)
+        diff_ops = (operator.pos, lat_op, d_op)
 
         # For a physical differential, all components scale by the scale (which comes
-        # from distance_op), and d_lat also changes sign with the scale, since the lat
+        # from d_op), and d_lat also changes sign with the scale, since the lat
         # unit vector does not flip.
         phys_ops = (
-            distance_op,
-            lambda x: lat_op(distance_op(x)),
-            distance_op,
+            d_op,
+            lambda x: lat_op(d_op(x)),
+            d_op,
         )
 
         result = self.__class__(
             lon_op(self.lon),
             lat_op(self.lat),
-            distance_op(self.distance),
+            d_op(self.distance),
             copy=None,
         )
         for key, differential in self.differentials.items():
@@ -1563,7 +1564,13 @@ class SphericalPhysicalDifferential(BasePhysicalDifferential):
 
     base_representation: ClassVar = SphericalRepresentation
 
-    def __init__(self, d_lon: u.Quantity, d_lat: u.Quantity | None=None, d_distance: u.Quantity | None=None, copy: bool=True) -> None:
+    def __init__(
+        self,
+        d_lon: u.Quantity,
+        d_lat: u.Quantity | None = None,
+        d_distance: u.Quantity | None = None,
+        copy: bool = True,
+    ) -> None:
         super().__init__(d_lon, d_lat, d_distance, copy=copy)
 
 
@@ -1586,5 +1593,11 @@ class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
 
     base_representation: ClassVar = PhysicsSphericalRepresentation
 
-    def __init__(self, d_phi: u.Quantity, d_theta: u.Quantity | None=None, d_r: u.Quantity | None=None, copy: bool=True) -> None:
+    def __init__(
+        self,
+        d_phi: u.Quantity,
+        d_theta: u.Quantity | None = None,
+        d_r: u.Quantity | None = None,
+        copy: bool = True,
+    ) -> None:
         super().__init__(d_phi, d_theta, d_r, copy=copy)
