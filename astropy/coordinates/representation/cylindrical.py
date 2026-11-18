@@ -196,12 +196,12 @@ class CylindricalPhysicalDifferential(BasePhysicalDifferential):
     """Differential(s) of points in cylindrical coordinates, in physical units.
 
     Components are along the local unit vectors, so that, e.g., for a
-    velocity, ``d_phi = rho * dphi/dt``, in the same units as ``d_rho`` and
+    velocity, ``d_phi_phys = rho * dphi/dt``, in the same units as ``d_rho`` and
     ``d_z`` (e.g., km/s).
 
     Parameters
     ----------
-    d_rho, d_phi, d_z : `~astropy.units.Quantity`
+    d_rho, d_phi_phys, d_z : `~astropy.units.Quantity`
         The differentials along the cylindrical radius, azimuth and height
         unit vectors, all with equivalent units.
     copy : bool, optional
@@ -210,12 +210,17 @@ class CylindricalPhysicalDifferential(BasePhysicalDifferential):
     """
 
     base_representation: ClassVar = CylindricalRepresentation
+    attr_classes: ClassVar = {
+        "d_rho": u.Quantity,
+        "d_phi_phys": u.Quantity,
+        "d_z": u.Quantity,
+    }
 
     def __init__(
         self,
         d_rho: u.Quantity,
-        d_phi: u.Quantity | None = None,
+        d_phi_phys: u.Quantity | None = None,
         d_z: u.Quantity | None = None,
         copy: bool = True,
     ) -> None:
-        super().__init__(d_rho, d_phi, d_z, copy=copy)
+        super().__init__(d_rho, d_phi_phys, d_z, copy=copy)

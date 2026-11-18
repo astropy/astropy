@@ -1552,12 +1552,12 @@ class SphericalPhysicalDifferential(BasePhysicalDifferential):
     """Differential(s) of points in 3D spherical coordinates, in physical units.
 
     Components are along the local unit vectors, so that, e.g., for a
-    velocity, ``d_lon = distance * cos(lat) * d_lon/d_t`` and
-    ``d_lat = distance * d_lat/d_t``, all in the same units (e.g., km/s).
+    velocity, ``d_lon_phys = distance * cos(lat) * d_lon/d_t`` and
+    ``d_lat_phys = distance * d_lat/d_t``, all in the same units (e.g., km/s).
 
     Parameters
     ----------
-    d_lon, d_lat, d_distance : `~astropy.units.Quantity`
+    d_lon_phys, d_lat_phys, d_distance : `~astropy.units.Quantity`
         The differentials along the longitude, latitude and distance unit
         vectors, all with equivalent units.
     copy : bool, optional
@@ -1566,27 +1566,32 @@ class SphericalPhysicalDifferential(BasePhysicalDifferential):
     """
 
     base_representation: ClassVar = SphericalRepresentation
+    attr_classes: ClassVar = {
+        "d_lon_phys": u.Quantity,
+        "d_lat_phys": u.Quantity,
+        "d_distance": u.Quantity,
+    }
 
     def __init__(
         self,
-        d_lon: u.Quantity,
-        d_lat: u.Quantity | None = None,
+        d_lon_phys: u.Quantity,
+        d_lat_phys: u.Quantity | None = None,
         d_distance: u.Quantity | None = None,
         copy: bool = True,
     ) -> None:
-        super().__init__(d_lon, d_lat, d_distance, copy=copy)
+        super().__init__(d_lon_phys, d_lat_phys, d_distance, copy=copy)
 
 
 class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
     """Differential(s) of 3D physics-convention spherical coords., in physical units.
 
     Components are along the local unit vectors, so that, e.g., for a
-    velocity, ``d_phi = r * sin(theta) * d_phi/d_t`` and
-    ``d_theta = r * d_theta/d_t``, all in the same units (e.g., km/s).
+    velocity, ``d_phi_phys = r * sin(theta) * d_phi/d_t`` and
+    ``d_theta_phys = r * d_theta/d_t``, all in the same units (e.g., km/s).
 
     Parameters
     ----------
-    d_phi, d_theta, d_r : `~astropy.units.Quantity`
+    d_phi_phys, d_theta_phys, d_r : `~astropy.units.Quantity`
         The differentials along the azimuth, inclination and radial unit
         vectors, all with equivalent units.
     copy : bool, optional
@@ -1595,12 +1600,17 @@ class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
     """
 
     base_representation: ClassVar = PhysicsSphericalRepresentation
+    attr_classes: ClassVar = {
+        "d_phi_phys": u.Quantity,
+        "d_theta_phys": u.Quantity,
+        "d_r": u.Quantity,
+    }
 
     def __init__(
         self,
-        d_phi: u.Quantity,
-        d_theta: u.Quantity | None = None,
+        d_phi_phys: u.Quantity,
+        d_theta_phys: u.Quantity | None = None,
         d_r: u.Quantity | None = None,
         copy: bool = True,
     ) -> None:
-        super().__init__(d_phi, d_theta, d_r, copy=copy)
+        super().__init__(d_phi_phys, d_theta_phys, d_r, copy=copy)

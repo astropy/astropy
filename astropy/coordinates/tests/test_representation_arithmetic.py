@@ -1169,10 +1169,10 @@ class TestPhysicalDifferential:
         phys = self.vel.represent_as(phys_cls, base)
         ang = self.vel.represent_as(ang_cls, base)
         sf = base.scale_factors()
-        for c, d_c in zip(base.components, phys.components):
+        for c, phys_c, ang_c in zip(base.components, phys.components, ang.components):
             assert_quantity_allclose(
-                getattr(phys, d_c),
-                (getattr(ang, d_c) * sf[c]).to(u.km / u.s, u.dimensionless_angles()),
+                getattr(phys, phys_c),
+                (getattr(ang, ang_c) * sf[c]).to(u.km / u.s, u.dimensionless_angles()),
             )
         # Round-trip back to Cartesian and between differential classes.
         assert_quantity_allclose(phys.to_cartesian(base).xyz, self.vel.d_xyz)
@@ -1243,7 +1243,7 @@ def test_cylindrical_physical_circular_orbit():
     vel = CartesianDifferential(-v * np.sin(phi), v * np.cos(phi), 0 * v)
     phys = vel.represent_as(CylindricalPhysicalDifferential, base)
     assert_quantity_allclose(phys.d_rho, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
-    assert_quantity_allclose(phys.d_phi, 220 * u.km / u.s)
+    assert_quantity_allclose(phys.d_phi_phys, 220 * u.km / u.s)
     assert_quantity_allclose(phys.d_z, 0 * u.km / u.s, atol=1e-10 * u.km / u.s)
 
 

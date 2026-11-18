@@ -426,7 +426,8 @@ physical velocities, i.e. velocities along the unit vectors, instead (e.g.,
 `~astropy.coordinates.SphericalPhysicalDifferential`,
 `~astropy.coordinates.PhysicsSphericalPhysicalDifferential` or
 `~astropy.coordinates.CylindricalPhysicalDifferential`, in which all components
-have the same units::
+have the same units. To distinguish them from angular rates, the angular
+components of these classes have a ``_phys`` suffix (e.g., ``d_phi_phys``)::
 
   >>> from astropy.coordinates import (CartesianDifferential,
   ...                                  CylindricalRepresentation,
@@ -438,7 +439,7 @@ have the same units::
   <CylindricalDifferential (d_rho, d_phi, d_z) in (km / s, km rad / (kpc s), km / s)
       (0., 27.5, 10.)>
   >>> vel.represent_as(CylindricalPhysicalDifferential, base=cyl)  # doctest: +FLOAT_CMP
-  <CylindricalPhysicalDifferential (d_rho, d_phi, d_z) in km / s
+  <CylindricalPhysicalDifferential (d_rho, d_phi_phys, d_z) in km / s
       (0., 220., 10.)>
 
 In coordinate frames, the components of

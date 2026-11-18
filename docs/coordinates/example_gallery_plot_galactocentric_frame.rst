@@ -132,7 +132,7 @@ Heliocentric coordinates:
     ... )
     >>> zeros = np.zeros(ring_rep.shape) * (u.km / u.s)
     >>> ring_dif = coord.CylindricalPhysicalDifferential(
-    ...     d_rho=zeros, d_phi=zeros - circ_velocity, d_z=zeros
+    ...     d_rho=zeros, d_phi_phys=zeros - circ_velocity, d_z=zeros
     ... )
     >>> ring_rep = ring_rep.with_differentials(ring_dif)
     >>> gc_rings = coord.SkyCoord(ring_rep, frame=coord.Galactocentric)

@@ -370,7 +370,7 @@ def test_physical_differential_matches_proper_motion():
     rep = icrs.represent_as("spherical", s="sphericalphysical", in_frame_units=True)
     dif = rep.differentials["s"]
     assert isinstance(dif, r.SphericalPhysicalDifferential)
-    for pm, v in [(icrs.pm_ra_cosdec, dif.d_lon), (icrs.pm_dec, dif.d_lat)]:
+    for pm, v in [(icrs.pm_ra_cosdec, dif.d_lon_phys), (icrs.pm_dec, dif.d_lat_phys)]:
         assert v.unit == u.km / u.s
         assert quantity_allclose(
             v, (pm * icrs.distance).to(u.km / u.s, u.dimensionless_angles())
@@ -381,8 +381,8 @@ def test_physical_differential_matches_proper_motion():
     icrs2 = ICRS(
         **POSITION_ON_SKY,
         **DISTANCE,
-        v_ra=dif.d_lon,
-        v_dec=dif.d_lat,
+        v_ra=dif.d_lon_phys,
+        v_dec=dif.d_lat_phys,
         **RADIAL_VELOCITY,
         differential_type="sphericalphysical",
     )
@@ -417,7 +417,7 @@ def test_physical_differential_galactocentric_cylindrical():
         )
     dif = gc.represent_as("cylindrical", s="cylindricalphysical").differentials["s"]
     assert quantity_allclose(dif.d_rho, 0 * v, atol=1e-10 * v)
-    assert quantity_allclose(dif.d_phi, v)
+    assert quantity_allclose(dif.d_phi_phys, v)
     assert quantity_allclose(dif.d_z, 0 * v, atol=1e-10 * v)
 
 

@@ -781,12 +781,10 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             # with time-derivative of representation data.
             # NOTE: there is no dimensionless time while lengths can be
             # dimensionless (u.dimensionless_unscaled).
-            # Physical differentials have velocity units also for angular
-            # components, and we test for consistency on init.
-            physical = isinstance(differential_data, r.BasePhysicalDifferential)
+            # (Physical differentials name their angular components with a
+            # "_phys" suffix, so those are skipped; their units are checked on
+            # creation.)
             for comp in representation_data.components:
-                if physical and isinstance(getattr(representation_data, comp), Angle):
-                    continue
                 if (diff_comp := f"d_{comp}") in differential_data.components and (
                     differential_data._units[diff_comp].physical_type
                     != representation_data._units[comp].physical_type / u.physical.time
@@ -883,8 +881,8 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         repr_info.setdefault(
             r.SphericalPhysicalDifferential,
             [
-                RepresentationMapping("d_lon", f"v_{lon}", lin_v_unit),
-                RepresentationMapping("d_lat", f"v_{lat}", lin_v_unit),
+                RepresentationMapping("d_lon_phys", f"v_{lon}", lin_v_unit),
+                RepresentationMapping("d_lat_phys", f"v_{lat}", lin_v_unit),
                 RepresentationMapping("d_distance", "radial_velocity", lin_v_unit),
             ],
         )
@@ -896,8 +894,8 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
             repr_info.setdefault(
                 diff_cls,
                 [
-                    RepresentationMapping(f"d_{c}", f"v_{names.get(c, c)}", lin_v_unit)
-                    for c in rep_cls.attr_classes
+                    RepresentationMapping(d_c, f"v_{names.get(c, c)}", lin_v_unit)
+                    for d_c, c in zip(diff_cls.attr_classes, rep_cls.attr_classes)
                 ],
             )
         repr_info.setdefault(

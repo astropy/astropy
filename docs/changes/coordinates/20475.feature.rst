@@ -2,4 +2,5 @@ Added ``SphericalPhysicalDifferential``,
 ``PhysicsSphericalPhysicalDifferential`` and ``CylindricalPhysicalDifferential``
 classes, which allow astropy coordinates to represent velocity components in
 physical units (e.g., km/s) for angular coordinates (e.g., v_phi = rho *
-d_phi/d_t instead of d_phi/d_t).
+d_phi/d_t instead of d_phi/d_t). Their angular components have a ``_phys``
+suffix, e.g., ``d_phi_phys``.

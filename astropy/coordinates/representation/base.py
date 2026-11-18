@@ -1671,7 +1671,8 @@ class BasePhysicalDifferential(BaseDifferential):
     rates (e.g., ``d_phi`` for a velocity is literally ``d_phi/d_t``), the
     components here are projections onto the unit vectors of the base
     representation. So the component values have the same (physical) unit, e.g.,
-    ``d_phi = rho * dphi/dt`` in km/s.
+    ``d_phi_phys = rho * dphi/dt`` in km/s. To make the distinction clear, the
+    angular components carry a ``_phys`` suffix (e.g., ``d_phi_phys``).
     """
 
     def __init__(self, *args: Any, copy: bool = True, **kwargs: Any) -> None:
