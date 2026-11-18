@@ -39,6 +39,12 @@ from astropy.utils.exceptions import (
     AstropyWarning,
 )
 from astropy.utils.misc import NumpyRNGContext
+from astropy.wcs._distortion_lookup import (
+    _has_prior_distortion_kw,
+    _inherit_primary_prior_distortion,
+    _is_stsci_prior_distortion,
+    _same_lookup_table,
+)
 from astropy.wcs.wcs import WCSLIB_VERSION
 
 
@@ -2245,15 +2251,15 @@ def test_stsci_shared_prior_distortion_not_hst(telescope, instrument):
 def test_stsci_shared_prior_distortion_layout_rejected(changes):
     hdulist = _stsci_hst_distortion_hdulist(nextver=5)
     header = _edit_header(_stsci_hst_distortion_header(), changes)
-    assert not wcs.wcs._is_stsci_prior_distortion(header)
-    assert not wcs.WCS._inherit_primary_prior_distortion(header, hdulist, "O", None)
+    assert not _is_stsci_prior_distortion(header)
+    assert not _inherit_primary_prior_distortion(header, hdulist, "O", None)
 
 
 def test_stsci_shared_prior_distortion_unparsed_record():
     """A ``DPj`` card whose value is not 'field: number' is not STScI layout."""
     header = _stsci_hst_distortion_header()
     header.append(("DP1", "not a record value"))
-    assert not wcs.wcs._is_stsci_prior_distortion(header)
+    assert not _is_stsci_prior_distortion(header)
 
 
 @pytest.mark.parametrize(
@@ -2271,7 +2277,7 @@ def test_stsci_shared_prior_distortion_unparsed_record():
 )
 def test_stsci_shared_prior_distortion_layout_accepted(changes):
     header = _edit_header(_stsci_hst_distortion_header(), changes)
-    assert wcs.wcs._is_stsci_prior_distortion(header)
+    assert _is_stsci_prior_distortion(header)
 
 
 def test_stsci_shared_prior_distortion_keyed_disables_sharing():
@@ -2373,7 +2379,7 @@ def _wcs_with_tables(alt=" ", cpdis_scale=0.01, d2im_scale=None):
 
 def _assert_same_tables(w1, w2):
     for name in ("cpdis1", "cpdis2", "det2im1", "det2im2"):
-        assert wcs.wcs._same_lookup_table(getattr(w1, name), getattr(w2, name)), name
+        assert _same_lookup_table(getattr(w1, name), getattr(w2, name)), name
 
 
 def _set_image_size(header):
@@ -2566,7 +2572,7 @@ def test_write_lookup_tables_replaces_keywords_of_key():
     assert "CPERR2A" not in header
     assert not any(k.startswith("DP2A.") for k in header)
     w = wcs.WCS(header, hdulist, key="A")
-    assert wcs.wcs._same_lookup_table(w.cpdis1, w_a2.cpdis1)
+    assert _same_lookup_table(w.cpdis1, w_a2.cpdis1)
     assert w.cpdis2 is None
     # The new table is written over the one that it replaces, which nothing
     # else used. The extension of the table that was dropped is kept.
@@ -2607,13 +2613,13 @@ def test_write_lookup_tables_without_tables_removes_them():
     w_alt = _wcs_with_tables(alt="A", cpdis_scale=0.05)
     header.update(w_alt.to_header(relax=True))
     w_alt.write_lookup_tables(hdulist)
-    assert wcs.wcs._has_prior_distortion_kw(header, "A")
+    assert _has_prior_distortion_kw(header, "A")
 
     w_alt.cpdis1 = None
     w_alt.cpdis2 = None
     w_alt.write_lookup_tables(hdulist)
 
-    assert not wcs.wcs._has_prior_distortion_kw(header, "A")
+    assert not _has_prior_distortion_kw(header, "A")
     w = wcs.WCS(header, hdulist, key="A")
     assert w.cpdis1 is None
     assert w.cpdis2 is None
@@ -2664,8 +2670,8 @@ def test_write_lookup_tables_d2im_is_shared():
     # different D2IM for the primary WCS: replaced
     w_diff.write_lookup_tables(hdulist, key=" ")
     w = wcs.WCS(header, hdulist)
-    assert wcs.wcs._same_lookup_table(w.det2im1, w_diff.det2im1)
-    assert wcs.wcs._same_lookup_table(w.det2im2, w_diff.det2im2)
+    assert _same_lookup_table(w.det2im1, w_diff.det2im1)
+    assert _same_lookup_table(w.det2im2, w_diff.det2im2)
     # the new tables are written over the old ones
     assert _extvers(hdulist, "D2IMARR") == [1, 2]
 
@@ -2819,7 +2825,7 @@ def test_write_lookup_tables_stsci_without_tables():
     # For the primary WCS, the tables that all WCSs share are removed.
     with pytest.warns(AstropyUserWarning, match="all alternate WCSs"):
         w_none.write_lookup_tables(hdulist, key=" ")
-    assert not wcs.wcs._has_prior_distortion_kw(header, "")
+    assert not _has_prior_distortion_kw(header, "")
     assert wcs.WCS(header, hdulist).cpdis1 is None
     assert wcs.WCS(header, hdulist, key="O").cpdis1 is None
 
