@@ -255,6 +255,42 @@ def test_plio_1_out_of_range():
         pc.encode(data)
 
 
+@pytest.mark.parametrize("tilesize", [1, 4, 5, 100, 4096, 10000])
+def test_plio_1_incompressible(tilesize):
+    # Regression test for a bug that caused a buffer overflow when compressing
+    # data for which consecutive pixels differ by more than 4095, since the
+    # compressed data then requires three 16-bit words per pixel.
+
+    codec = PLIO1(tilesize=tilesize)
+
+    data = np.ones(tilesize, dtype=np.int32)
+    data[::2] = 2**24 - 1
+    cbytes = codec.encode(data)
+    assert len(cbytes) > 4 * tilesize
+    assert_equal(codec.decode(_as_array(cbytes)), data)
+
+    data = np.random.default_rng(12345).integers(0, 2**24, tilesize, dtype=np.int32)
+    assert_equal(codec.decode(_as_array(codec.encode(data))), data)
+
+
+def test_plio_1_incompressible_image(tmp_path):
+    data = np.random.default_rng(12345).integers(0, 2**15, (256, 256), dtype=np.int32)
+    filename = tmp_path / "test.fits"
+    fits.CompImageHDU(data, compression_type="PLIO_1", tile_shape=(256, 256)).writeto(
+        filename
+    )
+    with fits.open(filename) as hdul:
+        assert_equal(hdul[1].data, data)
+
+
+def test_plio_1_encode_inconsistent_tilesize():
+    data = np.arange(10, dtype=np.int32)
+    with pytest.raises(ValueError, match="inconsistent with the size of the data"):
+        PLIO1(tilesize=11).encode(data)
+    with pytest.raises(ValueError, match="inconsistent with the size of the data"):
+        PLIO1(tilesize=-1).encode(data)
+
+
 def test_invalid_tile(tmp_path):
     # Regression test for a bug that caused a segmentation fault if the data
     # for a tile would have resulted in a warning

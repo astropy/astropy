@@ -106,7 +106,7 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
     Py_ssize_t count;
     PyObject *result;
 
-    int maxelem;
+    size_t maxelem;
     int tilesize;
     short *compressed_values;
     int compressed_length;
@@ -114,6 +114,13 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "y#i", &str, &count, &tilesize)) {
         return NULL;
+    }
+
+    if (tilesize < 0 || (size_t)count / sizeof(int) < (size_t)tilesize) {
+        PyErr_SetString(
+            PyExc_ValueError, "PLIO tile size is inconsistent with the size of the data."
+        );
+        return (PyObject *)NULL;
     }
 
     decompressed_values = (int *)str;
@@ -126,16 +133,20 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
         }
     }
 
-    // For PLIO imcomp_calc_max_elem in cfitsio does this to calculate max memory:
-    maxelem = tilesize;
-    // However, when compressing small numbers of random integers you can end up
-    // using more memory for the compressed bytes.  In the worst case scenario we
-    // tested, compressing a single 4 byte integer will compress to 16 bytes.  We
-    // therefore allocate a buffer 4 ints larger than we need here to give that
-    // margin of error.
-    compressed_values = (short *)calloc(maxelem + 4, sizeof(int));
+    // For PLIO imcomp_calc_max_elem in cfitsio assumes that the line list will
+    // not need more than two 16-bit words per pixel, but this is not enough
+    // for data in which many consecutive pixels differ by more than 4095, as
+    // each such pixel is encoded as two words that set the new value followed
+    // by one word for the run of pixels with that value. The line list also
+    // starts with a seven word header, so the worst case scenario is a list
+    // with 3 * tilesize + 7 words.
+    maxelem = (size_t)tilesize * 3 + 7;
 
-    decompressed_values = (int *)str;
+    compressed_values = (short *)calloc(maxelem, sizeof(short));
+
+    if (compressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
 
     compressed_length = pl_p2li(decompressed_values, 1, compressed_values, tilesize);
 
@@ -143,12 +154,13 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(compressed_values);
         return (PyObject *)NULL;
     }
 
     buf = (char *)compressed_values;
 
-    result = Py_BuildValue("y#", buf, compressed_length * 2);
+    result = Py_BuildValue("y#", buf, (Py_ssize_t)compressed_length * 2);
     free(buf);
     return result;
 }
