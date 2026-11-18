@@ -518,9 +518,13 @@ class ScalarDistribution(Distribution, np.void):
     """
 
     def __getitem__(self, item):
-        if item is Ellipsis:
-            return Distribution(self.view(np.ndarray))
-        return super().__getitem__(item)
+        result = super().__getitem__(item)
+        if (
+            isinstance(result, np.ndarray)
+            and result.dtype == super(Distribution, self).dtype
+        ):
+            return result.view(NdarrayDistribution)
+        return result
 
 
 class ArrayDistribution(Distribution, np.ndarray):

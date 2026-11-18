@@ -732,3 +732,36 @@ def test_scalar_distribution_ellipsis():
     result_empty = s[()]
     assert isinstance(result_empty, type(s))
     assert result_empty is not s
+
+
+@pytest.mark.parametrize(
+    "item, shape",
+    [
+        (None, (1,)),
+        ((None, None), (1, 1)),
+        ((Ellipsis, None), (1,)),
+        (True, (1,)),
+        (False, (0,)),
+    ],
+)
+def test_scalar_distribution_array_index(item, shape):
+    samples = np.arange(12.0).reshape(3, 4)
+    scalar = Distribution(samples)[1]
+    result = scalar[item]
+    expected = samples[1][(None,) * len(shape)]
+    if shape == (0,):
+        expected = expected[:0]
+    assert isinstance(result, Distribution)
+    assert result.shape == shape
+    assert result.n_samples == 4
+    assert_array_equal(result.distribution, expected)
+    assert_array_equal((result + 2).distribution, expected + 2)
+    assert_array_equal(result.pdf_mean(), np.full(shape, 5.5))
+    if result.size:
+        assert np.shares_memory(result.distribution, scalar.distribution) == (
+            item is not True
+        )
+
+    # Scalar indexing and raw sample access retain their existing behavior.
+    assert isinstance(scalar[()], type(scalar))
+    assert_array_equal(scalar.distribution, samples[1])
