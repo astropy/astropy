@@ -747,8 +747,11 @@ class PhysicsSphericalRepresentation(BaseRepresentation):
         return self._r
 
     @classproperty
-    def _compatible_differentials(cls):
-        return [PhysicsSphericalDifferential, PhysicsSphericalPhysicalDifferential]
+    def _compatible_differentials(cls) -> list[type[BaseDifferential]]:
+        return [
+            *super()._compatible_differentials,
+            PhysicsSphericalPhysicalDifferential,
+        ]
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)

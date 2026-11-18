@@ -77,8 +77,8 @@ class CylindricalRepresentation(BaseRepresentation):
         return self._z
 
     @classproperty
-    def _compatible_differentials(cls) -> tuple[BaseDifferential, ...]:
-        return [CylindricalDifferential, CylindricalPhysicalDifferential]
+    def _compatible_differentials(cls) -> list[type[BaseDifferential]]:
+        return [*super()._compatible_differentials, CylindricalPhysicalDifferential]
 
     def unit_vectors(self):
         sinphi, cosphi = np.sin(self.phi), np.cos(self.phi)
