@@ -133,8 +133,7 @@ def _validate_c(c):
     """
     # "not c > 0" also rejects NaN, unlike "c <= 0"
     if not c > 0:
-        msg = "c must be positive."
-        raise ValueError(msg)
+        raise ValueError("c must be positive.")
 
 
 def biweight_location(
@@ -825,11 +824,10 @@ def biweight_midcovariance(
     if M.ndim > 1:
         raise ValueError("M must be a scalar or 1D array.")
     if M.ndim == 1 and M.shape[0] != data.shape[0]:
-        msg = (
+        raise ValueError(
             f"The length of M ({M.shape[0]}) must match the number of "
             f"variables ({data.shape[0]})."
         )
-        raise ValueError(msg)
 
     # set up the differences (M is broadcast along each row)
     d = data - M[..., np.newaxis]
