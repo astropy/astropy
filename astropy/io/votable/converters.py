@@ -8,6 +8,7 @@ to/from TABLEDATA_ and BINARY_ formats.
 import re
 import struct
 import sys
+from itertools import repeat
 from math import prod
 
 # THIRD-PARTY
@@ -631,13 +632,23 @@ class _StringArrayMixin:
         result = [parse(x, config, pos)[0] for x in parts]
         return np.array(result, dtype=self._scalar.format).reshape(shape)
 
+    def _flat(self, value, mask):
+        """Pairs of (string, mask) for every string of *value*."""
+        # Lists of Python objects are much faster to loop over than arrays
+        strings = np.asarray(value).ravel().tolist()
+        if np.ndim(mask) == 0:
+            return zip(strings, repeat(bool(mask)))
+        return zip(strings, np.asarray(mask).ravel().tolist(), strict=True)
+
+    def _binoutput_strings(self, value, mask):
+        binoutput = self._scalar.binoutput
+        return _empty_bytes.join(binoutput(x, m) for x, m in self._flat(value, mask))
+
     def output(self, value, mask):
         width = self._scalar.arraysize
         output = self._scalar.output
-        value = np.asarray(value)
-        mask = np.broadcast_to(mask, value.shape)
         result = []
-        for x, m in zip(value.flat, mask.flat):
+        for x, m in self._flat(value, mask):
             if m:
                 x = ""
             elif isinstance(x, bytes):
@@ -688,10 +699,7 @@ class StringArray(_StringArrayMixin, Array):
         return result, np.zeros(self._arraysize, dtype="bool")
 
     def binoutput(self, value, mask):
-        binoutput = self._base.binoutput
-        value = np.asarray(value)
-        mask = np.broadcast_to(mask, value.shape)
-        return _empty_bytes.join(binoutput(x, m) for x, m in zip(value.flat, mask.flat))
+        return self._binoutput_strings(value, mask)
 
 
 class StringVarArray(_StringArrayMixin, VarArray):
