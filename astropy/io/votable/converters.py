@@ -736,14 +736,20 @@ class StringVarArray(_StringArrayMixin, VarArray):
         result = np.array(result, dtype=self._scalar.format).reshape(self._shape)
         return ma.array(result), False
 
+    def output(self, value, mask):
+        # *mask* is for the cell as a whole.  Which strings are masked is
+        # in the mask of *value*.
+        strings_mask = ma.getmask(value)
+        if strings_mask is not ma.nomask:
+            mask = mask | strings_mask
+        return super().output(value, mask)
+
     def binoutput(self, value, mask):
         if value is None or len(value) == 0:
             return _zero_int
 
-        binoutput = self._base.binoutput
-        result = [self._write_length(len(value) * self._chars)]
-        result.extend(binoutput(x, m) for x, m in zip(value, ma.getmaskarray(value)))
-        return _empty_bytes.join(result)
+        length = self._write_length(len(value) * self._chars)
+        return length + self._binoutput_strings(value, ma.getmaskarray(value))
 
 
 class ScalarVarArray(VarArray):

@@ -309,6 +309,20 @@ def test_write_masked_string():
     assert _column(written.getvalue()).tolist() == [["abc", "", "ghi"]]
 
 
+def test_write_masked_string_in_variable_array():
+    """
+    to_xml() writes a masked string of an arraysize="3x*" cell as blanks, as
+    it does for a fixed-size array.
+    """
+    votable = parse(io.BytesIO(_votable("char", "3x*", ["abcdefghi"])))
+    votable.get_first_table().array["c"][0][1] = np.ma.masked
+    written = io.BytesIO()
+    votable.to_xml(written)
+
+    assert b"<TD>abc   ghi</TD>" in written.getvalue()
+    assert _column(written.getvalue())[0].tolist() == ["abc", "", "ghi"]
+
+
 def test_write_too_long_string_warns():
     """
     to_xml() of a 4-character string in an arraysize="3x2" FIELD warns W46
