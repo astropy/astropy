@@ -316,6 +316,37 @@ def test_plio_1_decode_invalid_tilesize(tilesize):
         PLIO1(tilesize=tilesize).decode(_as_array(cbytes))
 
 
+def test_rice_1_invalid_decode_settings():
+    # Regression test for crashes when decoding RICE_1 tiles with a tile size
+    # or block size taken from a crafted header that does not match the data.
+    codec = Rice1(blocksize=32, bytepix=4, tilesize=100)
+    cbytes = codec.encode(np.arange(100, dtype=np.int32))
+
+    # A huge tile size used to result in an unchecked allocation followed by an
+    # out-of-bounds write rather than a clean error.
+    # Depending on the allocator this raises MemoryError, or cfitsio detects the
+    # short stream; either way it no longer crashes the interpreter.
+    with pytest.raises((ValueError, MemoryError, CfitsioException)):
+        Rice1(blocksize=32, bytepix=4, tilesize=2**30 + 1).decode(_as_array(cbytes))
+
+    for tilesize in (0, -1):
+        with pytest.raises(ValueError, match="tile size is invalid"):
+            Rice1(blocksize=32, bytepix=4, tilesize=tilesize).decode(_as_array(cbytes))
+
+    for blocksize in (0, -1):
+        with pytest.raises(ValueError, match="block size is invalid"):
+            Rice1(blocksize=blocksize, bytepix=4, tilesize=100).decode(
+                _as_array(cbytes)
+            )
+
+
+def test_rice_1_invalid_encode_settings():
+    data = np.arange(100, dtype=np.int32)
+    for blocksize in (0, -1):
+        with pytest.raises(ValueError, match="block size is invalid"):
+            Rice1(blocksize=blocksize, bytepix=4, tilesize=100).encode(data)
+
+
 def test_invalid_tile(tmp_path):
     # Regression test for a bug that caused a segmentation fault if the data
     # for a tile would have resulted in a warning

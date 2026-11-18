@@ -254,26 +254,45 @@ static PyObject *compress_rice_1_c(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS
+    // cfitsio only provides Rice encoders for 1, 2 and 4 byte integers
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(PyExc_ValueError, "Rice can only work with 1, 2 or 4 byte integers.");
+        return (PyObject *)NULL;
+    }
 
-        // maxelem adapted from cfitsio's imcomp_calc_max_elem function
-        maxelem = count + count / bytepix / blocksize + 2 + 4;
+    // A zero block size would lead to a division by zero below.
+    if (blocksize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice block size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    // maxelem adapted from cfitsio's imcomp_calc_max_elem function
+    maxelem = count + count / bytepix / blocksize + 2 + 4;
 
     compressed_values = (unsigned char *)malloc(maxelem);
 
-    if (bytepix == 1) {
+    if (compressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+
+        if (bytepix == 1)
+    {
         decompressed_values_byte = (signed char *)str;
         compressed_length = fits_rcomp_byte(
             decompressed_values_byte, (int)count, compressed_values, count * 16, blocksize
         );
     }
-    else if (bytepix == 2) {
+    else if (bytepix == 2)
+    {
         decompressed_values_short = (short *)str;
         compressed_length = fits_rcomp_short(
             decompressed_values_short, (int)count / 2, compressed_values, count * 16, blocksize
         );
     }
-    else {
+    else
+    {
         decompressed_values_int = (int *)str;
         compressed_length = fits_rcomp(
             decompressed_values_int, (int)count / 4, compressed_values, count * 16, blocksize
@@ -320,28 +339,45 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
         return (PyObject *)NULL;
     }
 
+    if (tilesize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice tile size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    if (blocksize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice block size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    // Allocate the output buffer up front and outside the thread-released
+    // block so that we can report an allocation failure as a Python
+    // exception. The size is computed as a size_t to avoid overflowing an int
+    // for large tiles.
+    dbytes = (char *)malloc((size_t)tilesize * bytepix);
+
+    if (dbytes == NULL) {
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
         compressed_values = (unsigned char *)str;
 
     if (bytepix == 1) {
-        decompressed_values_byte = (unsigned char *)malloc(tilesize);
+        decompressed_values_byte = (unsigned char *)dbytes;
         fits_rdecomp_byte(
             compressed_values, (int)count, decompressed_values_byte, tilesize, blocksize
         );
-        dbytes = (char *)decompressed_values_byte;
     }
     else if (bytepix == 2) {
-        decompressed_values_short = (unsigned short *)malloc(tilesize * 2);
+        decompressed_values_short = (unsigned short *)dbytes;
         fits_rdecomp_short(
             compressed_values, (int)count, decompressed_values_short, tilesize, blocksize
         );
-        dbytes = (char *)decompressed_values_short;
     }
     else {
-        decompressed_values_int = (unsigned int *)malloc(tilesize * 4);
+        decompressed_values_int = (unsigned int *)dbytes;
         fits_rdecomp(compressed_values, (int)count, decompressed_values_int, tilesize, blocksize);
-        dbytes = (char *)decompressed_values_int;
     }
 
     Py_END_ALLOW_THREADS
@@ -351,10 +387,11 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(dbytes);
         return (PyObject *)NULL;
     }
 
-    result = Py_BuildValue("y#", dbytes, tilesize * bytepix);
+    result = Py_BuildValue("y#", dbytes, (Py_ssize_t)tilesize * bytepix);
     free(dbytes);
     return result;
 }
