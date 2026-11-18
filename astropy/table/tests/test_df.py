@@ -15,6 +15,7 @@ from astropy.utils.compat.optional_deps import (
     HAS_DASK,
     HAS_DUCKDB,
     HAS_NARWHALS,
+    HAS_NARWHALS_DASK,
     HAS_PANDAS,
     HAS_POLARS,
     HAS_PYARROW,
@@ -63,8 +64,10 @@ from .conftest import MIXIN_COLS
             "dask",
             False,
             marks=pytest.mark.skipif(
-                not HAS_NARWHALS or not HAS_DASK,
-                reason="requires narwhals and dask",
+                not HAS_NARWHALS
+                or not HAS_DASK
+                or (minversion("narwhals", "2.29.0") and not HAS_NARWHALS_DASK),
+                reason="requires narwhals, dask and sometimes, narwhals-dask",
             ),
             id="dask-generic",
         ),
