@@ -250,6 +250,7 @@ To enable Imperial units, do::
       fur          | 201.168 m       | furlong                          ,
       inch         | 0.0254 m        |                                  ,
       jupiterRad   | 7.1492e+07 m    | R_jup, Rjup, R_jupiter, Rjupiter ,
+      lightday     | 2.59021e+13 m   |                                  ,
       lsec         | 2.99792e+08 m   | lightsecond                      ,
       lyr          | 9.46073e+15 m   | lightyear                        ,
       m            | irreducible     | meter                            ,

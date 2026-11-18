@@ -688,6 +688,7 @@ all kinds of things that ``Hz`` can be converted to::
     foe          | 1e+44 m2 kg / s2       | Bethe, bethe                     ,
     jupiterRad   | 7.1492e+07 m           | R_jup, Rjup, R_jupiter, Rjupiter ,
     k            | 100 / m                | Kayser, kayser                   ,
+    lightday     | 2.59021e+13 m          |                                  ,
     lsec         | 2.99792e+08 m          | lightsecond                      ,
     lyr          | 9.46073e+15 m          | lightyear                        ,
     m            | irreducible            | meter                            ,
