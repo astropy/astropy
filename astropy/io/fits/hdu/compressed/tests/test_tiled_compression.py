@@ -291,6 +291,31 @@ def test_plio_1_encode_inconsistent_tilesize():
         PLIO1(tilesize=-1).encode(data)
 
 
+def test_plio_1_decode_truncated():
+    # Regression test for out-of-bounds reads when the compressed data is
+    # shorter than the length given in the header of the line list.
+
+    codec = PLIO1(tilesize=100)
+    data = np.arange(1, 101, dtype=np.int32)
+    cbytes = codec.encode(data)
+
+    assert_equal(codec.decode(_as_array(cbytes)), data)
+
+    for length in range(1, len(cbytes) - 1):
+        with pytest.raises(ValueError, match="truncated or corrupt"):
+            codec.decode(_as_array(cbytes[:length]))
+
+    # Trailing bytes after the end of the line list are ignored
+    assert_equal(codec.decode(_as_array(cbytes + b"\x00" * 7)), data)
+
+
+@pytest.mark.parametrize("tilesize", [0, -1])
+def test_plio_1_decode_invalid_tilesize(tilesize):
+    cbytes = PLIO1(tilesize=10).encode(np.arange(10, dtype=np.int32))
+    with pytest.raises(ValueError, match="tile size is invalid"):
+        PLIO1(tilesize=tilesize).decode(_as_array(cbytes))
+
+
 def test_invalid_tile(tmp_path):
     # Regression test for a bug that caused a segmentation fault if the data
     # for a tile would have resulted in a warning

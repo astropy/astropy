@@ -174,6 +174,8 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args)
     PyObject *result;
 
     int tilesize;
+    int npix;
+    size_t srclen;
 
     short *compressed_values;
     int *decompressed_values;
@@ -182,24 +184,50 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    if (tilesize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "PLIO tile size is invalid.");
+        return (PyObject *)NULL;
+    }
+
     compressed_values = (short *)str;
+    srclen = (size_t)count / sizeof(short);
+
+    // pl_l2pi reads the length of the line list from its header before doing
+    // any bounds checking. The third word is the length for the old format
+    // of the header, and if it is not positive the length is instead stored
+    // in the fourth and fifth words, so we make sure these are present.
+    if (srclen < 3 || (compressed_values[2] <= 0 && srclen < 5)) {
+        PyErr_SetString(PyExc_ValueError, "PLIO compressed data is truncated or corrupt.");
+        return (PyObject *)NULL;
+    }
 
     decompressed_values = (int *)calloc(tilesize, sizeof(int));
 
-    pl_l2pi(
-        compressed_values, count * sizeof(char) / sizeof(short), 1, decompressed_values, tilesize
-    );
+    if (decompressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    npix = pl_l2pi(compressed_values, srclen, 1, decompressed_values, tilesize);
 
     if (PyErr_Occurred() != NULL) {
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(decompressed_values);
+        return (PyObject *)NULL;
+    }
+
+    // pl_l2pi returns a negative value if the line list extends beyond the
+    // end of the compressed data.
+    if (npix < 0) {
+        PyErr_SetString(PyExc_ValueError, "PLIO compressed data is truncated or corrupt.");
+        free(decompressed_values);
         return (PyObject *)NULL;
     }
 
     buf = (char *)decompressed_values;
 
-    result = Py_BuildValue("y#", buf, tilesize * sizeof(int));
+    result = Py_BuildValue("y#", buf, (Py_ssize_t)tilesize * sizeof(int));
     free(buf);
     return result;
 }
