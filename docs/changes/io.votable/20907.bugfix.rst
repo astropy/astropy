@@ -1,0 +1,2 @@
+Writing a VOTable as TABLEDATA now keeps the mask of masked elements inside
+variable-length array cells, as BINARY and BINARY2 already did.
