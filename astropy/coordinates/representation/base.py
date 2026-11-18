@@ -1671,7 +1671,7 @@ class BasePhysicalDifferential(BaseDifferential):
     ``d_phi = rho * dphi/dt`` in km/s.
     """
 
-    def __init__(self, *args, copy=True, **kwargs):
+    def __init__(self, *args: Any, copy: bool=True, **kwargs: Any) -> None:
         super().__init__(*args, copy=copy, **kwargs)
         unit0 = getattr(self, self.components[0]).unit
         if not all(
@@ -1682,7 +1682,7 @@ class BasePhysicalDifferential(BaseDifferential):
             )
 
     @classmethod
-    def _get_base_vectors(cls, base):
+    def _get_base_vectors(cls, base: BaseRepresentation) -> tuple[dict[str,CartesianRepresentation],dict[str,u.Quantity]]:
         """Get unit vectors and (unity) scale factors from base."""
         cls._check_base(base)
         one = np.broadcast_to(1.0 * u.one, base.shape, subok=True)
@@ -1690,7 +1690,7 @@ class BasePhysicalDifferential(BaseDifferential):
         # ``theta_hat``, ``phi_hat`` but the scale factors are all 1.
         return base.unit_vectors(), dict.fromkeys(base.components, one)
 
-    def _get_deriv_key(self, base):
+    def _get_deriv_key(self, base: BaseRepresentation) -> str:
         # This is slightly brittle, but should work for existing differentials: grab the
         # unit of the first non-angular component of the base
         self._check_base(base)

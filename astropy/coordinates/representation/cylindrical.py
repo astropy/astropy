@@ -76,7 +76,7 @@ class CylindricalRepresentation(BaseRepresentation):
         return self._z
 
     @classproperty
-    def _compatible_differentials(cls):
+    def _compatible_differentials(cls) -> tuple[BaseDifferential, ...]:
         return [CylindricalDifferential, CylindricalPhysicalDifferential]
 
     def unit_vectors(self):
@@ -208,7 +208,7 @@ class CylindricalPhysicalDifferential(BasePhysicalDifferential):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    base_representation = CylindricalRepresentation
+    base_representation: ClassVar = CylindricalRepresentation
 
-    def __init__(self, d_rho, d_phi=None, d_z=None, copy=True):
+    def __init__(self, d_rho: u.Quantity, d_phi: u.Quantity | None=None, d_z: u.Quantity | None=None, copy: bool=True) -> None:
         super().__init__(d_rho, d_phi, d_z, copy=copy)

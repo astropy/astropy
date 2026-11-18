@@ -634,7 +634,7 @@ class SphericalRepresentation(BaseRepresentation):
         ):
             return super()._scale_operation(op, *args)
 
-        lon_op, lat_op, distance_op = _spherical_op_funcs(op, *args)
+        lon_op, lat_op, d_op = _spherical_op_funcs(op, *args)
 
         # For a negative scale, the point is reflected to (lon + 180°, -lat), which
         # flips the lon and distance unit vectors. For a typical differential, this
@@ -1561,9 +1561,9 @@ class SphericalPhysicalDifferential(BasePhysicalDifferential):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    base_representation = SphericalRepresentation
+    base_representation: ClassVar = SphericalRepresentation
 
-    def __init__(self, d_lon, d_lat=None, d_distance=None, copy=True):
+    def __init__(self, d_lon: u.Quantity, d_lat: u.Quantity | None=None, d_distance: u.Quantity | None=None, copy: bool=True) -> None:
         super().__init__(d_lon, d_lat, d_distance, copy=copy)
 
 
@@ -1584,7 +1584,7 @@ class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
         be references, though possibly broadcast to ensure matching shapes.
     """
 
-    base_representation = PhysicsSphericalRepresentation
+    base_representation: ClassVar = PhysicsSphericalRepresentation
 
-    def __init__(self, d_phi, d_theta=None, d_r=None, copy=True):
+    def __init__(self, d_phi: u.Quantity, d_theta: u.Quantity | None=None, d_r: u.Quantity | None=None, copy: bool=True) -> None:
         super().__init__(d_phi, d_theta, d_r, copy=copy)
