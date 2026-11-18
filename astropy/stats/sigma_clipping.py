@@ -214,8 +214,8 @@ class SigmaClip:
         grow: float | Literal[False] | None = False,
     ) -> None:
         self.sigma = sigma
-        self.sigma_lower = sigma_lower or sigma
-        self.sigma_upper = sigma_upper or sigma
+        self.sigma_lower = sigma if sigma_lower is None else sigma_lower
+        self.sigma_upper = sigma if sigma_upper is None else sigma_upper
         self.maxiters = maxiters or np.inf
         self.cenfunc = cenfunc
         self.stdfunc = stdfunc

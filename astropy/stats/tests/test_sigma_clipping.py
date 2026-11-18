@@ -1176,3 +1176,30 @@ def test_sigma_clip_axis_none_all_clipped():
     assert np.isfinite(lower)
     assert np.isfinite(upper)
     assert_equal(result_masked.mask, sigclip(data, axis=0).mask)
+
+
+@pytest.mark.parametrize("cenfunc", ["median", np.nanmedian])
+@pytest.mark.parametrize("axis", [None, 0])
+@pytest.mark.parametrize(
+    "sigma_lower, sigma_upper, expected",
+    [
+        (0.0, None, [True, False, False]),
+        (None, 0.0, [False, False, True]),
+        (0.0, 0.0, [True, False, True]),
+    ],
+)
+def test_sigma_clip_zero_bounds(cenfunc, axis, sigma_lower, sigma_upper, expected):
+    sigclip = SigmaClip(
+        sigma_lower=sigma_lower,
+        sigma_upper=sigma_upper,
+        cenfunc=cenfunc,
+        maxiters=1,
+    )
+    result, lower, upper = sigclip([0.0, 1.0, 2.0], axis=axis, return_bounds=True)
+    assert_equal(result.mask, expected)
+    if sigma_lower == 0:
+        assert_equal(lower, 1.0)
+    if sigma_upper == 0:
+        assert_equal(upper, 1.0)
+    # Omitted bounds continue to use sigma.
+    assert_equal(SigmaClip(maxiters=1)([0.0, 1.0, 2.0]).mask, False)
