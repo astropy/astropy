@@ -1,0 +1,9 @@
+BINARY and BINARY2 ``char`` data is now read and written as UTF-8 for every
+VOTable version. Reading UTF-8 from a pre-1.6 file used to raise
+``UnicodeDecodeError`` and now gives a W55 warning. Writing a non-ASCII value
+used to raise E24 and now only warns, unless ``verify="exception"`` is set,
+which now also applies to TABLEDATA output. Values longer than ``arraysize``
+are now cut with a W46 warning in TABLEDATA and bounded variable-length fields
+as well, and never in the middle of a character. Writing a character outside
+the Basic Multilingual Plane to a fixed-length ``unicodeChar`` field no longer
+gives an unreadable file.

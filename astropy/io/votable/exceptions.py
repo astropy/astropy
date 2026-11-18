@@ -649,21 +649,21 @@ class W19(VOTableSpecWarning):
 class W20(VOTableSpecWarning):
     """
     If no version number is explicitly given in the VOTable file, the
-    parser assumes it is written to the VOTable 1.1 specification.
+    parser assumes it is written to the VOTable 1.4 specification.
     """
 
     message_template = "No version number specified in file.  Assuming {}"
-    default_args = ("1.1",)
+    default_args = ("1.4",)
 
 
 class W21(UnimplementedWarning):
     """
     Unknown issues may arise using ``astropy.io.votable`` with VOTable files
-    from a version not in 1.1 through 1.5.
+    from a version not in 1.1 through 1.6.
     """
 
     message_template = (
-        "astropy.io.votable is designed for VOTable versions 1.1 through 1.5,"
+        "astropy.io.votable is designed for VOTable versions 1.1 through 1.6,"
         " but this file is {}"
     )
     default_args = ("x",)
@@ -1133,8 +1133,8 @@ class W54(VOTableSpecWarning):
 class W55(VOTableSpecWarning):
     """
     When non-ASCII characters are detected when reading
-    a TABLEDATA value for a FIELD with ``datatype="char"``, we
-    can issue this warning.
+    a value for a FIELD with ``datatype="char"`` in a file older than
+    VOTable 1.6, we can issue this warning.
     """
 
     message_template = (
@@ -1206,6 +1206,46 @@ class W59(VOTableSpecWarning):
         'use datatype="char" with UTF-8 encoding instead'
     )
     default_args = ("",)
+
+
+class W60(VOTableSpecWarning):
+    """
+    Binary data for a FIELD with ``datatype="char"`` is not valid UTF-8.
+    The invalid bytes are replaced with U+FFFD.
+    """
+
+    message_template = (
+        'FIELD ({}) has datatype="char" but contains bytes that are not valid '
+        "UTF-8 ({!r}); they have been replaced"
+    )
+    default_args = ("", b"")
+
+
+class W61(VOTableSpecWarning):
+    """
+    From VOTable 1.6, ``width`` on a ``char`` FIELD is the maximum number of
+    characters, and the column is sized to it. Longer values are truncated.
+    """
+
+    message_template = (
+        'FIELD ({}) has width="{}" but contains a longer value ({}); '
+        "it will be truncated"
+    )
+    default_args = ("", "", "")
+
+
+class W62(VOTableSpecWarning):
+    """
+    Characters outside the Unicode Basic Multilingual Plane are not allowed
+    in ``unicodeChar``. They are written as UTF-16 surrogate pairs anyway.
+    Use ``datatype="char"`` instead.
+    """
+
+    message_template = (
+        'FIELD ({}) has datatype="unicodeChar" but value ({}) contains '
+        "characters outside the Basic Multilingual Plane"
+    )
+    default_args = ("", "")
 
 
 class E01(VOWarning, ValueError):

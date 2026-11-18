@@ -83,6 +83,7 @@ from .exceptions import (
     W54,
     W56,
     W57,
+    W59,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -1502,6 +1503,10 @@ class Field(
 
         self._setup(self._config, pos)
 
+        # Not in the converter, which is rebuilt on every write.
+        if datatype == "unicodeChar" and self._config.get("version_1_6_or_later"):
+            vo_warn(W59, (self.name,), self._config, pos)
+
         warn_unknown_attrs(self._element_name, extra.keys(), config, pos)
 
     @classmethod
@@ -1832,7 +1837,9 @@ class Field(
             kwargs["unit"] = column.info.unit
         kwargs["name"] = column.info.name
 
-        result = converters.table_column_to_votable_datatype(column)
+        result = converters.table_column_to_votable_datatype(
+            column, version=votable.version
+        )
         kwargs.update(result)
 
         field = cls(votable, **kwargs)
@@ -3427,9 +3434,13 @@ class TableElement(
             if self.description is not None:
                 w.element("DESCRIPTION", self.description, wrap=True)
 
+            # self._config is a snapshot, the file version may have changed since.
+            config = self._config
+            if hasattr(self._votable, "_get_version_checks"):
+                config = {**config, **self._votable._get_version_checks()}
             for element_set in (self.fields, self.params):
                 for element in element_set:
-                    element._setup(self._config, None)
+                    element._setup(config, None)
 
             if self.ref is None:
                 for element_set in (self.fields, self.params, self.groups, self.links):
@@ -3590,7 +3601,6 @@ class TableElement(
             val = getattr(self, key, None)
             if val is not None:
                 meta[key] = val
-        meta["_votable_version"] = self._votable.version
 
         if use_names_over_ids:
             names = [field.name for field in self.fields]
@@ -4788,7 +4798,7 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             table.format = format
 
     @classmethod
-    def from_table(cls, table, table_id=None):
+    def from_table(cls, table, table_id=None, *, version=None):
         """
         Create a `VOTableFile` instance from a given
         `astropy.table.Table` instance.
@@ -4799,9 +4809,10 @@ class VOTableFile(Element, _IDProperty, _DescriptionProperty):
             The table to convert.
         table_id : str, optional
             Set the given ID attribute on the returned TableElement instance.
+        version : str, optional
+            The VOTable version to write, such as ``"1.6"``. Defaults to 1.4.
         """
-        version = table.meta.get("_votable_version", "1.6")
-        votable_file = cls(version=version)
+        votable_file = cls() if version is None else cls(version=version)
         resource = Resource()
         votable = TableElement.from_table(votable_file, table)
         if table_id is not None:

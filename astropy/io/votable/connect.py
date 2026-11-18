@@ -138,7 +138,13 @@ def read_table_votable(
 
 
 def write_table_votable(
-    input, output, table_id=None, overwrite=False, tabledata_format=None
+    input,
+    output,
+    table_id=None,
+    overwrite=False,
+    tabledata_format=None,
+    *,
+    version=None,
 ):
     """
     Write a Table object to an VO table file.
@@ -162,6 +168,11 @@ def write_table_votable(
         The format of table data to write.  Must be one of ``tabledata``
         (text representation), ``binary`` or ``binary2``.  Default is
         ``tabledata``.  See :ref:`astropy:votable-serialization`.
+
+    version : str, optional
+        The VOTable version to write, such as ``"1.6"``.  Defaults to 1.4.
+        From 1.6, string columns are written as UTF-8 ``char`` instead of
+        ``unicodeChar``.
     """
     # Only those columns which are instances of BaseColumn or Quantity can be written
     unsupported_cols = input.columns.not_isinstance((BaseColumn, Quantity))
@@ -179,7 +190,7 @@ def write_table_votable(
             raise OSError(NOT_OVERWRITING_MSG.format(output))
 
     # Create a new VOTable file
-    table_file = from_table(input, table_id=table_id)
+    table_file = from_table(input, table_id=table_id, version=version)
 
     # Write out file
     table_file.write(output, tabledata_format=tabledata_format)

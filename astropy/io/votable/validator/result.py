@@ -245,6 +245,7 @@ def get_result_subsets(results, root, s=None):
     version_13 = []
     version_14 = []
     version_15 = []
+    version_16 = []
     version_unknown = []
     has_warnings = []
     warning_set = {}
@@ -294,6 +295,8 @@ def get_result_subsets(results, root, s=None):
             version_14.append(x)
         elif version == "1.5":
             version_15.append(x)
+        elif version == "1.6":
+            version_16.append(x)
         else:
             version_unknown.append(x)
         if x["nwarnings"] > 0:
@@ -343,6 +346,7 @@ def get_result_subsets(results, root, s=None):
         ("version1.3", "Version 1.3", version_13),
         ("version1.4", "Version 1.4", version_14),
         ("version1.5", "Version 1.5", version_15),
+        ("version1.6", "Version 1.6", version_16),
         ("version_unknown", "Version unknown", version_unknown),
         ("warnings", "Warnings", has_warnings),
     ]
