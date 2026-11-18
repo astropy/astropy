@@ -1176,3 +1176,34 @@ def test_sigma_clip_axis_none_all_clipped():
     assert np.isfinite(lower)
     assert np.isfinite(upper)
     assert_equal(result_masked.mask, sigclip(data, axis=0).mask)
+
+
+@pytest.mark.parametrize("axis", [None, 0, (0,)])
+@pytest.mark.parametrize("copy", [False, True])
+@pytest.mark.parametrize("masked_input", [False, True])
+def test_sigma_clip_quantity_output_mask(axis, copy, masked_input):
+    data = np.array([1.0, 1.0, 1.0, 1.0, 100.0]) * u.Jy
+    if masked_input:
+        data = Masked(data, mask=[True, False, False, False, False])
+    original = data.copy()
+    result, lower, upper = sigma_clip(
+        data, sigma=2, axis=axis, copy=copy, return_bounds=True
+    )
+    assert isinstance(result, Masked)
+    assert result.unit == lower.unit == upper.unit == u.Jy
+    assert_equal(result.mask, [masked_input, False, False, False, True])
+    assert_equal(result.unmasked.value, [1.0, 1.0, 1.0, 1.0, 100.0])
+    assert_equal(lower.value, 1.0)
+    assert_equal(upper.value, 1.0)
+    assert_equal(data, original)
+    assert np.shares_memory(result.unmasked, data) == (not copy)
+
+    unmasked = sigma_clip(data, sigma=2, axis=axis, masked=False)
+    assert unmasked.unit == u.Jy
+    if axis is None:
+        assert_equal(unmasked.value, np.ones(3 if masked_input else 4))
+    else:
+        expected = np.array([1.0, 1.0, 1.0, 1.0, np.nan])
+        if masked_input:
+            expected[0] = np.nan
+        assert_equal(unmasked.value, expected)

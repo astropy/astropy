@@ -323,6 +323,7 @@ class SigmaClip:
         Fast C implementation for simple use cases.
         """
         if isinstance(data, Quantity):
+            data_with_unit = data
             data, unit = data.value, data.unit
         else:
             unit = None
@@ -403,6 +404,9 @@ class SigmaClip:
                 tuple(transposed_axes.index(ax) for ax in range(data.ndim))
             )
 
+        if unit is not None:
+            data = data_with_unit
+
         if masked:
             result = _make_masked(data, mask, copy=copy)
         elif axis_none:
@@ -429,7 +433,6 @@ class SigmaClip:
             bound_hi = bound_hi[()]
 
         if unit is not None:
-            result = result << unit
             bound_lo = bound_lo << unit
             bound_hi = bound_hi << unit
 
