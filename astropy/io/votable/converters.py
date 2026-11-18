@@ -544,6 +544,9 @@ class VarArray(Array):
 
     def output(self, value, mask):
         output = self._base.output
+        # The writers pass the mask of the whole cell; the mask of each
+        # element lives on the cell's masked array, as binoutput reads it.
+        mask = np.logical_or(mask, ma.getmaskarray(value))
         result = [output(x, m) for x, m in np.broadcast(value, mask)]
         return " ".join(result)
 

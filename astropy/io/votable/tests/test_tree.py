@@ -811,6 +811,36 @@ def test_read_variable_length_column_longer_than_first_allocation(tabledata_form
     assert [list(values) for values in column] == expected
 
 
+@pytest.mark.parametrize("datatype", ["double", "float"])
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_variable_length_array_element_mask_roundtrip(tabledata_format, datatype):
+    """
+    A masked element inside a variable-length array cell is written as masked
+    in every format, so it reads back masked (#20897).
+    """
+    votable = VOTableFile()
+    resource = Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(tree.Field(votable, name="v", datatype=datatype, arraysize="*"))
+    table.create_arrays(2)
+    dtype = {"double": np.float64, "float": np.float32}[datatype]
+    table.array.data["v"][0] = np.ma.array(
+        [1, 2, 3], mask=[False, True, False], dtype=dtype
+    )
+    table.array.data["v"][1] = np.ma.array([4, 5], mask=[False, False], dtype=dtype)
+    buffer = io.BytesIO()
+    votable.to_xml(buffer, tabledata_format=tabledata_format)
+    buffer.seek(0)
+
+    column = parse_single_table(buffer).array["v"]
+
+    assert list(np.ma.getmaskarray(column[0])) == [False, True, False]
+    assert list(np.ma.getmaskarray(column[1])) == [False, False]
+    assert column[0][0] == 1 and column[0][2] == 3
+
+
 def _votable_with_nrows(tabledata_format, nrows):
     """
     Return the bytes of a 1000-row VOTable in *tabledata_format* whose TABLE
