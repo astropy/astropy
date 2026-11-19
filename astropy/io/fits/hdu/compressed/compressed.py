@@ -588,9 +588,9 @@ class CompImageHDU(ImageHDU):
         heap = compress_image_data(
             self.data,
             self.compression_type,
-            self.gzip_level,
             bintable.header,
             bintable.columns,
+            gzip_level=self.gzip_level,
         )
 
         dtype = bintable.columns.dtype.newbyteorder(">")

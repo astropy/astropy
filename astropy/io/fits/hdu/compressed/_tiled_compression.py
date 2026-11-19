@@ -15,6 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
+from .settings import DEFAULT_GZIP_LEVEL
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
 ALGORITHMS = {
@@ -515,9 +516,9 @@ def decompress_image_data_section(
 def compress_image_data(
     image_data,
     compression_type,
-    gzip_level,
     compressed_header,
     compressed_coldefs,
+    gzip_level=DEFAULT_GZIP_LEVEL,
 ):
     """
     Compress the data in a `~astropy.io.fits.CompImageHDU`.

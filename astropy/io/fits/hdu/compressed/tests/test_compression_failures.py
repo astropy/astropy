@@ -23,7 +23,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header["ZCMPTYPE"] = "fun"
         with pytest.raises(ValueError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert "Unrecognized compression type: fun" in str(exc.value)
 
@@ -33,7 +33,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header["ZBITPIX"] = 13
         with pytest.raises(ValueError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert "Invalid value for BITPIX: 13" in str(exc.value)
 
@@ -44,7 +44,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable = hdu._get_bintable_without_data()
         with pytest.raises(TypeError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert "Image data must be a numpy.ndarray" in str(exc.value)
 
@@ -54,7 +54,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header["TFORM1"] = "TX"
         with pytest.raises(RuntimeError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert "TX" in str(exc.value) and "TFORM" in str(exc.value)
 
@@ -64,7 +64,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header["ZDITHER0"] = "a"
         with pytest.raises(TypeError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["ZNAXIS", "ZBITPIX"])
@@ -74,7 +74,7 @@ class TestCompressionFunction(FitsTestCase):
         del bintable.header[kw]
         with pytest.raises(KeyError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert kw in str(exc.value)
 
@@ -85,7 +85,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = MAX_INT + 1
         with pytest.raises(OverflowError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["ZTILE1", "ZNAXIS1"])
@@ -95,7 +95,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = MAX_LONG + 1
         with pytest.raises(OverflowError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["NAXIS1", "NAXIS2", "TNULL1", "PCOUNT", "THEAP"])
@@ -105,7 +105,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = MAX_LONGLONG + 1
         with pytest.raises(OverflowError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["ZVAL3"])
@@ -115,7 +115,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = 1e300
         with pytest.raises(OverflowError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["NAXIS1", "NAXIS2", "TFIELDS", "PCOUNT"])
@@ -125,7 +125,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = -1
         with pytest.raises(ValueError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert f"{kw} should not be negative." in str(exc.value)
 
@@ -136,7 +136,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = limit + 1
         with pytest.raises(ValueError) as exc:
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
         assert kw in str(exc.value)
 
@@ -149,7 +149,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = 1
         with pytest.raises(TypeError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["TZERO1", "TSCAL1"])
@@ -159,7 +159,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = "1"
         with pytest.raises(TypeError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize("kw", ["ZSCALE", "ZZERO"])
@@ -169,7 +169,7 @@ class TestCompressionFunction(FitsTestCase):
         bintable.header[kw] = "1"
         with pytest.raises(TypeError):
             compress_image_data(
-                hdu.data, hdu.compression_type, 1, bintable.header, bintable.columns
+                hdu.data, hdu.compression_type, bintable.header, bintable.columns
             )
 
     @pytest.mark.parametrize(
