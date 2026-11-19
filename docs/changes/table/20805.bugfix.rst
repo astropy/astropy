@@ -1,0 +1,12 @@
+Fixed ``Table.from_df`` raising ``TypeError`` for string-like columns with missing
+values held as ``pd.NA`` or ``pd.NaT``, which includes any pandas ``string`` dtype
+column with a missing entry.
+
+``Table.from_df`` and ``Table.from_pandas`` also disagreed on how to convert missing
+values in string-like columns: ``from_pandas`` recognized only ``np.nan`` and
+otherwise returned an ``object`` column, while ``from_df`` recognized None and NaN.
+Both methods now give the same result: every missing value the dataframe supports
+is masked, and a column of otherwise ``str`` or ``bytes`` values becomes a native
+string ``MaskedColumn``. An all-missing column follows the dataframe dtype, and a
+column holding other objects, or text mixed with non-ASCII bytes, is left as an
+``object`` column instead of raising.
