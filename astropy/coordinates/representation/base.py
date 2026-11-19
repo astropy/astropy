@@ -1610,6 +1610,8 @@ class BaseDifferential(BaseRepresentationOrDifferential):
             return self.__class__(
                 *[op(getattr(first, c), getattr(second, c)) for c in self.components]
             )
+        elif isinstance(other, BaseDifferential):
+            return NotImplemented
         else:
             try:
                 self_cartesian = self.to_cartesian(other)

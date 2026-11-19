@@ -951,6 +951,36 @@ class TestRadialDifferential:
         assert_representation_allclose(s_distance2, s_distance)
 
 
+@pytest.mark.parametrize(
+    "differential",
+    [
+        pytest.param(CartesianDifferential(1, 2, 3, unit=u.km / u.s), id="cartesian"),
+        pytest.param(
+            CylindricalDifferential(1 * u.km / u.s, 1 * u.mas / u.yr, 1 * u.km / u.s),
+            id="cylindrical",
+        ),
+        pytest.param(
+            PhysicsSphericalDifferential(
+                1 * u.mas / u.yr, 1 * u.mas / u.yr, 1 * u.km / u.s
+            ),
+            id="physics-spherical",
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    ("operation", "method"),
+    [(operator.add, "__add__"), (operator.sub, "__sub__")],
+)
+@pytest.mark.parametrize("reverse", [False, True])
+def test_incompatible_differential_arithmetic(differential, operation, method, reverse):
+    radial = RadialDifferential(10 * u.km / u.s)
+    first, second = (radial, differential) if reverse else (differential, radial)
+
+    assert getattr(first, method)(second) is NotImplemented
+    with pytest.raises(TypeError, match="unsupported operand type"):
+        operation(first, second)
+
+
 class TestPhysicsSphericalDifferential:
     """Test copied from SphericalDifferential, so less extensive."""
 
@@ -1300,6 +1330,12 @@ class TestDifferentialConversion:
         so5 = so1 - uo
         so5c = sd_cls(0 * u.deg, 0.0 * u.deg, ro.d_distance)
         assert np.all(representation_equal(so5, so5c))
+        so6 = ro + so1
+        assert type(so6) is sd_cls
+        assert np.all(representation_equal(so6, so4c))
+        so7 = ro + uo
+        assert type(so7) is sd_cls
+        assert np.all(representation_equal(so7, so1c))
         assert_representation_allclose(self.s + (uo + ro), self.s + so1)
 
 

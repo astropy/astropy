@@ -1415,13 +1415,18 @@ class RadialDifferential(BaseDifferential):
         elif isinstance(
             other, (BaseSphericalDifferential, BaseSphericalCosLatDifferential)
         ):
+            result_cls = (
+                SphericalCosLatDifferential
+                if isinstance(other, BaseSphericalCosLatDifferential)
+                else SphericalDifferential
+            )
             all_components = set(self.components) | set(other.components)
             first, second = (self, other) if not reverse else (other, self)
             result_args = {
                 c: op(getattr(first, c, 0.0), getattr(second, c, 0.0))
                 for c in all_components
             }
-            return SphericalDifferential(**result_args)
+            return result_cls(**result_args)
 
         else:
             return super()._combine_operation(op, other, reverse)
