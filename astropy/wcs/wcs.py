@@ -47,13 +47,17 @@ from astropy import log
 from astropy import units as u
 from astropy.io import fits
 from astropy.utils.exceptions import (
-    AstropyDeprecationWarning,
     AstropyUserWarning,
     AstropyWarning,
 )
 from astropy.utils.shapes import simplify_basic_index
 
 from . import docstrings
+from ._distortion_lookup import (
+    _inherit_primary_prior_distortion,
+    _LookupTableMixin,
+    _remove_lookup_keywords,
+)
 from ._wcs import (
     PRJ_CODES,
     PRJ_CONIC,
@@ -277,117 +281,6 @@ WCSHDO_SIP = 0x80000
 # Keyword optionally ends with a capital letter.
 SIP_KW = re.compile("""^[AB]P?_1?[0-9]_1?[0-9][A-Z]?$""")
 
-# Regular expression matching distortion paper (WCS Distortion Paper Draft)
-# prior-distortion keywords: ``CPDISja``, ``CPERRja`` and record-valued
-# ``DPja.<field>``. Groups are the keyword family, the axis number, the
-# alternate WCS key ('' for the primary WCS) and the record field.
-_PRIOR_DIS_KW = re.compile(r"(CPDIS|CPERR|DP)([0-9]+)([A-Z]?)(?:\.(.+))?")
-
-# HST/STScI convention for prior-distortion lookup tables shared between the
-# primary and alternate WCSs (see the ``shared_cpdis`` parameter).
-_STSCI_TELESCOPE = "HST"
-_STSCI_INSTRUMENTS = frozenset({"ACS", "WFC3"})
-_STSCI_AXES = frozenset({1, 2})
-_STSCI_MAX_EXTVER = 4  # 2 chips x 2 axes (ACS/WFC, WFC3/UVIS)
-
-
-def _as_int(value):
-    """Return ``value`` as an `int` if it is a whole number, otherwise `None`."""
-    try:
-        f = float(value)
-    except (TypeError, ValueError):
-        return None
-    return int(f) if f.is_integer() else None
-
-
-def _prior_distortion_keywords(header):
-    """
-    Yield ``(keyword, family, axis, key, field)`` for every prior-distortion
-    keyword in ``header``: the keyword as found in ``header``; ``'CPDIS'``,
-    ``'CPERR'`` or ``'DP'``; the axis number; the alternate WCS key (``''``
-    for the primary WCS); and the record field of a ``DPja`` keyword (`None`
-    otherwise, including for a ``DPja`` card whose value is not a record).
-    """
-    for keyword in header:
-        match = _PRIOR_DIS_KW.fullmatch(str(keyword).strip().upper())
-        if match is None:
-            continue
-        family, axis, key, field = match.groups()
-        if field is not None and family != "DP":
-            continue  # e.g. "CPDIS1.X" is not a distortion keyword
-        yield keyword, family, int(axis), key, field
-
-
-def _has_prior_distortion_kw(header, key):
-    """
-    Return `True` if ``header`` contains any ``CPDISja``, ``CPERRja`` or
-    ``DPja`` keyword for WCS ``key`` (``''`` for the primary WCS).
-    """
-    return any(k == key for _, _, _, k, _ in _prior_distortion_keywords(header))
-
-
-def _is_hst_acs_wfc3(fobj):
-    """
-    Return `True` if the primary header of ``fobj`` has ``TELESCOP = 'HST'``
-    and ``INSTRUME`` equal to ``'ACS'`` or ``'WFC3'``.
-    """
-    if not isinstance(fobj, fits.HDUList) or not len(fobj):
-        return False
-    phdr = fobj[0].header
-    telescope = str(phdr.get("TELESCOP", "")).strip().upper()
-    instrument = str(phdr.get("INSTRUME", "")).strip().upper()
-    return telescope == _STSCI_TELESCOPE and instrument in _STSCI_INSTRUMENTS
-
-
-def _is_stsci_prior_distortion(header):  # noqa: PLR0911
-    """
-    Return `True` if every prior-distortion keyword in ``header`` follows the
-    layout written by STScI for HST non-polynomial (``NPOLFILE``) distortion
-    corrections:
-
-    - there are no keyed (alternate WCS) ``CPDISja``, ``CPERRja`` or ``DPja``
-      keywords;
-    - prior-distortion keywords exist for axes 1 and 2 only, and for both;
-    - ``CPDISj`` is ``'Lookup'`` (case-insensitive);
-    - ``DPj.AXIS.1`` and ``DPj.AXIS.2`` are present, have the values 1 and 2
-      in either order, and there are no other ``DPj.AXIS.n`` fields;
-    - ``DPj.EXTVER`` is a whole number from 1 to 4, different for the two
-      axes.
-
-    ``CPERRj`` and all other ``DPj`` record fields (``NAXES``, ``OFFSET``,
-    ``SCALE``, ...) are ignored.
-    """
-    axes = {}
-    for keyword, family, axis, key, field in _prior_distortion_keywords(header):
-        if key or axis not in _STSCI_AXES:
-            return False
-        entry = axes.setdefault(axis, {"dp": {}})
-        if family == "CPDIS":
-            entry["cpdis"] = header[keyword]
-        elif family == "DP":
-            if field is None:
-                return False  # a DPj card whose value is not 'field: number'
-            entry["dp"][field.upper()] = header[keyword]
-
-    if set(axes) != _STSCI_AXES:
-        return False
-
-    extvers = set()
-    for entry in axes.values():
-        if str(entry.get("cpdis", "")).strip().upper() != "LOOKUP":
-            return False
-        dp = entry["dp"]
-        if {f for f in dp if f.startswith("AXIS.")} != {"AXIS.1", "AXIS.2"}:
-            return False
-        if {_as_int(dp["AXIS.1"]), _as_int(dp["AXIS.2"])} != _STSCI_AXES:
-            return False
-        extver = _as_int(dp.get("EXTVER"))
-        if extver is None or not 1 <= extver <= _STSCI_MAX_EXTVER:
-            return False
-        extvers.add(extver)
-
-    return len(extvers) == len(_STSCI_AXES)
-
 
 def _parse_keysel(keysel):
     keysel_flags = 0
@@ -515,7 +408,7 @@ class FITSFixedWarning(AstropyWarning):
     """
 
 
-class WCS(FITSWCSAPIMixin, WCSBase):
+class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.
@@ -539,9 +432,10 @@ class WCS(FITSWCSAPIMixin, WCSBase):
         provided if *header* is also provided.
 
     minerr : float, optional
-        The minimum value a distortion correction must have in order
-        to be applied. If the value of ``CQERRja`` is smaller than
-        *minerr*, the corresponding distortion is not applied.
+        The minimum value a lookup-table distortion correction must have
+        in order to be applied. If the value of ``CPERRja`` (``D2IMERRj``
+        for the detector-to-image correction) is smaller than *minerr*,
+        the corresponding lookup table is not used.
 
     relax : bool or int, optional
         Degree of permissiveness:
@@ -809,6 +703,16 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             try:
                 tmp_header = fits.Header.fromstring(header_string)
                 self._remove_sip_kw(tmp_header)
+                # WCSLIB does not evaluate lookup-table distortions (this
+                # class does), and it cannot parse a header in which only
+                # the first axis has one, so do not pass them to it.
+                _remove_lookup_keywords(
+                    tmp_header,
+                    dist="CPDIS",
+                    rec_kw="DP",
+                    err_kw="CPERR",
+                    suffix=(key or " ").strip().upper(),
+                )
                 tmp_header_bytes = tmp_header.tostring().rstrip()
                 if isinstance(tmp_header_bytes, str):
                     tmp_header_bytes = tmp_header_bytes.encode("ascii")
@@ -837,7 +741,7 @@ class WCS(FITSWCSAPIMixin, WCSBase):
             header = fits.Header.fromstring(header_string)
 
             det2im = self._read_det2im_kw(header, fobj, err=minerr)
-            inherit_cpdis = self._inherit_primary_prior_distortion(
+            inherit_cpdis = _inherit_primary_prior_distortion(
                 header, fobj, key, shared_cpdis
             )
             cpdis = self._read_distortion_kw(
@@ -1217,366 +1121,6 @@ reduce these to 2 dimensions using the naxis kwarg.
             return self.all_pix2world(corners, 1)
         else:
             return self.wcs_pix2world(corners, 1)
-
-    def _read_det2im_kw(self, header, fobj, err=0.0):
-        """
-        Create a `distortion paper`_ type lookup table for detector to
-        image plane correction.
-        """
-        if fobj is None:
-            return (None, None)
-
-        if not isinstance(fobj, fits.HDUList):
-            return (None, None)
-
-        try:
-            axiscorr = header["AXISCORR"]
-            d2imdis = self._read_d2im_old_format(header, fobj, axiscorr)
-            return d2imdis
-        except KeyError:
-            pass
-
-        dist = "D2IMDIS"
-        d_kw = "D2IM"
-        err_kw = "D2IMERR"
-        tables = {}
-        for i in range(1, self.naxis + 1):
-            d_error = header.get(err_kw + str(i), 0.0)
-            if d_error < err:
-                tables[i] = None
-                continue
-            distortion = dist + str(i)
-            if distortion in header:
-                dis = header[distortion].lower()
-                if dis == "lookup":
-                    del header[distortion]
-                    assert isinstance(fobj, fits.HDUList), (
-                        "An astropy.io.fits.HDUList"
-                        "is required for Lookup table distortion."
-                    )
-                    dp = (d_kw + str(i)).strip()
-                    dp_extver_key = dp + ".EXTVER"
-                    if dp_extver_key in header:
-                        d_extver = header[dp_extver_key]
-                        del header[dp_extver_key]
-                    else:
-                        d_extver = 1
-                    dp_axis_key = dp + f".AXIS.{i:d}"
-                    if i == header[dp_axis_key]:
-                        d_data = fobj["D2IMARR", d_extver].data
-                    else:
-                        d_data = (fobj["D2IMARR", d_extver].data).transpose()
-                    del header[dp_axis_key]
-                    d_header = fobj["D2IMARR", d_extver].header
-                    d_crpix = (d_header.get("CRPIX1", 0.0), d_header.get("CRPIX2", 0.0))
-                    d_crval = (d_header.get("CRVAL1", 0.0), d_header.get("CRVAL2", 0.0))
-                    d_cdelt = (d_header.get("CDELT1", 1.0), d_header.get("CDELT2", 1.0))
-                    d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
-                    tables[i] = d_lookup
-                else:
-                    warnings.warn(
-                        "Polynomial distortion is not implemented.\n",
-                        AstropyUserWarning,
-                    )
-                for key in set(header):
-                    if key.startswith(dp + "."):
-                        del header[key]
-            else:
-                tables[i] = None
-        if not tables:
-            return (None, None)
-        else:
-            return (tables.get(1), tables.get(2))
-
-    def _read_d2im_old_format(self, header, fobj, axiscorr):
-        warnings.warn(
-            "The use of ``AXISCORR`` for D2IM correction has been"
-            " deprecated.`~astropy.wcs` will read in files with ``AXISCORR`` but"
-            " ``to_fits()`` will write out files without it.",
-            AstropyDeprecationWarning,
-        )
-        cpdis = [None, None]
-        crpix = [0.0, 0.0]
-        crval = [0.0, 0.0]
-        cdelt = [1.0, 1.0]
-        try:
-            d2im_data = fobj[("D2IMARR", 1)].data
-        except KeyError:
-            return (None, None)
-        except AttributeError:
-            return (None, None)
-
-        d2im_data = np.array([d2im_data])
-        d2im_hdr = fobj[("D2IMARR", 1)].header
-        naxis = d2im_hdr["NAXIS"]
-
-        for i in range(1, naxis + 1):
-            crpix[i - 1] = d2im_hdr.get("CRPIX" + str(i), 0.0)
-            crval[i - 1] = d2im_hdr.get("CRVAL" + str(i), 0.0)
-            cdelt[i - 1] = d2im_hdr.get("CDELT" + str(i), 1.0)
-
-        cpdis = DistortionLookupTable(d2im_data, crpix, crval, cdelt)
-
-        if axiscorr == 1:
-            return (cpdis, None)
-        elif axiscorr == 2:
-            return (None, cpdis)
-        else:
-            warnings.warn("Expected AXISCORR to be 1 or 2", AstropyUserWarning)
-            return (None, None)
-
-    def _write_det2im(self, hdulist):
-        """
-        Writes a `distortion paper`_ type lookup table to the given
-        `~astropy.io.fits.HDUList`.
-        """
-        if self.det2im1 is None and self.det2im2 is None:
-            return
-        dist = "D2IMDIS"
-        d_kw = "D2IM"
-
-        def write_d2i(num, det2im):
-            if det2im is None:
-                return
-
-            hdulist[0].header[f"{dist}{num:d}"] = (
-                "LOOKUP",
-                "Detector to image correction type",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.EXTVER"] = (
-                num,
-                "Version number of WCSDVARR extension",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.NAXES"] = (
-                len(det2im.data.shape),
-                "Number of independent variables in D2IM function",
-            )
-
-            for i in range(det2im.data.ndim):
-                jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
-                hdulist[0].header[f"{d_kw}{num:d}.AXIS.{i + 1:d}"] = (
-                    i + 1,
-                    f"Axis number of the {jth} variable in a D2IM function",
-                )
-
-            image = fits.ImageHDU(det2im.data, name="D2IMARR")
-            header = image.header
-
-            header["CRPIX1"] = (det2im.crpix[0], "Coordinate system reference pixel")
-            header["CRPIX2"] = (det2im.crpix[1], "Coordinate system reference pixel")
-            header["CRVAL1"] = (
-                det2im.crval[0],
-                "Coordinate system value at reference pixel",
-            )
-            header["CRVAL2"] = (
-                det2im.crval[1],
-                "Coordinate system value at reference pixel",
-            )
-            header["CDELT1"] = (det2im.cdelt[0], "Coordinate increment along axis")
-            header["CDELT2"] = (det2im.cdelt[1], "Coordinate increment along axis")
-            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}.EXTVER"])
-            hdulist.append(image)
-
-        write_d2i(1, self.det2im1)
-        write_d2i(2, self.det2im2)
-
-    @staticmethod
-    def _inherit_primary_prior_distortion(header, fobj, key, shared_cpdis):
-        """
-        Decide whether the alternate WCS ``key`` should use the unsuffixed
-        (primary WCS) prior-distortion keywords. See the
-        ``shared_cpdis`` parameter of `WCS` for details.
-        """
-        if not isinstance(header, fits.Header):
-            return False
-        key = (key or " ").strip().upper()
-        if not key or (shared_cpdis is not None and not shared_cpdis):
-            return False
-        if _has_prior_distortion_kw(header, key):
-            return False  # the alternate WCS has its own keywords
-        if not _has_prior_distortion_kw(header, ""):
-            return False  # nothing to share
-        if shared_cpdis is None:
-            return _is_hst_acs_wfc3(fobj) and _is_stsci_prior_distortion(header)
-        return True
-
-    def _read_distortion_kw(
-        self, header, fobj, *, dist="CPDIS", err=0.0, key=" ", inherit_primary=False
-    ):
-        """
-        Reads `distortion paper`_ table-lookup keywords and data, and
-        returns a 2-tuple of `~astropy.wcs.DistortionLookupTable`
-        objects.
-        If no `distortion paper`_ keywords are found, ``(None, None)``
-        is returned.
-
-        Parameters
-        ----------
-        header : `~astropy.io.fits.Header` or str or bytes
-            FITS header containing distortion keywords
-        fobj : `~astropy.io.fits.HDUList` or None
-            FITS file object for lookup table data
-        dist : str, optional
-            Distortion type: "CPDIS" for prior or "CQDIS" for sequent.
-            Default is "CPDIS".
-        err : float, optional
-            Minimum error threshold. Distortions with maximum error less
-            than this value will be ignored. Default is 0.0.
-        key : str, optional
-            WCS key character (e.g., ' ', 'A', 'B', etc.). This is used
-            to construct the proper keyword names with the appropriate
-            suffix. Default is ' ' (primary WCS).
-        inherit_primary : bool, optional
-            If `True`, read the unsuffixed (primary WCS) keywords instead of
-            those suffixed with *key*. Default is `False`.
-
-        Returns
-        -------
-        tuple
-            A 2-tuple of `~astropy.wcs.DistortionLookupTable` objects
-            for axes 1 and 2, or ``(None, None)`` if no distortion
-            keywords are found.
-        """
-        if isinstance(header, (str, bytes)):
-            return (None, None)
-
-        key_suffix = "" if inherit_primary else key.strip().upper()
-
-        if dist == "CPDIS":
-            d_kw = "DP"
-            err_kw = "CPERR"
-        else:
-            d_kw = "DQ"
-            err_kw = "CQERR"
-
-        tables = {}
-        for i in range(1, self.naxis + 1):
-            axis_key_suffix = str(i) + key_suffix
-            d_error_key = err_kw + axis_key_suffix
-
-            if d_error_key in header:
-                d_error = header[d_error_key]
-                del header[d_error_key]
-            else:
-                d_error = 0.0
-
-            if d_error < err:
-                tables[i] = None
-                continue
-
-            distortion = dist + axis_key_suffix
-
-            if distortion in header:
-                dis = header[distortion].lower()
-                del header[distortion]
-
-                if dis == "lookup":
-                    if not isinstance(fobj, fits.HDUList):
-                        raise ValueError(
-                            "an astropy.io.fits.HDUList is "
-                            "required for Lookup table distortion."
-                        )
-
-                    dp = d_kw + axis_key_suffix
-
-                    dp_extver_key = dp + ".EXTVER"
-                    if dp_extver_key in header:
-                        d_extver = header[dp_extver_key]
-                        del header[dp_extver_key]
-                    else:
-                        d_extver = 1
-
-                    dp_axis_key = dp + f".AXIS.{i:d}"
-                    if dp_axis_key in header:
-                        axis_val = header[dp_axis_key]
-                        if i == axis_val:
-                            d_data = fobj["WCSDVARR", d_extver].data
-                        else:
-                            d_data = (fobj["WCSDVARR", d_extver].data).transpose()
-                        del header[dp_axis_key]
-                    else:
-                        d_data = fobj["WCSDVARR", d_extver].data
-
-                    d_header = fobj["WCSDVARR", d_extver].header
-                    d_crpix = (d_header.get("CRPIX1", 0.0), d_header.get("CRPIX2", 0.0))
-                    d_crval = (d_header.get("CRVAL1", 0.0), d_header.get("CRVAL2", 0.0))
-                    d_cdelt = (d_header.get("CDELT1", 1.0), d_header.get("CDELT2", 1.0))
-                    d_lookup = DistortionLookupTable(d_data, d_crpix, d_crval, d_cdelt)
-                    tables[i] = d_lookup
-
-                    for kwd in set(header):
-                        if kwd.startswith(dp + "."):
-                            del header[kwd]
-                else:
-                    warnings.warn(
-                        "Polynomial distortion is not implemented.\n",
-                        AstropyUserWarning,
-                    )
-            else:
-                tables[i] = None
-
-        if not tables:
-            return (None, None)
-        else:
-            return (tables.get(1), tables.get(2))
-
-    def _write_distortion_kw(self, hdulist, dist="CPDIS"):
-        """
-        Write out `distortion paper`_ keywords to the given
-        `~astropy.io.fits.HDUList`.
-        """
-        if self.cpdis1 is None and self.cpdis2 is None:
-            return
-
-        if dist == "CPDIS":
-            d_kw = "DP"
-        else:
-            d_kw = "DQ"
-
-        def write_dist(num, cpdis):
-            if cpdis is None:
-                return
-
-            hdulist[0].header[f"{dist}{num:d}"] = (
-                "LOOKUP",
-                "Prior distortion function type",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.EXTVER"] = (
-                num,
-                "Version number of WCSDVARR extension",
-            )
-            hdulist[0].header[f"{d_kw}{num:d}.NAXES"] = (
-                len(cpdis.data.shape),
-                f"Number of independent variables in {dist} function",
-            )
-
-            for i in range(cpdis.data.ndim):
-                jth = {1: "1st", 2: "2nd", 3: "3rd"}.get(i + 1, f"{i + 1}th")
-                hdulist[0].header[f"{d_kw}{num:d}.AXIS.{i + 1:d}"] = (
-                    i + 1,
-                    f"Axis number of the {jth} variable in a {dist} function",
-                )
-
-            image = fits.ImageHDU(cpdis.data, name="WCSDVARR")
-            header = image.header
-
-            header["CRPIX1"] = (cpdis.crpix[0], "Coordinate system reference pixel")
-            header["CRPIX2"] = (cpdis.crpix[1], "Coordinate system reference pixel")
-            header["CRVAL1"] = (
-                cpdis.crval[0],
-                "Coordinate system value at reference pixel",
-            )
-            header["CRVAL2"] = (
-                cpdis.crval[1],
-                "Coordinate system value at reference pixel",
-            )
-            header["CDELT1"] = (cpdis.cdelt[0], "Coordinate increment along axis")
-            header["CDELT2"] = (cpdis.cdelt[1], "Coordinate increment along axis")
-            image.ver = int(hdulist[0].header[f"{d_kw}{num:d}.EXTVER"])
-            hdulist.append(image)
-
-        write_dist(1, self.cpdis1)
-        write_dist(2, self.cpdis2)
 
     def _fix_pre2012_scamp_tpv(self, header, wcskey=""):
         """
@@ -3183,19 +2727,30 @@ reduce these to 2 dimensions using the naxis kwarg.
         key : str
             The name of a particular WCS transform to use.  This may be
             either ``' '`` or ``'A'``-``'Z'`` and corresponds to the ``"a"``
-            part of the ``CTYPEia`` cards.
+            part of the ``CTYPEia`` cards. It is also used for the
+            `distortion paper`_ lookup-table keywords (``CPDISja``,
+            ``CPERRja``, ``DPja``). Defaults to the key of this WCS.
 
         Returns
         -------
         hdulist : `~astropy.io.fits.HDUList`
+
+        See Also
+        --------
+        write_lookup_tables : Add the lookup tables to an existing file.
         """
         header = self.to_header(relax=relax, key=key)
 
         hdu = fits.PrimaryHDU(header=header)
         hdulist = fits.HDUList(hdu)
 
+        # The lookup-table keywords carry the same WCS key as the rest of the
+        # header, so that an alternate WCS survives a round trip through
+        # to_fits() and WCS(..., key=key).
+        if key is None:
+            key = self.wcs.alt
         self._write_det2im(hdulist)
-        self._write_distortion_kw(hdulist)
+        self._write_distortion_kw(hdulist, key=key)
 
         return hdulist
 
@@ -3649,13 +3204,6 @@ reduce these to 2 dimensions using the naxis kwarg.
         # non-picklable cache contents (e.g. closures) from breaking pickle.
         dct = {k: v for k, v in self.__dict__.items() if not k.endswith("_cache")}
         dct["_alt_wcskey"] = self.wcs.alt
-        # The serialized file holds only this object's own distortion tables.
-        # For an alternate WCS they may be written without the key suffix, so
-        # make sure they are read back when unpickling.
-        dct["_init_kwargs"] = {
-            **dct.get("_init_kwargs", {}),
-            "shared_cpdis": True,
-        }
 
         return (
             __WCS_unpickle__,
