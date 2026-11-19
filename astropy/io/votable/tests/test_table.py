@@ -1420,6 +1420,29 @@ def test_char_widened_column_not_truncated(arraysize, fmt):
     assert list(result.array["s"]) == ["abc", "abcdefgh"]
 
 
+def test_char_unbounded_arraysize_kept_for_fixed_width_column():
+    col = Column(
+        np.array(["abc"], dtype="U5"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "*"},
+    )
+    assert table_column_to_votable_datatype(col) == {
+        "datatype": "char",
+        "arraysize": "*",
+    }
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary"])
+def test_write_warnings_not_hidden_by_verify_ignore(fmt):
+    bio = io.BytesIO()
+    _one_cell_votable("1.4", "char", "3", "abc").to_xml(bio)
+    bio.seek(0)
+    votable = parse(bio, verify="ignore")
+    votable.get_first_table().array[0]["s"] = "zł"
+
+    with pytest.warns(E24, match="non-ASCII"):
+        votable.to_xml(io.BytesIO(), tabledata_format=fmt)
+
+
 @pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
 @pytest.mark.parametrize("arraysize", ["3", "3*"])
 def test_unicodechar_non_bmp(fmt, arraysize):

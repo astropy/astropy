@@ -23,8 +23,7 @@ FILES = [
     "data/unicode-example-binary2.vot",
 ]
 
-# Needs both the UTF-8 char handling from VOTable 1.6 and the char arrays
-# from #19974. Remove once this branch is rebased on it.
+# Needs both the UTF-8 char handling from VOTable 1.6 and char array handling
 needs_char_arrays = pytest.mark.xfail(
     reason="char arrays (arraysize like 10x2) need astropy#19974", strict=True
 )

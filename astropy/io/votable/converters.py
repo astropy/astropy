@@ -319,6 +319,12 @@ def _truncate_utf8(data, size):
     return data[:end]
 
 
+def _write_config(config):
+    if config.get("verify") == "ignore":
+        return {**config, "verify": "warn"}
+    return config
+
+
 class Char(Converter):
     """
     Handles the char datatype.
@@ -337,6 +343,7 @@ class Char(Converter):
         if config is None:
             config = {}
         self._config = config
+        self._write_config = _write_config(config)
 
         Converter.__init__(self, field, config, pos)
 
@@ -364,8 +371,6 @@ class Char(Converter):
             except ValueError:
                 vo_raise(E01, (numeric_part, "char", field.ID), config)
 
-            self.arraysize_bytes = self.arraysize
-
             n_chars = self.arraysize
             if self.is_utf8_version and field.width is not None:
                 # A string never has more characters than UTF-8 bytes.
@@ -387,20 +392,11 @@ class Char(Converter):
 
     def parse(self, value, config=None, pos=None):
         if self.arraysize != "*":
-            if self.is_utf8_version:
-                value_bytes = value.encode("utf-8")
-                if len(value_bytes) > self.arraysize:
-                    vo_warn(W46, ("char", self.arraysize), config, pos)
-            else:
-                if len(value) > self.arraysize:
-                    vo_warn(W46, ("char", self.arraysize), config, pos)
-
-        if not self.is_utf8_version:
-            try:
-                value.encode("ascii")
-            except UnicodeEncodeError:
-                vo_warn(W55, (self.field_name, value), config, pos)
-
+            length = len(value.encode("utf-8")) if self.is_utf8_version else len(value)
+            if length > self.arraysize:
+                vo_warn(W46, ("char", self.arraysize), config, pos)
+        if not self.is_utf8_version and not value.isascii():
+            vo_warn(W55, (self.field_name, value), config, pos)
         self._check_width(value, config, pos)
         return value, False
 
@@ -415,20 +411,17 @@ class Char(Converter):
         if not isinstance(value, str):
             value = value.decode("utf-8")
 
-        if not self.is_utf8_version:
-            try:
-                value.encode("ascii")
-            except UnicodeEncodeError:
-                warn_or_raise(E24, E24, (value, self.field_name), self._config)
+        if not self.is_utf8_version and not value.isascii():
+            warn_or_raise(E24, E24, (value, self.field_name), self._write_config)
 
         if self.arraysize != "*":
             if self.is_utf8_version:
                 encoded = value.encode("utf-8", errors="replace")
                 if len(encoded) > self.arraysize:
-                    vo_warn(W46, ("char", self.arraysize), self._config)
+                    vo_warn(W46, ("char", self.arraysize), self._write_config)
                     value = _truncate_utf8(encoded, self.arraysize).decode("utf-8")
             elif len(value) > self.arraysize:
-                vo_warn(W46, ("char", self.arraysize), self._config)
+                vo_warn(W46, ("char", self.arraysize), self._write_config)
                 value = value[: self.arraysize]
 
         return xml_escape_cdata(value)
@@ -445,7 +438,7 @@ class Char(Converter):
 
     def _encode(self, value):
         if not self.is_utf8_version and not value.isascii():
-            warn_or_raise(E24, E24, (value, self.field_name), self._config)
+            warn_or_raise(E24, E24, (value, self.field_name), self._write_config)
         return value.encode("utf-8", errors="replace")
 
     def _binparse_var(self, read):
@@ -458,7 +451,7 @@ class Char(Converter):
         return value, False
 
     def _binparse_fixed(self, read):
-        s = read(self.arraysize_bytes)
+        s = read(self.arraysize)
         end = s.find(_zero_byte)
         if end != -1:
             s = s[:end]
@@ -473,7 +466,7 @@ class Char(Converter):
             value = self._encode(value)
 
         if self.arraysize != "*" and len(value) > self.arraysize:
-            vo_warn(W46, ("char", self.arraysize), self._config)
+            vo_warn(W46, ("char", self.arraysize), self._write_config)
             value = _truncate_utf8(value, self.arraysize)
 
         return self._write_length(len(value)) + value
@@ -486,10 +479,10 @@ class Char(Converter):
         else:
             value_bytes = value
 
-        if len(value_bytes) > self.arraysize_bytes:
-            vo_warn(W46, ("char", self.arraysize), self._config)
-            value_bytes = _truncate_utf8(value_bytes, self.arraysize_bytes)
-        return value_bytes.ljust(self.arraysize_bytes, _zero_byte)
+        if len(value_bytes) > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), self._write_config)
+            value_bytes = _truncate_utf8(value_bytes, self.arraysize)
+        return value_bytes.ljust(self.arraysize, _zero_byte)
 
 
 class UnicodeChar(Converter):
@@ -507,6 +500,7 @@ class UnicodeChar(Converter):
         if config is None:
             config = {}
         self._config = config
+        self._write_config = _write_config(config)
         self.field_name = field.name
         Converter.__init__(self, field, config, pos)
 
@@ -547,13 +541,13 @@ class UnicodeChar(Converter):
 
     def _check_bmp(self, value):
         if not value.isascii() and max(value) > "\uffff":
-            vo_warn(W62, (self.field_name, value), self._config)
+            vo_warn(W62, (self.field_name, value), self._write_config)
 
     def _encode(self, value, n_units):
         self._check_bmp(value)
         encoded = value.encode("utf_16_be")
         if n_units is not None and len(encoded) > 2 * n_units:
-            vo_warn(W46, ("unicodeChar", n_units), self._config)
+            vo_warn(W46, ("unicodeChar", n_units), self._write_config)
             encoded = encoded[: 2 * n_units]
             # Don't leave half of a surrogate pair.
             if encoded and 0xD8 <= encoded[-2] <= 0xDB:
@@ -1872,8 +1866,7 @@ def table_column_to_votable_datatype(column, *, version=None):
     if result["datatype"] == "unicodeChar" and votable_string_dtype == "char":
         result["datatype"] = "char"
 
-    # If we stored the original arraysize, use it instead of what
-    # numpy_to_votable_dtype derives
+    # Keep the original arraysize unless the column has grown wider
     if original_arraysize is not None:
         bound = original_arraysize.removesuffix("*")
         derived = result.get("arraysize", "")
