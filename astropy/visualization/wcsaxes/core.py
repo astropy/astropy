@@ -17,6 +17,14 @@ from astropy.wcs import WCS
 from astropy.wcs.wcsapi import BaseHighLevelWCS, BaseLowLevelWCS
 
 from ._auto import auto_assign_coord_positions
+from ._quantity_helpers import (
+    convert_grid_args,
+    convert_plot_args,
+    convert_quantities,
+    get_frame_input_units,
+    get_transform_input_units,
+    wrap_data,
+)
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
 from .transforms import CoordinateTransform
@@ -260,6 +268,11 @@ class WCSAxes(Axes):
         # the Matplotlib one with no transform, then apply the transform in one
         # go to all the segments that make up the contour map.
 
+        args = convert_grid_args(
+            args,
+            *get_transform_input_units(self, kwargs.get("transform")),
+            wrap_data(kwargs),
+        )
         transform = kwargs.pop("transform", None)
 
         cset = super().contour(*args, **kwargs)
@@ -289,6 +302,11 @@ class WCSAxes(Axes):
         """
         # See notes for contour above.
 
+        args = convert_grid_args(
+            args,
+            *get_transform_input_units(self, kwargs.get("transform")),
+            wrap_data(kwargs),
+        )
         transform = kwargs.pop("transform", None)
 
         cset = super().contourf(*args, **kwargs)
@@ -301,6 +319,14 @@ class WCSAxes(Axes):
             transform_contour_set_inplace(cset, transform)
 
         return cset
+
+    plot = convert_quantities(Axes.plot, convert_args=convert_plot_args)
+    fill = convert_quantities(Axes.fill, convert_args=convert_plot_args)
+    pcolor = convert_quantities(Axes.pcolor, convert_args=convert_grid_args)
+    pcolormesh = convert_quantities(Axes.pcolormesh, convert_args=convert_grid_args)
+    scatter = convert_quantities(Axes.scatter, x=["x"], y=["y"])
+    text = convert_quantities(Axes.text, x=["x"], y=["y"])
+    errorbar = convert_quantities(Axes.errorbar, x=["x", "xerr"], y=["y", "yerr"])
 
     def _transform_plot_args(self, *args, **kwargs):
         """
@@ -858,14 +884,27 @@ class WCSAxes(Axes):
                   allows users to plot in pixel/data coordinates (essentially
                   an identity transform) and ``world`` (the default
                   world-to-pixel transformation used to instantiate the
-                  ``WCSAxes`` instance).
+                  ``WCSAxes`` instance). For ``'world'``, the values are
+                  assumed to be in the world units of the WCS.
                 * ``'fk5'`` or ``'galactic'``: return a transformation from
                   the specified frame to the pixel/data coordinates. In this
                   case, the values are assumed to be in degrees.
                 * :class:`~astropy.coordinates.BaseCoordinateFrame` instance.
                   In this case, the values are assumed to be in degrees.
+
+        Notes
+        -----
+        Coordinates given as `~astropy.units.Quantity` objects to plotting
+        methods such as :meth:`~astropy.visualization.wcsaxes.WCSAxes.plot`
+        and :meth:`~astropy.visualization.wcsaxes.WCSAxes.scatter` together
+        with the transform returned by this method are converted to the units
+        given above, apart from when ``frame`` is a
+        :class:`~matplotlib.transforms.Transform`, for which the units are not
+        known.
         """
-        return self._get_transform_no_transdata(frame).inverted() + self.transData
+        transform = self._get_transform_no_transdata(frame).inverted() + self.transData
+        transform._wcsaxes_input_units = get_frame_input_units(self, frame)
+        return transform
 
     def _get_transform_no_transdata(self, frame):
         """
@@ -877,6 +916,9 @@ class WCSAxes(Axes):
             The frame to transform to, as for
             `~astropy.visualization.wcsaxes.WCSAxes.get_transform`.
         """
+        # If the frames that are accepted here or the units of the values that
+        # the transforms expect change, get_frame_input_units in
+        # _quantity_helpers.py has to be updated to match.
         if isinstance(frame, (BaseLowLevelWCS, BaseHighLevelWCS)):
             if isinstance(frame, BaseHighLevelWCS):
                 frame = frame.low_level_wcs
