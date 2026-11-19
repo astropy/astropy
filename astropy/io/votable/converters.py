@@ -508,9 +508,10 @@ class UnicodeChar(Converter):
     """
     Handles the unicodeChar data type. UTF-16-BE.
 
-    .. deprecated:: 1.6
-        The unicodeChar datatype is deprecated as of VOTable 1.6.
-        Use char (UTF-8 encoded) instead for new VOTable files.
+    The unicodeChar datatype is deprecated from VOTable 1.6, which uses UTF-8
+    ``char`` instead. Files using it can still be read and written.
+
+    Missing values are not handled for string or unicode types.
     """
 
     default = ""
