@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 
 # LOCAL
 from astropy.io.votable import converters, exceptions, tree
-from astropy.io.votable.table import parse_single_table
+from astropy.io.votable.table import parse, parse_single_table
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -350,6 +350,110 @@ def test_vararray():
         table.array[i] = values
     buff = io.BytesIO()
     votable.to_xml(buff)
+
+
+def _parse_one_cell(field, cell):
+    """
+    Parse a VOTable with the FIELD element *field* and one TABLEDATA row
+    holding *cell*.
+    """
+    xml = f"""<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE><TABLE>{field}
+<DATA><TABLEDATA><TR><TD>{cell}</TD></TR></TABLEDATA></DATA>
+</TABLE></RESOURCE></VOTABLE>"""
+    return parse(io.BytesIO(xml.encode()))
+
+
+def _write_and_read_cell(votable, tabledata_format):
+    """
+    Write *votable* in *tabledata_format*, read it back, and return the cell
+    in column c of the first row.
+    """
+    buffer = io.BytesIO()
+    votable.to_xml(buffer, tabledata_format=tabledata_format)
+    buffer.seek(0)
+    return parse_single_table(buffer).array["c"][0]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_vararray_masked_element(tabledata_format):
+    """
+    Writing a double arraysize="*" cell with its middle element masked, then
+    reading it back, gives the same values with only that element masked.
+    """
+    votable = _parse_one_cell(
+        '<FIELD name="c" datatype="double" arraysize="*"/>', "1.5 2.5 3.5"
+    )
+    votable.get_first_table().array["c"][0][1] = np.ma.masked
+
+    cell = _write_and_read_cell(votable, tabledata_format)
+
+    assert cell.tolist() == [1.5, None, 3.5]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_array_vararray_masked_element(tabledata_format):
+    """
+    Writing a double arraysize="2x*" cell with one element masked, then
+    reading it back, gives the same values with only that element masked.
+    """
+    votable = _parse_one_cell(
+        '<FIELD name="c" datatype="double" arraysize="2x*"/>', "1.5 2.5 3.5 4.5"
+    )
+    votable.get_first_table().array["c"][0][0, 1] = np.ma.masked
+
+    cell = _write_and_read_cell(votable, tabledata_format)
+
+    assert cell.tolist() == [[1.5, None], [3.5, 4.5]]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_complex_vararray_masked_element(tabledata_format):
+    """
+    Writing a doubleComplex arraysize="*" cell with its middle element masked,
+    then reading it back, gives the same values with only that element masked.
+    """
+    votable = _parse_one_cell(
+        '<FIELD name="c" datatype="doubleComplex" arraysize="*"/>', "1 2 3 4 5 6"
+    )
+    votable.get_first_table().array["c"][0][1] = np.ma.masked
+
+    cell = _write_and_read_cell(votable, tabledata_format)
+
+    assert cell.tolist() == [1 + 2j, None, 5 + 6j]
+
+
+@pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
+def test_complex_array_masked_element(tabledata_format):
+    """
+    Writing a doubleComplex arraysize="3" cell with its middle element masked,
+    then reading it back, gives the same values with only that element masked.
+    """
+    votable = _parse_one_cell(
+        '<FIELD name="c" datatype="doubleComplex" arraysize="3"/>', "1 2 3 4 5 6"
+    )
+    votable.get_first_table().array["c"][0][1] = np.ma.masked
+
+    cell = _write_and_read_cell(votable, tabledata_format)
+
+    assert cell.tolist() == [1 + 2j, None, 5 + 6j]
+
+
+def test_vararray_masked_element_written_as_null():
+    """
+    to_xml() in TABLEDATA of an int arraysize="*" cell with its middle element
+    masked writes the null value of the FIELD for that element.
+    """
+    votable = _parse_one_cell(
+        '<FIELD name="c" datatype="int" arraysize="*"><VALUES null="-1"/></FIELD>',
+        "1 2 3",
+    )
+    votable.get_first_table().array["c"][0][1] = np.ma.masked
+    buffer = io.BytesIO()
+
+    votable.to_xml(buffer, tabledata_format="tabledata")
+
+    assert b"<TD>1 -1 3</TD>" in buffer.getvalue()
 
 
 def test_gemini_v1_2():
