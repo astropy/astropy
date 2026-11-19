@@ -125,6 +125,10 @@ def validate_method(  # ruff: ignore[PLR0917]
         and dy is None
         and method_kwds is None
         and (not fit_mean or _scipy_supports_floating_mean())
+    can_use_scipy = (
+        "scipy" in methods
+        and method_kwds is None
+        and ((dy is None and not fit_mean) or _scipy_supports_floating_mean())
     )
 
     # automatically choose the appropriate method

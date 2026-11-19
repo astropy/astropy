@@ -173,11 +173,6 @@ def test_cython_irregular_frequency(data, fit_mean, center_data):
 def test_integer_inputs(
     data, method, center_data, fit_mean, with_errors, normalization
 ):
-    if method == "scipy":
-        if fit_mean and not _scipy_supports_floating_mean():
-            pytest.skip("SciPy 1.15+ required for using `fit_mean=True`")
-        if with_errors and not _scipy_supports_floating_mean():
-            pytest.skip("SciPy 1.15+ required for non-uniform uncertainties dy")
 
     t, y, dy = data
 
@@ -199,16 +194,24 @@ def test_integer_inputs(
     kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
     P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
-    assert_allclose(P_float, P_int)
+kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
+if method == "scipy" and (fit_mean or with_errors) and not _scipy_supports_floating_mean():
+        with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
+            LombScargle(t, y, dy, **kwds).power(frequency, method=method)
+    else:
+        P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
+        P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
+        assert_allclose(P_int, P_float)
 
 
 def test_scipy_nonuniform_errors_old_scipy(data, monkeypatch):
     pytest.importorskip("scipy")
-    monkeypatch.setattr(
-        "astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl"
-        "._scipy_supports_floating_mean",
-        lambda: False,
-    )
+    if _scipy_supports_floating_mean():
+        monkeypatch.setattr(
+            "astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl"
+            "._scipy_supports_floating_mean",
+            lambda: False,
+        )
     t, y, dy = data
     with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
         LombScargle(t, y, dy, fit_mean=False).power([1.0], method="scipy")
