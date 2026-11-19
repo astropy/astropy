@@ -3,7 +3,7 @@ import operator
 import re
 import warnings
 from collections.abc import Callable
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import erfa
 import numpy as np
@@ -35,6 +35,9 @@ from .sky_coordinate_parsers import (
     _get_frame_without_data,
     _parse_coordinate_data,
 )
+
+if TYPE_CHECKING:
+    from .matching import CoordinateSearchResult
 
 __all__ = ["SkyCoord", "SkyCoordInfo"]
 
@@ -1398,6 +1401,42 @@ class SkyCoord(MaskableShapedLikeNDArray):
 
         return search_around_3d(
             searcharoundcoords, self, distlimit, storekdtree="_kdtree_3d"
+        )
+
+    def nearest_neighbour_sky(
+        self, searchcoords: "SkyCoord", nthneighbor_max: int
+    ) -> "CoordinateSearchResult":
+        """
+        Searches for pairs of points that are at most ``nthneighbor_max`` nearest neighbours.
+        For finding _just_ the nearest neighbour see ``match_coordinates_sky``.
+
+        Parameters
+        ----------
+        searchcoords : SkyCoord
+            The set of coordinates, which will be searched for matches within
+            ``nthneighbor_max`` neighbours.
+            Must be a one-dimensional coordinate array.
+        nthneighbor_max : int
+            The maximum nearest neighbour to be searched.
+            If ``searchcoords`` is this |SkyCoord|, each point is its own
+            nearest neighbour, so use ``nthneighbor_max+1``.
+
+        Returns
+        -------
+        CoordinateSearchResult
+            A `~typing.NamedTuple` with attributes representing the indices
+            of the elements of found pairs in both source sets and angular
+            and physical separations of the pairs. If either set of sources
+            lack distances, the physical separation is the 3D distance on
+            the unit sphere, rather than a true distance.
+        """
+        from .matching import nearest_neighbour_sky
+
+        return nearest_neighbour_sky(
+            self,
+            searchcoords,
+            nthneighbor_max=nthneighbor_max,
+            storekdtree="_kdtree_nn",
         )
 
     def skyoffset_frame(self, rotation=None):
