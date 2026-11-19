@@ -1,0 +1,4 @@
+Fixed ``sigma_clip`` and ``SigmaClip`` returning a ``Quantity`` without
+a mask for a ``Quantity`` input with ``masked=True`` when ``cenfunc``
+and ``stdfunc`` are set to their string options. A masked ``Quantity``
+is now returned, as for a callable ``cenfunc`` or ``stdfunc``.

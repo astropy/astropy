@@ -347,6 +347,11 @@ class SigmaClip:
             )
 
         if masked:
+            if unit is not None:
+                # The unit is attached before the mask because applying
+                # a unit to a `~numpy.ma.MaskedArray` returns a Quantity
+                # without the mask.
+                data = data << unit
             result = np.ma.array(data, mask=mask, copy=copy)
         else:
             if data.dtype.kind != "f":
@@ -360,7 +365,8 @@ class SigmaClip:
             result[mask] = np.nan
 
         if unit is not None:
-            result = result << unit
+            if not masked:
+                result = result << unit
             bound_lo = bound_lo << unit
             bound_hi = bound_hi << unit
 
