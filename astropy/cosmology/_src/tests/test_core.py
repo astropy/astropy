@@ -3,8 +3,13 @@
 """Testing :mod:`astropy.cosmology.core`."""
 
 import abc
+import copy
 import inspect
 import pickle
+import re
+import sys
+from dataclasses import dataclass
+from importlib.metadata import metadata
 
 import numpy as np
 import pytest
@@ -257,6 +262,39 @@ class CosmologyTest(
         with pytest.raises(TypeError, match="1 positional argument"):
             cosmo.clone(None)
 
+    # ------------------------------------------------
+    # __replace__
+
+    def test_replace_is_inherited(self, cosmo_cls):
+        """``dataclass`` must not shadow `Cosmology.__replace__` on subclasses."""
+        assert cosmo_cls.__replace__ is Cosmology.__replace__
+
+    @pytest.mark.skipif(sys.version_info < (3, 13), reason="copy.replace is 3.13+")
+    def test_replace_plain_dataclass_subclass(self, cosmo_cls):
+        """A user subclass decorated with plain ``@dataclass`` keeps ``__replace__``."""
+
+        @dataclass(frozen=True, eq=False)
+        class UserCosmo(cosmo_cls):
+            pass
+
+        _COSMOLOGY_CLASSES.pop(UserCosmo.__qualname__)
+        assert UserCosmo.__replace__ is Cosmology.__replace__
+
+    def test_replace(self, cosmo):
+        """Test ``__replace__`` matches ``clone``."""
+        assert cosmo.__replace__() is cosmo
+        c = cosmo.__replace__(meta={"test_replace": True})
+        assert c.name == cosmo.name + " (modified)"
+        assert c.meta == cosmo.meta | {"test_replace": True}  # merged, not replaced
+
+    @pytest.mark.skipif(sys.version_info < (3, 13), reason="copy.replace is 3.13+")
+    def test_copy_replace(self, cosmo):
+        """Test :func:`copy.replace` dispatches to ``Cosmology.__replace__``."""
+        assert copy.replace(cosmo) is cosmo
+        c = copy.replace(cosmo, meta={"test_replace": True})
+        assert c == cosmo.clone(meta={"test_replace": True})
+        assert c.name == cosmo.name + " (modified)"
+
     # ---------------------------------------------------------------
     # comparison methods
 
@@ -505,3 +543,18 @@ def test__nonflatclass__multiple_nonflat_inheritance():
             @property
             def nonflat(self):
                 pass
+
+
+def test_clone_deprecation_gate():
+    """Fail once astropy requires Python 3.13+: then deprecate ``Cosmology.clone``.
+
+    At that point ``copy.replace`` is always available, so ``Cosmology.clone``
+    should be deprecated in favor of it (keeping ``to_nonflat`` available, e.g.
+    via ``cosmo.nonflat``), and this test removed.
+    """
+    spec = metadata("astropy")["Requires-Python"]
+    min_py = tuple(map(int, re.search(r">=\s*(\d+)\.(\d+)", spec).groups()))
+    assert min_py < (3, 13), (
+        "astropy now requires Python 3.13+: deprecate Cosmology.clone in favor "
+        "of copy.replace and remove this test."
+    )
