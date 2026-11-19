@@ -185,21 +185,35 @@ class _LimitedDecompressedReader(io.RawIOBase):
     since seeking forward in a decompressor silently decompresses data.
 
     Use `_limit_decompression` rather than instantiating this directly.
+
+    Parameters
+    ----------
+    decompressor : file-like
+        Binary file object that decompresses on ``read`` and supports ``seek``
+        (e.g. `gzip.GzipFile`, `lzma.LZMAFile`, `bz2.BZ2File`).
+    compressed : file-like
+        The underlying compressed stream that ``decompressor`` reads from. Its
+        ``tell`` is used to measure how much compressed data was consumed.
+    name : str
+        Used in the error message.
+    max_size : int
+        Maximum number of bytes that may be read from the decompressor before
+        an error is raised. Set to 0 to disable.
+    max_ratio : float
+        Maximum allowed ratio of decompressed to compressed bytes while
+        reading. Only enforced once at least 1 MiB has been decompressed.
+        Set to 0 to disable.
     """
 
     def __init__(self, decompressor, compressed, name, max_size, max_ratio):
         super().__init__()
         self._decompressor = decompressor
         self._compressed = compressed
-        self._name = name
+        self.name = name
         self._max_size = max_size
         self._max_ratio = max_ratio
         self._pos = 0
         self._high_water = 0  # furthest decompressed offset ever reached
-
-    @property
-    def name(self):
-        return self._name
 
     def readable(self):
         return True
@@ -224,12 +238,12 @@ class _LimitedDecompressedReader(io.RawIOBase):
                 f"a decompressed-to-compressed size ratio above {self._max_ratio}",
             )
         return ValueError(
-            f"Decompressing {self._name!r} would produce {what}, which exceeds "
+            f"Decompressing {self.name!r} would produce {what}, which exceeds "
             f"the limit set by the configuration item "
             f"`astropy.utils.data.conf.{item}` ({value}). This could be a "
-            "decompression bomb. If you trust this file, you can temporarily "
-            "disable the limit with:\n\n"
-            f"    with astropy.utils.data.conf.set_temp({item!r}, 0):\n"
+            "decompression bomb. If you trust this file, you can raise the "
+            "limit, for example with:\n\n"
+            f"    with astropy.utils.data.conf.set_temp({item}, {10 * value}):\n"
             "        ...\n\n"
             "or change it permanently in the astropy configuration file "
             f"(section [utils.data], key {item}). A value of 0 disables the "
@@ -237,8 +251,12 @@ class _LimitedDecompressedReader(io.RawIOBase):
         )
 
     def _check_ratio(self):
+        print(self._max_ratio, self._high_water, self._compressed.tell())
         if (
             self._max_ratio
+            # Only when decompressing new data: after rewinding, the compressed
+            # position is no longer comparable to the high-water mark.
+            and self._pos == self._high_water
             and self._high_water >= _MIN_BYTES_FOR_RATIO_CHECK
             and self._high_water / max(self._compressed.tell(), 1) > self._max_ratio
         ):
@@ -340,8 +358,8 @@ def _limit_decompression(decompressor, compressed, name):
             decompressor,
             compressed,
             name,
-            conf.max_decompressed_size,
-            conf.max_decompression_ratio,
+            abs(conf.max_decompressed_size),
+            abs(conf.max_decompression_ratio),
         )
     )
 
