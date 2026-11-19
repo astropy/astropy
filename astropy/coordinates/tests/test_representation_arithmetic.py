@@ -1323,6 +1323,8 @@ class TestDifferentialConversion:
         so2 = uo - ro
         so2c = sd_cls(uo_d_lon, uo.d_lat, -ro.d_distance)
         assert np.all(representation_equal(so2, so2c))
+        expected = sd_cls(-uo_d_lon, -uo.d_lat, ro.d_distance)
+        assert_differential_allclose(ro - uo, expected)
         so3 = so2 + ro
         so3c = sd_cls(uo_d_lon, uo.d_lat, 0.0 * u.kpc)
         assert np.all(representation_equal(so3, so3c))
