@@ -4513,7 +4513,9 @@ def custom_model(*args, fit_deriv=None):
         >>> def sine_model(x, amplitude=1., frequency=1.):
         ...     return amplitude * np.sin(2 * np.pi * frequency * x)
         >>> def sine_deriv(x, amplitude=1., frequency=1.):
-        ...     return 2 * np.pi * amplitude * np.cos(2 * np.pi * frequency * x)
+        ...     d_amplitude = np.sin(2 * np.pi * frequency * x)
+        ...     d_frequency = 2 * np.pi * x * amplitude * np.cos(2 * np.pi * frequency * x)
+        ...     return [d_amplitude, d_frequency]
         >>> SineModel = custom_model(sine_model, fit_deriv=sine_deriv)
 
     Create an instance of the custom model and evaluate it::
@@ -4521,6 +4523,11 @@ def custom_model(*args, fit_deriv=None):
         >>> model = SineModel()
         >>> model(0.25)  # doctest: +FLOAT_CMP
         1.0
+
+    ``fit_deriv`` returns one derivative for each parameter::
+
+        >>> np.shape(model.fit_deriv(np.linspace(0, 1, 5), *model.parameters))
+        (2, 5)
 
     This model instance can now be used like a usual astropy model.
 
