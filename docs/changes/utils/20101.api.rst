@@ -1,0 +1,1 @@
+Removed deprecated ``astropy.utils.misc.indent()`` (use ``textwrap.indent()`` instead) and ``astropy.utils.console.terminal_size()`` (use ``shutil.get_terminal_size()`` instead) functions.
