@@ -80,7 +80,9 @@ def to_value(value, unit):
             "expect are not known"
         )
     try:
-        return u.Quantity(value).to_value(unit)
+        if not isinstance(value, u.Quantity):
+            value = u.Quantity(value)
+        return value.to_value(unit)
     except u.UnitConversionError as exc:
         if unit == u.pix:
             expected = (
