@@ -398,6 +398,7 @@ astropy
 │   │   │   │   │   ├── mpmath v1.2.1 (extra: test-all)
 │   │   │   │   │   ├── narwhals[dask] v1.42.0 (extra: test-all)
 │   │   │   │   │   │   └── dask[dataframe] v2024.8.0 (extra: dask) (*)
+│   │   │   │   │   ├── ncompress v1.0.0 (extra: test-all)
 │   │   │   │   │   ├── numpy-quaddtype v0.2.2 (extra: test-all)
 │   │   │   │   │   │   └── numpy v2.0.0
 │   │   │   │   │   ├── objgraph v3.1.2 (extra: test-all)
@@ -610,6 +611,7 @@ astropy
 ├── matplotlib v3.8.4 (extra: test-all) (*)
 ├── mpmath v1.2.1 (extra: test-all)
 ├── narwhals[dask] v1.42.0 (extra: test-all) (*)
+├── ncompress v1.0.0 (extra: test-all)
 ├── numpy-quaddtype v0.2.2 (extra: test-all) (*)
 ├── objgraph v3.1.2 (extra: test-all) (*)
 ├── pandas[html] v2.2.2 (extra: test-all) (*)
