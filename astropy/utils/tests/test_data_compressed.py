@@ -24,28 +24,27 @@ def bad_compressed(request, tmp_path):
     lzw_content = b"\x1f\x9d\x90invalid"
 
     datafile = tmp_path / request.param
-    filename = str(datafile)
-
-    if filename.endswith(".bz2"):
-        contents = bz_content
-    elif filename.endswith(".gz"):
-        contents = gz_content
-    elif filename.endswith(".xz"):
-        contents = xz_content
-    elif filename.endswith(".Z"):
-        contents = lzw_content
-    else:
-        contents = "invalid"
+    match datafile.suffix:
+        case ".bz2":
+            contents = bz_content
+        case ".gz":
+            contents = gz_content
+        case ".xz":
+            contents = xz_content
+        case ".Z":
+            contents = lzw_content
+        case _:
+            contents = "invalid"
 
     datafile.write_bytes(contents)
 
-    return filename
+    return datafile
 
 
 def test_local_data_obj_invalid(bad_compressed):
-    is_bz2 = bad_compressed.endswith(".bz2")
-    is_xz = bad_compressed.endswith(".xz")
-    is_lzw = bad_compressed.endswith(".Z")
+    is_bz2 = str(bad_compressed).endswith(".bz2")
+    is_xz = str(bad_compressed).endswith(".xz")
+    is_lzw = str(bad_compressed).endswith(".Z")
 
     # Note, since these invalid files are created on the fly in order to avoid
     # problems with detection by antivirus software
