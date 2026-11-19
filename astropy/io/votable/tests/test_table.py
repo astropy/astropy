@@ -40,7 +40,7 @@ from astropy.io.votable.exceptions import (
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
 from astropy.io.votable.xmlutil import check_token
-from astropy.table import Column, Table
+from astropy.table import Column, Table, vstack
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
@@ -1398,6 +1398,26 @@ def test_char_too_long_tabledata_pre_16():
     converter = get_converter(field, config={})
     with pytest.warns(W46, match="too long"):
         assert converter.output("abcdef", False) == "abc"
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary"])
+@pytest.mark.parametrize("arraysize", ["3", "3*"])
+def test_char_widened_column_not_truncated(arraysize, fmt):
+    table = _one_cell_votable("1.4", "char", arraysize, "abc").get_first_table()
+    table = table.to_table()
+
+    bio = io.BytesIO()
+    table.write(bio, format="votable", tabledata_format=fmt)
+    bio.seek(0)
+    assert parse(bio).get_first_table().fields[0].arraysize == arraysize
+
+    widened = vstack([table, Table({"s": ["abcdefgh"]})])
+    bio = io.BytesIO()
+    widened.write(bio, format="votable", tabledata_format=fmt)
+    bio.seek(0)
+    result = parse(bio).get_first_table()
+    assert result.fields[0].arraysize == arraysize.replace("3", "8")
+    assert list(result.array["s"]) == ["abc", "abcdefgh"]
 
 
 @pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])

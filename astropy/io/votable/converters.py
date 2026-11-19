@@ -1875,6 +1875,14 @@ def table_column_to_votable_datatype(column, *, version=None):
     # If we stored the original arraysize, use it instead of what
     # numpy_to_votable_dtype derives
     if original_arraysize is not None:
-        result["arraysize"] = original_arraysize
+        bound = original_arraysize.removesuffix("*")
+        derived = result.get("arraysize", "")
+        if bound.isdigit() and derived.isdigit():
+            n = max(int(bound), int(derived))
+            result["arraysize"] = (
+                f"{n}*" if original_arraysize.endswith("*") else str(n)
+            )
+        else:
+            result["arraysize"] = original_arraysize
 
     return result
