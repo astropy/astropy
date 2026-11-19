@@ -1379,12 +1379,17 @@ class _ValidHDU(_BaseHDU, _Verify):
 
     def _get_timestamp(self):
         """
-        Return the current timestamp in ISO 8601 format, with microseconds
-        stripped off.
+        Return the current UTC timestamp in ISO 8601 format, with no timezone
+        specification, as required by the FITS standard. The represented
+        precision is integer seconds.
 
         Ex.: 2007-05-30T19:05:11
         """
-        return datetime.datetime.now().isoformat()[:19]
+        return (
+            datetime.datetime.now(datetime.UTC)
+            .isoformat(timespec="seconds")
+            .replace("+00:00", "")
+        )
 
     def _calculate_datasum(self):
         """
