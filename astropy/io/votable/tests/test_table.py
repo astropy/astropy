@@ -1589,6 +1589,25 @@ def test_utf8_char_datatype_width():
     }
 
 
+def test_utf8_char_datatype_empty_and_bounded():
+    col = Column(np.array([], dtype="U3"))
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "3",
+        "width": 3,
+    }
+
+    col = Column(
+        np.array(["ΛCDM"], dtype="U4"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "4*"},
+    )
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "5*",
+        "width": 4,
+    }
+
+
 def test_votable_metadata_not_in_table_meta():
     xml = """<?xml version="1.0" encoding="utf-8"?>
 <VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
