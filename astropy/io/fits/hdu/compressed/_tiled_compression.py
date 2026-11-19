@@ -276,6 +276,22 @@ def _column_dtype(compressed_coldefs, column_name):
     return np.dtype(dtype)
 
 
+def _heap_descriptors(column):
+    """
+    Return the (size, offset) heap descriptors of a variable-length column as
+    int64, so that adding them to file positions cannot overflow.
+
+    Like CFITSIO, 32-bit 'P' descriptors are read as unsigned, which allows
+    heaps of up to 4 GiB (see https://github.com/astropy/astropy/issues/15482).
+    """
+    descriptors = np.array(column)
+    if descriptors.dtype.itemsize == 4:
+        return descriptors.astype(np.int64) & 0xFFFFFFFF
+    if np.any(descriptors < 0):
+        raise ValueError("Negative heap descriptor in compressed image table")
+    return descriptors
+
+
 def _get_data_from_heap(hdu, size, offset, dtype, heap_cache=None):
     if heap_cache is None:
         return hdu._get_raw_data(size, dtype, hdu._data_offset + hdu._theap + offset)
@@ -353,7 +369,7 @@ def decompress_image_data_section(
     # NOTE: in the following and below we convert the column to a Numpy array
     # for performance reasons, as accessing rows from a FITS_rec column is
     # otherwise slow.
-    compressed_data_column = np.array(compressed_data["COMPRESSED_DATA"])
+    compressed_data_column = _heap_descriptors(compressed_data["COMPRESSED_DATA"])
     compressed_data_dtype = _column_dtype(compressed_coldefs, "COMPRESSED_DATA")
 
     if "ZBLANK" in compressed_coldefs.dtype.names:
@@ -405,7 +421,7 @@ def decompress_image_data_section(
 
             if "GZIP_COMPRESSED_DATA" in compressed_coldefs.dtype.names:
                 if gzip_compressed_data_column is None:
-                    gzip_compressed_data_column = np.array(
+                    gzip_compressed_data_column = _heap_descriptors(
                         compressed_data["GZIP_COMPRESSED_DATA"]
                     )
                     gzip_compressed_data_dtype = _column_dtype(
@@ -431,7 +447,7 @@ def decompress_image_data_section(
 
             elif "UNCOMPRESSED_DATA" in compressed_coldefs.dtype.names:
                 if uncompressed_data_column is None:
-                    uncompressed_data_column = np.array(
+                    uncompressed_data_column = _heap_descriptors(
                         compressed_data["UNCOMPRESSED_DATA"]
                     )
                     uncompressed_data_dtype = _column_dtype(
@@ -713,8 +729,16 @@ def compress_image_data(
     for irow, cbytes in enumerate(compressed_bytes):
         table["COMPRESSED_DATA"][irow, 0] = len(cbytes)
 
+    offsets = np.cumsum(table["COMPRESSED_DATA"][:-1, 0], dtype=np.int64)
+    # Storing these in 32-bit 'P' descriptors would silently wrap large offsets.
+    max_offset = np.iinfo(table["COMPRESSED_DATA"].dtype).max
+    if offsets.max(initial=0) > max_offset:
+        raise ValueError(
+            f"The compressed data is too large to be stored with 'P' descriptors "
+            f"(heap offsets exceed {max_offset} bytes)"
+        )
     table["COMPRESSED_DATA"][:1, 1] = 0
-    table["COMPRESSED_DATA"][1:, 1] = np.cumsum(table["COMPRESSED_DATA"][:-1, 0])
+    table["COMPRESSED_DATA"][1:, 1] = offsets
 
     for irow in range(len(compressed_bytes)):
         if gzip_fallback[irow]:
