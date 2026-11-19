@@ -129,7 +129,7 @@ test_all = [
     "sgp4>=2.23",
     "array-api-strict>=1.0",
     "narwhals[dask]>=1.42.0", # keep in sync with dependency-groups.dataframe
-    "ncompress",
+    "ncompress>=1.0.0",
 
     # 0.2.2 works on *some* platforms we support, though not all
     # 1.0.0 would be a more universal lower bound, but it also
