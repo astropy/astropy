@@ -9,6 +9,9 @@ from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._testing import (
     assert_not_strictly_equal,
 )
+from astropy.timeseries.periodograms.lombscargle.implementations.main import (
+    validate_method,
+)
 from astropy.timeseries.periodograms.lombscargle.implementations.scipy_impl import (
     _scipy_supports_floating_mean,
 )
@@ -173,7 +176,6 @@ def test_cython_irregular_frequency(data, fit_mean, center_data):
 def test_integer_inputs(
     data, method, center_data, fit_mean, with_errors, normalization
 ):
-
     t, y, dy = data
 
     t = np.floor(100 * t)
@@ -192,15 +194,18 @@ def test_integer_inputs(
         dy_int = None
 
     kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
-    P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
-    P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
-kwds = dict(center_data=center_data, fit_mean=fit_mean, normalization=normalization)
-if method == "scipy" and (fit_mean or with_errors) and not _scipy_supports_floating_mean():
+    if (
+        method == "scipy"
+        and (fit_mean or with_errors)
+        and not _scipy_supports_floating_mean()
+    ):
         with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
             LombScargle(t, y, dy, **kwds).power(frequency, method=method)
     else:
         P_float = LombScargle(t, y, dy, **kwds).power(frequency, method=method)
-        P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(frequency, method=method)
+        P_int = LombScargle(t_int, y_int, dy_int, **kwds).power(
+            frequency, method=method
+        )
         assert_allclose(P_int, P_float)
 
 
@@ -215,6 +220,36 @@ def test_scipy_nonuniform_errors_old_scipy(data, monkeypatch):
     t, y, dy = data
     with pytest.raises(ValueError, match="requires scipy 1.15 or later"):
         LombScargle(t, y, dy, fit_mean=False).power([1.0], method="scipy")
+
+
+@pytest.mark.parametrize("supports_floating_mean", [True, False])
+@pytest.mark.parametrize("fit_mean", [True, False])
+@pytest.mark.parametrize("with_errors", [True, False])
+def test_auto_method_scipy_selection(
+    data, monkeypatch, supports_floating_mean, fit_mean, with_errors
+):
+    # For a short or irregular frequency grid, method='auto' should select
+    # the scipy method whenever the installed scipy can handle the inputs,
+    # and otherwise fall back to the cython method.
+    pytest.importorskip("scipy")
+    monkeypatch.setattr(
+        "astropy.timeseries.periodograms.lombscargle.implementations.main"
+        "._scipy_supports_floating_mean",
+        lambda: supports_floating_mean,
+    )
+    t, y, dy = data
+    kwds = dict(
+        dy=dy if with_errors else None,
+        fit_mean=fit_mean,
+        nterms=1,
+        frequency=np.linspace(0.1, 1, 10),
+        assume_regular_frequency=False,
+    )
+    expected = (
+        "scipy" if supports_floating_mean or not (fit_mean or with_errors) else "cython"
+    )
+    assert validate_method("auto", **kwds) == expected
+    assert validate_method("auto", **kwds, method_kwds={}) == "cython"
 
 
 @pytest.mark.parametrize("method", NTERMS_METHODS)
