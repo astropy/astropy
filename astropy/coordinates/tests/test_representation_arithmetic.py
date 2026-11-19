@@ -1335,7 +1335,7 @@ class TestDifferentialConversion:
         for other, expected in ((so1, so4c), (uo, so1c)):
             combined = ro + other
             assert type(combined) is sd_cls
-            assert np.all(representation_equal(combined, expected))
+            assert_differential_allclose(combined, expected)
         assert_representation_allclose(self.s + (uo + ro), self.s + so1)
 
 
