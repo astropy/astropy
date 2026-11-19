@@ -735,7 +735,8 @@ class Quantity(np.ndarray):
             # Same for inputs, but here also convert if necessary.
             arrays = []
             for input_, converter in zip(inputs, converters):
-                input_ = getattr(input_, "value", input_)
+                if hasattr(input_, "unit"):
+                    input_ = getattr(input_, "value", input_)
                 arrays.append(converter(input_) if converter else input_)
 
             # Call our superclass's __array_ufunc__
@@ -752,16 +753,33 @@ class Quantity(np.ndarray):
 
         except (TypeError, ValueError, AttributeError) as e:
             out_normalized = kwargs.get("out", ())
+            if out_normalized is None:
+                out_normalized = ()
             inputs_and_outputs = inputs + out_normalized
-            ignored_ufunc = (
-                None,
-                np.ndarray.__array_ufunc__,
-                type(self).__array_ufunc__,
-            )
-            if not all(
-                getattr(type(io), "__array_ufunc__", None) in ignored_ufunc
-                for io in inputs_and_outputs
-            ):
+
+            def _is_known(io):
+                if io is None:
+                    return True
+                ufunc = getattr(type(io), "__array_ufunc__", None)
+                if ufunc is not None:
+                    return ufunc in (
+                        np.ndarray.__array_ufunc__,
+                        type(self).__array_ufunc__,
+                    )
+                if hasattr(type(io), "__array_ufunc__"):
+                    return False
+                if isinstance(io, (numbers.Number, np.number, np.ndarray, type(self))):
+                    return True
+                if isinstance(io, (list, tuple)):
+                    try:
+                        return np.asarray(io).dtype.kind in "ifcbu"
+                    except Exception:
+                        return False
+                if type(io).__module__ == "builtins":
+                    return True
+                return False
+
+            if not all(_is_known(io) for io in inputs_and_outputs):
                 return NotImplemented
             else:
                 raise e
