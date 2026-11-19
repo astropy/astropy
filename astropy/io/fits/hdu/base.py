@@ -1213,7 +1213,7 @@ class _ValidHDU(_BaseHDU, _Verify):
         cs = self._calculate_datasum()
 
         if when is None:
-            when = f"data unit checksum updated {self._get_timestamp_utc()}"
+            when = f"data unit checksum updated {self._get_timestamp()}"
 
         self._header[datasum_keyword] = (str(cs), when)
         return cs
@@ -1262,7 +1262,7 @@ class _ValidHDU(_BaseHDU, _Verify):
             data_cs = self._calculate_datasum()
 
         if when is None:
-            when = f"HDU checksum updated {self._get_timestamp_utc()}"
+            when = f"HDU checksum updated {self._get_timestamp()}"
 
         # Add the CHECKSUM card to the header with a value of all zeros.
         if datasum_keyword in self._header:
@@ -1390,17 +1390,6 @@ class _ValidHDU(_BaseHDU, _Verify):
             .isoformat(timespec="seconds")
             .replace("+00:00", "")
         )
-
-    def _get_timestamp_utc(self):
-        """
-        Return the current UTC timestamp in ISO 8601 format with a trailing "Z"
-        to explicitly indicate that it is a UTC time. Note that this means it
-        is not compliant with the FITS standard and thus should not be used in
-        FITS values (including header card values).
-
-        Ex.: 2007-05-30T19:05:11Z
-        """
-        return self._get_timestamp() + "Z"
 
     def _calculate_datasum(self):
         """
