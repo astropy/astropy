@@ -17,6 +17,8 @@ from astropy.io.fits.hdu.compressed._compression import (
     decompress_rice_1_c,
 )
 
+from .settings import DEFAULT_GZIP_LEVEL
+
 # If numcodecs is installed, we use Codec as a base class for the codecs below
 # so that they can optionally be used as codecs in any package relying on
 # numcodecs - however this is optional and if numcodecs is not installed we use
@@ -106,6 +108,10 @@ class Gzip1(Codec):
 
     codec_id = "FITS_GZIP1"
 
+    def __init__(self, *, gzip_level: int = DEFAULT_GZIP_LEVEL):
+        super().__init__()
+        self.gzip_level = gzip_level
+
     def decode(self, buf):
         """
         Decompress buffer using the GZIP_1 algorithm.
@@ -146,7 +152,7 @@ class Gzip1(Codec):
             dbytes = np.ascontiguousarray(be_arr)
         else:
             dbytes = be_arr.tobytes()
-        return gzip_compress(dbytes, compresslevel=6)
+        return gzip_compress(dbytes, compresslevel=self.gzip_level)
 
 
 class Gzip2(Codec):
@@ -183,9 +189,10 @@ class Gzip2(Codec):
 
     codec_id = "FITS_GZIP2"
 
-    def __init__(self, *, itemsize: int):
+    def __init__(self, *, itemsize: int, gzip_level: int = DEFAULT_GZIP_LEVEL):
         super().__init__()
         self.itemsize = itemsize
+        self.gzip_level = gzip_level
 
     def decode(self, buf):
         """
@@ -227,7 +234,7 @@ class Gzip2(Codec):
         itemsize = array.dtype.itemsize
         array = array.view(np.uint8)
         shuffled_buffer = array.reshape((-1, itemsize)).T.ravel().tobytes()
-        return gzip_compress(shuffled_buffer, compresslevel=6)
+        return gzip_compress(shuffled_buffer, compresslevel=self.gzip_level)
 
 
 class Rice1(Codec):

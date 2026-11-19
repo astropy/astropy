@@ -1,4 +1,5 @@
 import hashlib
+import os
 from pathlib import Path
 
 import numpy as np
@@ -357,3 +358,32 @@ def test_rice_decode_invalid_bytepix(bytepix):
     cbytes = Rice1(blocksize=32, bytepix=4, tilesize=64).encode(data)
     with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
         Rice1(blocksize=32, bytepix=bytepix, tilesize=64).decode(_as_array(cbytes))
+
+
+def test_gzip_level(tmp_path):
+    # Make sure we can set the compression level for gzip with gzip_level and
+    # that higher compression level means smaller files.
+
+    reference = np.tri(400)
+
+    hdu0 = fits.CompImageHDU(
+        data=reference, compression_type="GZIP_2", tile_shape=(100, 100), gzip_level=0
+    )
+    hdu0.writeto(tmp_path / "gzip_level_0.fits")
+
+    hdu1 = fits.CompImageHDU(
+        data=reference, compression_type="GZIP_2", tile_shape=(100, 100), gzip_level=1
+    )
+    hdu1.writeto(tmp_path / "gzip_level_1.fits")
+
+    hdu2 = fits.CompImageHDU(
+        data=reference, compression_type="GZIP_2", tile_shape=(100, 100), gzip_level=9
+    )
+
+    hdu2.writeto(tmp_path / "gzip_level_9.fits")
+
+    size0 = os.path.getsize(tmp_path / "gzip_level_0.fits")
+    size1 = os.path.getsize(tmp_path / "gzip_level_1.fits")
+    size9 = os.path.getsize(tmp_path / "gzip_level_9.fits")
+
+    assert size9 < size1 < size0

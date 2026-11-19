@@ -15,6 +15,7 @@ from astropy.utils.exceptions import AstropyUserWarning
 
 from ._codecs import PLIO1, Gzip1, Gzip2, HCompress1, NoCompress, Rice1
 from ._quantization import DITHER_METHODS, QuantizationFailedException, Quantize
+from .settings import DEFAULT_GZIP_LEVEL
 from .utils import _data_shape, _iter_array_tiles, _tile_shape
 
 ALGORITHMS = {
@@ -517,6 +518,7 @@ def compress_image_data(
     compression_type,
     compressed_header,
     compressed_coldefs,
+    gzip_level=DEFAULT_GZIP_LEVEL,
 ):
     """
     Compress the data in a `~astropy.io.fits.CompImageHDU`.
@@ -530,6 +532,8 @@ def compress_image_data(
         The image data to compress
     compression_type : str
         The compression algorithm
+    gzip_level : int
+        The gzip compression level (0-9)
     compressed_header : `~astropy.io.fits.Header`
         The header of the compressed binary table
     compressed_coldefs : `~astropy.io.fits.ColDefs`
@@ -694,8 +698,12 @@ def compress_image_data(
             gzip_fallback.append(False)
 
         if gzip_fallback[-1]:
-            cbytes = _compress_tile(tile_data, algorithm="GZIP_1")
+            cbytes = _compress_tile(
+                tile_data, algorithm="GZIP_1", gzip_level=gzip_level
+            )
         else:
+            if compression_type in ("GZIP_1", "GZIP_2"):
+                settings["gzip_level"] = gzip_level
             cbytes = _compress_tile(tile_data, algorithm=compression_type, **settings)
         compressed_bytes.append(cbytes)
 
