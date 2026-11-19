@@ -1,3 +1,2 @@
 The timestamps in the default comments on the "CHECKSUM" and "DATASUM" keywords
-added by ``.add_checksum()`` are now in UTC rather than local time, and include
-an explicit timezone specification.
+added by ``.add_checksum()`` are now in UTC rather than local time.
