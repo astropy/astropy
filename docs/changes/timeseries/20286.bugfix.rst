@@ -1,0 +1,4 @@
+Fixed ``aggregate_downsample()`` dropping or, for unequal bin sizes, raising
+a ``ValueError`` on a data column with more than one dimension (e.g. a
+spectrum stored per time sample). Only the time axis is now aggregated;
+any additional axes are preserved.
