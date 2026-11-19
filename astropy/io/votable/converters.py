@@ -309,6 +309,25 @@ def _string_length(arraysize):
     return arraysize.split("x")[0]
 
 
+def _string_bound(arraysize):
+    """
+    The string length of an arraysize as ``(n, bounded)``: ``(10, False)``
+    for "10x4", ``(10, True)`` for "10*", and ``(0, False)`` for "*" or None.
+    """
+    if arraysize is None:
+        return 0, False
+    length = _string_length(arraysize)
+    n = length.removesuffix("*")
+    if not n.isdigit():
+        return 0, False
+    return int(n), length.endswith("*")
+
+
+def _shape_suffix(shape):
+    """The "x..." part of an arraysize for an array of strings of *shape*."""
+    return "".join(f"x{n}" for n in reversed(shape))
+
+
 def _truncate_utf8(data, size):
     """Cut to at most ``size`` bytes without splitting a UTF-8 sequence."""
     if len(data) <= size:
@@ -701,10 +720,22 @@ class _StringArrayMixin:
     `UnicodeChar` converter for one string.
     """
 
+    @property
+    def _utf8(self):
+        # From VOTable 1.6 the string length of a char array is in UTF-8 bytes
+        return getattr(self._scalar, "is_utf8_version", False)
+
     def _split(self, value):
         # The padding of the last string never arrives: the XML parser
         # strips trailing whitespace from the cell.
         width = self._scalar.arraysize
+        if self._utf8:
+            data = value.encode("utf-8")
+            parts = (
+                self._scalar._decode(data[i : i + width])
+                for i in range(0, len(data), width)
+            )
+            return [x.rstrip(" ") for x in parts]
         return [value[i : i + width].rstrip(" ") for i in range(0, len(value), width)]
 
     def _parse_strings(self, parts, shape, config, pos):
@@ -733,10 +764,18 @@ class _StringArrayMixin:
                 x = ""
             elif isinstance(x, bytes):
                 x = x.decode("utf-8")
-            if len(x) > width:
-                vo_warn(W46, (self._datatype, width), None, None)
             # Pad before escaping, so that "&amp;" counts as one character
-            result.append(output(f"{x[:width]:<{width}}", False))
+            if self._utf8:
+                encoded = x.encode("utf-8", errors="replace")
+                if len(encoded) > width:
+                    vo_warn(W46, (self._datatype, width), None, None)
+                    encoded = _truncate_utf8(encoded, width)
+                padded = encoded.ljust(width, b" ").decode("utf-8")
+            else:
+                if len(x) > width:
+                    vo_warn(W46, (self._datatype, width), None, None)
+                padded = f"{x[:width]:<{width}}"
+            result.append(output(padded, False))
         return "".join(result)
 
 
@@ -1749,6 +1788,16 @@ def _utf8_char_datatype(column, min_arraysize=0):
     return result
 
 
+def _max_utf8_bytes(column):
+    """The longest UTF-8 encoded string in *column*, also inside arrays."""
+    n = 0
+    for x in column:
+        for s in [x] if isinstance(x, str) else np.ravel(x):
+            if isinstance(s, str):
+                n = max(n, len(s.encode("utf-8")))
+    return n
+
+
 def _all_strings(column):
     return all(
         isinstance(x, (str, bytes)) or x is np.ma.masked or x is None for x in column
@@ -1825,11 +1874,10 @@ def table_column_to_votable_datatype(column, *, version=None):
         if utf8_char and votable_string_dtype == "unicodeChar":
             # The unicodeChar bound counted characters, char counts bytes.
             if max_length is not None:
-                n_bytes = max(
-                    (len(x.encode("utf-8")) for x in column if isinstance(x, str)),
-                    default=0,
-                )
-                arraysize = f"{max(int(max_length), n_bytes)}*"
+                n, bounded = _string_bound(original_arraysize)
+                rest = original_arraysize[len(_string_length(original_arraysize)) :]
+                n = max(n, _max_utf8_bytes(column))
+                arraysize = f"{n}{'*' if bounded else ''}{rest}"
             return {"datatype": "char", "arraysize": arraysize}
         elif votable_string_dtype is not None:
             return {"datatype": votable_string_dtype, "arraysize": arraysize}
@@ -1850,13 +1898,12 @@ def table_column_to_votable_datatype(column, *, version=None):
         return {"datatype": "unicodeChar", "arraysize": arraysize}
 
     if utf8_char and column.dtype.char == "U":
-        min_arraysize = 0
-        if original_arraysize is not None and original_arraysize.isdigit():
-            min_arraysize = int(original_arraysize)
-        elif max_length is not None:
-            min_arraysize = int(max_length)
-        result = _utf8_char_datatype(column, min_arraysize)
-        if max_length is not None:
+        n, bounded = _string_bound(original_arraysize)
+        result = _utf8_char_datatype(column, n)
+        shape = column.shape[1:]
+        if shape:
+            result["arraysize"] += _shape_suffix(shape)
+        elif bounded:
             result["arraysize"] += "*"
         return result
 
@@ -1866,15 +1913,14 @@ def table_column_to_votable_datatype(column, *, version=None):
     if result["datatype"] == "unicodeChar" and votable_string_dtype == "char":
         result["datatype"] = "char"
 
-    # Keep the original arraysize unless the column has grown wider
-    if original_arraysize is not None:
-        bound = original_arraysize.removesuffix("*")
-        derived = result.get("arraysize", "")
-        if bound.isdigit() and derived.isdigit():
-            n = max(int(bound), int(derived))
-            result["arraysize"] = (
-                f"{n}*" if original_arraysize.endswith("*") else str(n)
-            )
+    # Keep the original string length unless the column has grown wider
+    if original_arraysize is not None and "arraysize" in result:
+        n, bounded = _string_bound(original_arraysize)
+        derived = _string_length(result["arraysize"])
+        if n and derived.isdigit():
+            rest = result["arraysize"][len(derived) :]
+            n = max(n, int(derived))
+            result["arraysize"] = f"{n}{'*' if bounded and not rest else ''}{rest}"
         else:
             result["arraysize"] = original_arraysize
 

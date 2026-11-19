@@ -14,6 +14,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import parse
+from astropy.io.votable.exceptions import W31
 from astropy.table import Table
 from astropy.utils.data import get_pkg_data_filename
 
@@ -23,10 +24,12 @@ FILES = [
     "data/unicode-example-binary2.vot",
 ]
 
-# Needs both the UTF-8 char handling from VOTable 1.6 and char array handling
-needs_char_arrays = pytest.mark.xfail(
-    reason="char arrays (arraysize like 10x2) need astropy#19974", strict=True
-)
+
+def _null_ints_unwritable(filename, tabledata_format):
+    return (
+        tabledata_format == "binary" and filename != "data/unicode-example-binary.vot"
+    )
+
 
 # The first three rows. The fourth row is all nulls.
 EXPECTED = {
@@ -82,19 +85,17 @@ def check_params(table):
         assert params[name] == expected, name
 
 
-@needs_char_arrays
 @pytest.mark.parametrize("filename", FILES)
 def test_read(filename):
     votable = parse(get_pkg_data_filename(filename))
     assert votable.version == "1.6"
-    assert votable.infos[0].value == "Ωμεγα ꙮ \U0001f600"
 
     table = votable.get_first_table()
+    assert table.infos[0].value == "Ωμεγα ꙮ \U0001f600"
     check_params(table)
     check_table(table.array)
 
 
-@needs_char_arrays
 @pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
 @pytest.mark.parametrize("filename", FILES)
 def test_rewrite(filename, tabledata_format):
@@ -102,6 +103,10 @@ def test_rewrite(filename, tabledata_format):
     votable.get_first_table().format = tabledata_format
 
     out = io.BytesIO()
+    if _null_ints_unwritable(filename, tabledata_format):
+        with pytest.raises(W31):
+            votable.to_xml(out)
+        return
     votable.to_xml(out)
     out.seek(0)
 
@@ -110,13 +115,18 @@ def test_rewrite(filename, tabledata_format):
     check_table(table.array)
 
 
-@needs_char_arrays
 @pytest.mark.parametrize("tabledata_format", ["tabledata", "binary", "binary2"])
 @pytest.mark.parametrize("filename", FILES)
 def test_table_roundtrip(filename, tabledata_format):
     table = Table.read(get_pkg_data_filename(filename), format="votable")
 
     out = io.BytesIO()
+    if _null_ints_unwritable(filename, tabledata_format):
+        with pytest.raises(W31):
+            table.write(
+                out, format="votable", tabledata_format=tabledata_format, version="1.6"
+            )
+        return
     table.write(out, format="votable", tabledata_format=tabledata_format, version="1.6")
     out.seek(0)
 
