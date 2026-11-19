@@ -1578,6 +1578,7 @@ def test_str_columns_written_as_utf8_char_16(fmt):
         {
             "ascii": ["abc", "de"],
             "utf8": ["ΛCDM", "x"],
+            "latin": ["Piszkéstető", "x"],
             "obj": np.array(["ΛCDM", "longer value"], dtype=object),
         }
     )
@@ -1594,6 +1595,7 @@ def test_str_columns_written_as_utf8_char_16(fmt):
     assert (fields["ascii"].arraysize, fields["ascii"].width) == ("3", 3)
     # "ΛCDM" is 4 characters but 5 UTF-8 bytes.
     assert (fields["utf8"].arraysize, fields["utf8"].width) == ("5", 4)
+    assert (fields["latin"].arraysize, fields["latin"].width) == ("13", 11)
     assert fields["obj"].arraysize == "*"
 
     t2 = votable.get_first_table().to_table()
