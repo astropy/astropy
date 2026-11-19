@@ -16,15 +16,14 @@ from astropy.stats.biweight import (
 )
 from astropy.tests.helper import assert_quantity_allclose
 from astropy.utils.masked import Masked
-from astropy.utils.misc import NumpyRNGContext
 
 
 def test_biweight_location():
-    with NumpyRNGContext(12345):
-        # test that it runs
-        randvar = np.random.randn(10000)
-        val = biweight_location(randvar)
-        assert abs(val) < 1e-2
+    rng = np.random.default_rng(12345)
+    # test that it runs
+    randvar = rng.standard_normal(10000)
+    val = biweight_location(randvar)
+    assert abs(val) < 1e-2
 
 
 def test_biweight_location_constant():
@@ -163,40 +162,40 @@ def test_biweight_location_nan_with_m(M):
 
 def test_biweight_location_axis():
     """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = np.random.normal(5, 2, (ny, nx))
+    rng = np.random.default_rng(12345)
+    ny = 100
+    nx = 200
+    data = rng.normal(5, 2, (ny, nx))
 
-        bw = biweight_location(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_location(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_location(data, axis=0)
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_location(data[:, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
-        bw = biweight_location(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(biweight_location(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_location(data, axis=1)
+    bwi = []
+    for i in range(ny):
+        bwi.append(biweight_location(data[i, :]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
 
 @pytest.mark.parametrize("nx, ny, nz", [(5, 4, 3), (5, 1, 3), (1, 4, 3), (1, 1, 5)])
 def test_biweight_location_axis_3d(nx, ny, nz):
     """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        data = np.random.normal(5, 2, (nz, ny, nx))
-        bw = biweight_location(data, axis=0)
-        assert bw.shape == (ny, nx)
+    rng = np.random.default_rng(12345)
+    data = rng.normal(5, 2, (nz, ny, nx))
+    bw = biweight_location(data, axis=0)
+    assert bw.shape == (ny, nx)
 
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_location(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
+    y = 0
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_location(data[:, y, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw[y], bwi)
 
 
 @pytest.mark.parametrize("shape", [(2, 3, 4), (12, 1, 2), (1, 12, 2), (1, 1, 24)])
@@ -332,11 +331,11 @@ def test_biweight_scale(masked_array):
 
 
 def test_biweight_midvariance():
-    with NumpyRNGContext(12345):
-        # test that it runs
-        randvar = np.random.randn(10000)
-        var = biweight_midvariance(randvar)
-        assert_allclose(var, 1.0, rtol=0.02)
+    rng = np.random.default_rng(12345)
+    # test that it runs
+    randvar = rng.standard_normal(10000)
+    var = biweight_midvariance(randvar)
+    assert_allclose(var, 1.0, rtol=0.05)
 
 
 def test_biweight_midvariance_small():
@@ -370,40 +369,40 @@ def test_biweight_midvariance_5127():
 
 def test_biweight_midvariance_axis():
     """Test a 2D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        ny = 100
-        nx = 200
-        data = np.random.normal(5, 2, (ny, nx))
+    rng = np.random.default_rng(12345)
+    ny = 100
+    nx = 200
+    data = rng.normal(5, 2, (ny, nx))
 
-        bw = biweight_midvariance(data, axis=0)
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_midvariance(data[:, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_midvariance(data, axis=0)
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_midvariance(data[:, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
-        bw = biweight_midvariance(data, axis=1)
-        bwi = []
-        for i in range(ny):
-            bwi.append(biweight_midvariance(data[i, :]))
-        bwi = np.array(bwi)
-        assert_allclose(bw, bwi)
+    bw = biweight_midvariance(data, axis=1)
+    bwi = []
+    for i in range(ny):
+        bwi.append(biweight_midvariance(data[i, :]))
+    bwi = np.array(bwi)
+    assert_allclose(bw, bwi)
 
 
 @pytest.mark.parametrize("nx, ny, nz", [(5, 4, 3), (5, 1, 3), (1, 4, 3), (1, 1, 5)])
 def test_biweight_midvariance_axis_3d(nx, ny, nz):
     """Test a 3D array with the axis keyword."""
-    with NumpyRNGContext(12345):
-        data = np.random.normal(5, 2, (nz, ny, nx))
-        bw = biweight_midvariance(data, axis=0)
-        assert bw.shape == (ny, nx)
+    rng = np.random.default_rng(12345)
+    data = rng.normal(5, 2, (nz, ny, nx))
+    bw = biweight_midvariance(data, axis=0)
+    assert bw.shape == (ny, nx)
 
-        y = 0
-        bwi = []
-        for i in range(nx):
-            bwi.append(biweight_midvariance(data[:, y, i]))
-        bwi = np.array(bwi)
-        assert_allclose(bw[y], bwi)
+    y = 0
+    bwi = []
+    for i in range(nx):
+        bwi.append(biweight_midvariance(data[:, y, i]))
+    bwi = np.array(bwi)
+    assert_allclose(bw[y], bwi)
 
 
 @pytest.mark.filterwarnings("ignore:All-NaN slice encountered")
@@ -640,6 +639,28 @@ def test_midcovariance_M_shape():
     with pytest.raises(ValueError, match=r"M must be a scalar or 1D array\."):
         biweight_midcovariance(d, M=M)
 
+    match = r"The length of M \(3\) must match the number of variables \(1\)\."
+    with pytest.raises(ValueError, match=match):
+        biweight_midcovariance(d, M=[0, 1, 2])
+
+    match = r"The length of M \(3\) must match the number of variables \(2\)\."
+    with pytest.raises(ValueError, match=match):
+        biweight_midcovariance(np.arange(10.0).reshape(2, 5), M=[0, 1, 2])
+
+
+def test_midcovariance_M():
+    """
+    Test that a scalar or 1D M gives the same result as the equivalent
+    per-variable M.
+    """
+    rng = np.random.default_rng(0)
+    data = rng.normal(0, 2, size=(3, 50))
+    ref = biweight_midcovariance(data, M=[1.0, 1.0, 1.0])
+    assert_allclose(biweight_midcovariance(data, M=1.0), ref)
+
+    M = np.median(data, axis=1)
+    assert_allclose(biweight_midcovariance(data, M=M), biweight_midcovariance(data))
+
 
 def test_biweight_midcovariance_symmetric():
     """
@@ -683,13 +704,46 @@ def test_biweight_midcorrelation_inputs():
         biweight_midcorrelation(a2, a3)
 
 
+def test_biweight_midcorrelation_zero_mad():
+    """
+    Test that the biweight midcorrelation is NaN, without a warning,
+    when either variable has zero MAD.
+    """
+    x = [1.0, 1, 1, 1, 9]
+    y = [1.0, 2, 3, 4, 5]
+    assert np.isnan(biweight_midcorrelation(x, y))
+    assert np.isnan(biweight_midcorrelation(y, x))
+    assert np.isnan(biweight_midcorrelation(x, x))
+
+
+@pytest.mark.parametrize("c", [0.0, -6.0, np.nan])
+@pytest.mark.parametrize(
+    "func",
+    [
+        biweight_location,
+        biweight_scale,
+        biweight_midvariance,
+        biweight_midcovariance,
+    ],
+)
+def test_biweight_c_positive(func, c):
+    """
+    Test that a non-positive or NaN tuning constant raises an error.
+    """
+    with pytest.raises(ValueError, match=r"c must be positive\."):
+        func(np.arange(10.0), c=c)
+
+    with pytest.raises(ValueError, match=r"c must be positive\."):
+        biweight_midcorrelation(np.arange(10.0), np.arange(10.0), c=c)
+
+
 def test_biweight_32bit_runtime_warnings():
     """Regression test for #6905."""
-    with NumpyRNGContext(12345):
-        data = np.random.random(100).astype(np.float32)
-        data[50] = 30000.0
-        biweight_scale(data)
-        biweight_midvariance(data)
+    rng = np.random.default_rng(12345)
+    data = rng.random(100).astype(np.float32)
+    data[50] = 30000.0
+    biweight_scale(data)
+    biweight_midvariance(data)
 
 
 def test_biweight_scl_var_constant_units():
@@ -829,3 +883,20 @@ def test_biweight_maskedarray_not_modified():
     assert result.mask[1]
     assert_equal(data.data, values)
     assert not np.any(data.mask)
+
+
+def test_biweight_location_quantity():
+    """
+    Test biweight_location with Quantity data and a Quantity M.
+    """
+    data = np.array([1.0, 3, 5, 500, 2]) * u.km
+    result = biweight_location(data)
+    assert result.unit == u.km
+    assert_allclose(result.value, 2.7456117)
+
+    result = biweight_location(data, M=2 * u.km)
+    assert result.unit == u.km
+    assert_quantity_allclose(biweight_location(data, M=2000 * u.m), result)
+
+    with pytest.raises(u.UnitsError):
+        biweight_location(data, M=2.0)

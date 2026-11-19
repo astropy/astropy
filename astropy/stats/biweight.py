@@ -127,6 +127,15 @@ def _mad(data, d, *, M_is_median, median_func, axis):
     return median_func(np.abs(d), axis=axis)
 
 
+def _validate_c(c):
+    """
+    Raise an error if the tuning constant ``c`` is not positive.
+    """
+    # "not c > 0" also rejects NaN, unlike "c <= 0"
+    if not c > 0:
+        raise ValueError("c must be positive.")
+
+
 def biweight_location(
     data: ArrayLike,
     c: float = 6.0,
@@ -162,17 +171,23 @@ def biweight_location(
     If :math:`MAD` is zero, then :math:`M` (the median, or the input
     initial location guess if it was provided) will be returned.
 
+    If all data values are rejected (:math:`|u_i| \geq 1`), for example
+    if the input ``M`` is far from the data, then NaN will be returned.
+
     Parameters
     ----------
     data : array-like
         Input array or object that can be converted to an array.
-        ``data`` can be a `~numpy.ma.MaskedArray`.
+        ``data`` can be a `~numpy.ma.MaskedArray`, an
+        `~astropy.utils.masked.Masked` array, or a
+        `~astropy.units.Quantity`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 6.0).
+        Must be positive.
     M : float or array-like, optional
         Initial guess for the location.  If ``M`` is a scalar value,
         then its value will be used for the entire array (or along each
-        ``axis``, if specified).  If ``M`` is an array, then its must be
+        ``axis``, if specified).  If ``M`` is an array, then it must be
         an array containing the initial location estimate along each
         ``axis`` of the input array.  If `None` (default), then the
         median of the input array will be used (or along each ``axis``,
@@ -188,8 +203,12 @@ def biweight_location(
     -------
     biweight_location : float or `~numpy.ndarray`
         The biweight location of the input data.  If ``axis`` is `None`
-        then a scalar will be returned, otherwise a `~numpy.ndarray`
-        will be returned.
+        (or includes all axes), then a scalar will be returned.
+        Otherwise, a `~numpy.ndarray` will be returned.  If ``data`` is
+        a `~astropy.units.Quantity` or an `~astropy.utils.masked.Masked`
+        array, then the result has the same type.  If ``data`` is a
+        `~numpy.ma.MaskedArray` and ``axis`` is not `None`, then a
+        `~numpy.ma.MaskedArray` will be returned.
 
     See Also
     --------
@@ -213,6 +232,7 @@ def biweight_location(
     >>> print(biloc)    # doctest: +FLOAT_CMP
     0.01535330525461019
     """
+    _validate_c(c)
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
 
     if isinstance(data, np.ma.MaskedArray) and ignore_nan:
@@ -262,14 +282,16 @@ def biweight_location(
     # ignore RuntimeWarnings for comparisons with NaN data values
     with np.errstate(invalid="ignore"):
         mask = np.abs(u) >= 1
-    u = (1 - u**2) ** 2
-    u[mask] = 0
+    weights = (1 - u**2) ** 2
+    weights[mask] = 0
 
     # If mad == 0 along the specified ``axis`` in the input data, return
     # the median value along that axis.
     # Ignore RuntimeWarnings for divide by zero
     with np.errstate(divide="ignore", invalid="ignore"):
-        value = M_out + (sum_func(d * u, axis=axis) / sum_func(u, axis=axis))
+        value = M_out + (
+            sum_func(d * weights, axis=axis) / sum_func(weights, axis=axis)
+        )
         if np.isscalar(value):
             return value
 
@@ -316,7 +338,9 @@ def biweight_scale(
     biweight midvariance tuning constant ``c`` is typically 9.0 (the
     default).
 
-    If :math:`MAD` is zero, then zero will be returned.
+    If :math:`MAD` is zero, then zero will be returned.  If all data
+    values are rejected (:math:`|u_i| \geq 1`), for example if the input
+    ``M`` is far from the data, then NaN will be returned.
 
     For the standard definition of biweight scale, :math:`n` is the
     total number of points in the array (or along the input ``axis``, if
@@ -338,13 +362,16 @@ def biweight_scale(
     ----------
     data : array-like
         Input array or object that can be converted to an array.
-        ``data`` can be a `~numpy.ma.MaskedArray`.
+        ``data`` can be a `~numpy.ma.MaskedArray`, an
+        `~astropy.utils.masked.Masked` array, or a
+        `~astropy.units.Quantity`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
+        Must be positive.
     M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
-        if specified).  If ``M`` is an array, then its must be an array
+        if specified).  If ``M`` is an array, then it must be an array
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
@@ -368,8 +395,12 @@ def biweight_scale(
     -------
     biweight_scale : float or `~numpy.ndarray`
         The biweight scale of the input data.  If ``axis`` is `None`
-        then a scalar will be returned, otherwise a `~numpy.ndarray`
-        will be returned.
+        (or includes all axes), then a scalar will be returned.
+        Otherwise, a `~numpy.ndarray` will be returned.  If ``data`` is
+        a `~astropy.units.Quantity` or an `~astropy.utils.masked.Masked`
+        array, then the result has the same type.  If ``data`` is a
+        `~numpy.ma.MaskedArray` and ``axis`` is not `None`, then a
+        `~numpy.ma.MaskedArray` will be returned.
 
     See Also
     --------
@@ -440,7 +471,9 @@ def biweight_midvariance(
     biweight midvariance tuning constant ``c`` is typically 9.0 (the
     default).
 
-    If :math:`MAD` is zero, then zero will be returned.
+    If :math:`MAD` is zero, then zero will be returned.  If all data
+    values are rejected (:math:`|u_i| \geq 1`), for example if the input
+    ``M`` is far from the data, then NaN will be returned.
 
     For the standard definition of `biweight midvariance
     <https://en.wikipedia.org/wiki/Robust_measures_of_scale#The_biweight_midvariance>`_,
@@ -463,13 +496,16 @@ def biweight_midvariance(
     ----------
     data : array-like
         Input array or object that can be converted to an array.
-        ``data`` can be a `~numpy.ma.MaskedArray`.
+        ``data`` can be a `~numpy.ma.MaskedArray`, an
+        `~astropy.utils.masked.Masked` array, or a
+        `~astropy.units.Quantity`.
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
+        Must be positive.
     M : float or array-like, optional
         The location estimate.  If ``M`` is a scalar value, then its
         value will be used for the entire array (or along each ``axis``,
-        if specified).  If ``M`` is an array, then its must be an array
+        if specified).  If ``M`` is an array, then it must be an array
         containing the location estimate along each ``axis`` of the
         input array.  If `None` (default), then the median of the input
         array will be used (or along each ``axis``, if specified).
@@ -493,8 +529,12 @@ def biweight_midvariance(
     -------
     biweight_midvariance : float or `~numpy.ndarray`
         The biweight midvariance of the input data.  If ``axis`` is
-        `None` then a scalar will be returned, otherwise a
-        `~numpy.ndarray` will be returned.
+        `None` (or includes all axes), then a scalar will be returned.
+        Otherwise, a `~numpy.ndarray` will be returned.  If ``data`` is
+        a `~astropy.units.Quantity` or an `~astropy.utils.masked.Masked`
+        array, then the result has the same type.  If ``data`` is a
+        `~numpy.ma.MaskedArray` and ``axis`` is not `None`, then a
+        `~numpy.ma.MaskedArray` will be returned.
 
     See Also
     --------
@@ -518,6 +558,7 @@ def biweight_midvariance(
     >>> print(bivar)    # doctest: +FLOAT_CMP
     1.0484350639638342
     """
+    _validate_c(c)
     median_func, sum_func = _stat_functions(data, ignore_nan=ignore_nan)
 
     if isinstance(data, np.ma.MaskedArray) and ignore_nan:
@@ -561,25 +602,27 @@ def biweight_midvariance(
     if hasattr(mask, "mask"):
         mask = mask.filled(fill_value=False)  # exclude masked data values
 
-    u = u**2
+    u2 = u**2
 
     if modify_sample_size:
         n = sum_func(mask, axis=axis)
     else:
-        # set good values to 1, bad values to 0
-        include_mask = np.ones(data.shape)
+        # set good values to True, bad values to False
+        include_mask = np.ones(data.shape, dtype=bool)
         if hasattr(data, "mask"):
-            include_mask[data.mask] = 0
+            include_mask[data.mask] = False
         if ignore_nan:
-            include_mask[np.isnan(data)] = 0
+            include_mask[np.isnan(data)] = False
         n = np.sum(include_mask, axis=axis)
 
     # np.square is much faster than ** 4, which calls the generic pow
-    f1 = d * d * np.square(np.square(1.0 - u))
+    f1 = d * d * np.square(np.square(1.0 - u2))
     f1[~mask] = 0.0
     f1 = sum_func(f1, axis=axis)
-    f2 = (1.0 - u) * (1.0 - 5.0 * u)
+    f2 = (1.0 - u2) * (1.0 - 5.0 * u2)
     f2[~mask] = 0.0
+    # Rejected and masked values of f2 are zero, so np.sum is safe here.
+    # Unlike np.nansum, np.sum keeps a Masked result for Masked input.
     f2 = np.abs(np.sum(f2, axis=axis)) ** 2
 
     # If mad == 0 along the specified ``axis`` in the input data, return
@@ -665,6 +708,10 @@ def biweight_midcovariance(
     If :math:`MAD_x` or :math:`MAD_y` are zero, then zero will be
     returned for that element.
 
+    Masked arrays and NaN values are not supported.  The mask of a
+    `~numpy.ma.MaskedArray` input is ignored, and a NaN value in a
+    variable makes the elements for that variable NaN.
+
     For the standard definition of biweight midcovariance,
     :math:`n_{xy}` is the total number of observations of each variable.
     That definition is used if ``modify_sample_size`` is `False`, which
@@ -702,14 +749,15 @@ def biweight_midcovariance(
 
     c : float, optional
         Tuning constant for the biweight estimator (default = 9.0).
+        Must be positive.
 
     M : float or 1D array-like, optional
         The location estimate of each variable, either as a scalar or
-        array.  If ``M`` is an array, then its must be a 1D array
-        containing the location estimate of each row (i.e. ``a.ndim``
-        elements).  If ``M`` is a scalar value, then its value will be
-        used for each variable (row).  If `None` (default), then the
-        median of each variable (row) will be used.
+        array.  If ``M`` is an array, then it must be a 1D array
+        containing the location estimate of each variable (row), with
+        one element per row.  If ``M`` is a scalar value, then its
+        value will be used for each variable (row).  If `None`
+        (default), then the median of each variable (row) will be used.
 
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
@@ -759,6 +807,7 @@ def biweight_midcovariance(
     >>> print(np.sqrt(bicov.diagonal()))  # doctest: +FLOAT_CMP
     [0.91343072 2.67519302]
     """
+    _validate_c(c)
     data = np.asanyarray(data).astype(np.float64)
 
     # ensure data is 2D
@@ -774,9 +823,14 @@ def biweight_midcovariance(
     M = np.asanyarray(M)
     if M.ndim > 1:
         raise ValueError("M must be a scalar or 1D array.")
+    if M.ndim == 1 and M.shape[0] != data.shape[0]:
+        raise ValueError(
+            f"The length of M ({M.shape[0]}) must match the number of "
+            f"variables ({data.shape[0]})."
+        )
 
-    # set up the differences
-    d = (data.T - M).T
+    # set up the differences (M is broadcast along each row)
+    d = data - M[..., np.newaxis]
 
     # set up the weighting
     mad = _mad(
@@ -788,13 +842,13 @@ def biweight_midcovariance(
     )
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        u = (d.T / (c * mad)).T
+        u = d / (c * mad[:, np.newaxis])
 
     # now remove the outlier points
     # ignore RuntimeWarnings for comparisons with NaN data values
     with np.errstate(invalid="ignore"):
         mask = np.abs(u) < 1
-    u = u**2
+    u2 = u**2
 
     if modify_sample_size:
         maskf = mask.astype(float)
@@ -802,8 +856,8 @@ def biweight_midcovariance(
     else:
         n = data[0].size
 
-    usub1 = 1.0 - u
-    usub5 = 1.0 - 5.0 * u
+    usub1 = 1.0 - u2
+    usub5 = 1.0 - 5.0 * u2
     usub1[~mask] = 0.0
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -842,32 +896,38 @@ def biweight_midcorrelation(
     :math:`\zeta_{xy}` is the biweight midcovariance of :math:`x` and
     :math:`y`.
 
+    If the :math:`MAD` of :math:`x` or :math:`y` is zero, then the
+    biweight midcorrelation is undefined and NaN will be returned.
+
+    Masked arrays and NaN values are not supported.  The mask of a
+    `~numpy.ma.MaskedArray` input is ignored, and a NaN value in either
+    variable makes the result NaN.
+
     Parameters
     ----------
     x, y : 1D array-like
         Input arrays for the two variables.  ``x`` and ``y`` must be 1D
         arrays and have the same number of elements.
     c : float, optional
-        Tuning constant for the biweight estimator (default = 9.0).  See
-        `biweight_midcovariance` for more details.
+        Tuning constant for the biweight estimator (default = 9.0).
+        Must be positive.  See `biweight_midcovariance` for more
+        details.
     M : float or array-like, optional
-        The location estimate.  If ``M`` is a scalar value, then its
-        value will be used for the entire array (or along each ``axis``,
-        if specified).  If ``M`` is an array, then its must be an array
-        containing the location estimate along each ``axis`` of the
-        input array.  If `None` (default), then the median of the input
-        array will be used (or along each ``axis``, if specified).  See
+        The location estimates of ``x`` and ``y``.  If ``M`` is a scalar
+        value, then its value will be used for both ``x`` and ``y``.  If
+        ``M`` is an array, then it must have two elements, the location
+        estimates of ``x`` and ``y``, respectively.  If `None` (default),
+        then the medians of ``x`` and ``y`` will be used.  See
         `biweight_midcovariance` for more details.
     modify_sample_size : bool, optional
         If `False` (default), then the sample size used is the total
-        number of elements in the array (or along the input ``axis``, if
-        specified), which follows the standard definition of biweight
-        midcovariance.  If `True`, then the sample size is reduced to
-        correct for any rejected values (i.e. the sample size used
-        includes only the non-rejected values), which results in a value
-        closer to the true midcovariance for small sample sizes or for a
-        large number of rejected values.  See `biweight_midcovariance`
-        for more details.
+        number of elements in ``x`` (or ``y``), which follows the
+        standard definition of biweight midcovariance.  If `True`, then
+        the sample size is reduced to correct for any rejected values
+        (i.e. the sample size used includes only the non-rejected
+        values), which results in a value closer to the true
+        midcovariance for small sample sizes or for a large number of
+        rejected values.  See `biweight_midcovariance` for more details.
 
     Returns
     -------
@@ -910,4 +970,6 @@ def biweight_midcorrelation(
         [x, y], c=c, M=M, modify_sample_size=modify_sample_size
     )
 
-    return bicorr[0, 1] / (np.sqrt(bicorr[0, 0] * bicorr[1, 1]))
+    # The correlation is undefined (NaN) if either variable has zero MAD
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return bicorr[0, 1] / (np.sqrt(bicorr[0, 0] * bicorr[1, 1]))
