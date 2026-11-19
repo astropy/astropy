@@ -12,6 +12,8 @@ from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 @cache
 def _scipy_supports_floating_mean():
+    # The ``floating_mean`` and ``weights`` arguments were both added to
+    # scipy.signal.lombscargle in scipy 1.15.
     # Deferred so that scipy is only imported and its version only probed when
     # the answer is needed; passing the module object lets minversion fall
     # back to scipy.__version__ when the distribution metadata is missing
@@ -22,18 +24,25 @@ def _scipy_supports_floating_mean():
 
 
 def lombscargle_scipy(
-    t, y, frequency, normalization="standard", center_data=True, *, fit_mean=False
+    t,
+    y,
+    frequency,
+    normalization="standard",
+    center_data=True,
+    *,
+    fit_mean=False,
+    dy=None,
 ):
     """Lomb-Scargle Periodogram.
 
     This is a wrapper of ``scipy.signal.lombscargle`` for computation of the
     Lomb-Scargle periodogram. This is a relatively fast version of the naive
-    O[N^2] algorithm, but cannot handle heteroskedastic errors.
+    O[N^2] algorithm.
 
     Parameters
     ----------
     t, y : array-like
-        Times, values, and errors of the data points. These should be
+        Times and values of the data points. These should be
         broadcastable to the same shape. None should be `~astropy.units.Quantity`.
     frequency : array-like
         Frequencies (not angular frequencies) at which to calculate periodogram.
@@ -48,6 +57,11 @@ def lombscargle_scipy(
         frequency. This can lead to more accurate results, especially in the
         case of incomplete phase coverage. Requires Scipy 1.15 and corresponds
         to the ``floating_mean`` argument in `scipy.signal.lombscargle`.
+    dy : float or array-like, optional, keyword-only
+        Errors of the data points, broadcastable to the shape of ``t`` and
+        ``y``. Should not be a `~astropy.units.Quantity`. Errors that differ
+        between data points require Scipy 1.15 and are passed as inverse
+        variances to the ``weights`` argument in `scipy.signal.lombscargle`.
 
     Returns
     -------
@@ -69,11 +83,12 @@ def lombscargle_scipy(
     if fit_mean and not _scipy_supports_floating_mean():
         raise ValueError("fit_mean=True requires scipy 1.15 or later")
 
-    t, y = np.broadcast_arrays(t, y)
+    t, y, dy = np.broadcast_arrays(t, y, 1 if dy is None else dy)
 
     # Scipy requires floating-point input
     t = np.asarray(t, dtype=float)
     y = np.asarray(y, dtype=float)
+    dy = np.asarray(dy, dtype=float)
     frequency = np.asarray(frequency, dtype=float)
 
     if t.ndim != 1:
@@ -81,16 +96,26 @@ def lombscargle_scipy(
     if frequency.ndim != 1:
         raise ValueError("frequency should be one-dimensional")
 
+    w = dy**-2.0
+
     if center_data:
-        y = y - y.mean()
+        y = y - np.dot(w, y) / w.sum()
 
     kwargs = {"floating_mean": True} if fit_mean else {}
+    if np.any(dy != dy[0]):
+        if not _scipy_supports_floating_mean():
+            raise ValueError(
+                "scipy method requires scipy 1.15 or later for non-uniform "
+                "uncertainties dy"
+            )
+        kwargs["weights"] = w
 
-    # Note: scipy `freqs` input is in angular frequencies
-    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs)
+    # Note: scipy `freqs` input is in angular frequencies, and scipy
+    # normalizes the weights to have a mean of one
+    p = signal.lombscargle(t, y, 2 * np.pi * frequency, **kwargs) * w.mean()
 
     if normalization == "psd":
         return p
 
-    chi2_ref = compute_chi2_ref(y, center_data=center_data, fit_mean=fit_mean)
+    chi2_ref = compute_chi2_ref(y, dy, center_data=center_data, fit_mean=fit_mean)
     return convert_normalization(p, t.size, "psd", normalization, chi2_ref=chi2_ref)
