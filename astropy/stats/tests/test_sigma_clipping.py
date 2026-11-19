@@ -210,6 +210,33 @@ def test_sigma_clip_masked_quantity_bounds_units():
     assert upper.unit == u.m
 
 
+@pytest.mark.parametrize("axis", [None, 0])
+@pytest.mark.parametrize("cenfunc", ["median", np.nanmedian])
+def test_sigma_clip_quantity_masked_output(axis, cenfunc):
+    """
+    Test that the masked output for a Quantity input is a masked
+    Quantity with the clipped values masked, for the fast C
+    implementation (string ``cenfunc``) and the Python implementation
+    (callable ``cenfunc``).
+    """
+    data = np.ones(10) << u.Jy
+    data[-1] = 100.0 << u.Jy
+    expected_mask = np.zeros(10, dtype=bool)
+    expected_mask[-1] = True
+
+    result, lower, upper = sigma_clip(
+        data, cenfunc=cenfunc, axis=axis, return_bounds=True
+    )
+
+    assert isinstance(result, Masked)
+    assert result.unit == u.Jy
+    assert_equal(result.mask, expected_mask)
+    assert_equal(result.unmasked[~expected_mask], data[~expected_mask])
+    assert_equal(np.mean(result).unmasked, 1.0 << u.Jy)
+    assert lower.unit == u.Jy
+    assert upper.unit == u.Jy
+
+
 @pytest.mark.parametrize("masked_array", [np.ma.MaskedArray, Masked])
 def test_sigma_clip_masked_unsupported_dtype(masked_array):
     """Non-numeric Masked input is rejected rather than silently mishandled."""

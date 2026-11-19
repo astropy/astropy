@@ -404,6 +404,11 @@ class SigmaClip:
             )
 
         if masked:
+            if unit is not None:
+                # The unit is attached before the mask because applying
+                # a unit to a `~numpy.ma.MaskedArray` returns a Quantity
+                # without the mask.
+                data = data << unit
             result = _make_masked(data, mask, copy=copy)
         elif axis_none:
             # Match the documented axis=None, masked=False behavior:
@@ -429,7 +434,8 @@ class SigmaClip:
             bound_hi = bound_hi[()]
 
         if unit is not None:
-            result = result << unit
+            if not masked:
+                result = result << unit
             bound_lo = bound_lo << unit
             bound_hi = bound_hi << unit
 
