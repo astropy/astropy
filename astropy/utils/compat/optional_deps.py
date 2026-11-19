@@ -32,6 +32,7 @@ _optional_deps = [
     "matplotlib",
     "mpmath",
     "narwhals",
+    "narwhals_dask",
     "numpy_quaddtype",
     "pandas",
     "PIL",
