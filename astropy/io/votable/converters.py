@@ -324,7 +324,7 @@ def _string_bound(arraysize):
 
 
 def _shape_suffix(shape):
-    """The "x..." part of an arraysize for an array of strings of *shape*."""
+    """VOTable lists the fastest varying dimension first, numpy last."""
     return "".join(f"x{n}" for n in reversed(shape))
 
 
@@ -838,7 +838,8 @@ class StringVarArray(_StringArrayMixin, VarArray):
         self._datatype = field.datatype
         self._shape = (-1, *arraysize)
         self._items = prod(arraysize)
-        # The BINARY formats store the length of the array in characters
+        # The BINARY formats store the length of the array in primitives:
+        # characters, or UTF-8 bytes for char from VOTable 1.6
         self._chars = self._items * self._scalar.arraysize
         self.default = np.zeros((0, *arraysize), dtype=self._scalar.format)
 

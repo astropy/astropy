@@ -11,8 +11,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.io.votable import parse
-from astropy.io.votable.converters import table_column_to_votable_datatype
+from astropy.io.votable import parse, tree
+from astropy.io.votable.converters import (
+    get_converter,
+    table_column_to_votable_datatype,
+)
 from astropy.io.votable.exceptions import E01, E02, W46
 from astropy.table import Column, Table
 
@@ -412,6 +415,41 @@ def test_utf8_roundtrip(tabledata_format):
     assert table.array["c"].tolist() == [["Λ", "ab"], ["ΛΛ", "c"]]
 
 
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_utf8_roundtrip_variable_array(tabledata_format):
+    # "ΛCDM" is 4 characters but fills all 5 bytes
+    data = _v16(_votable("char", "5x*", ["ΛCDMab", ""]))
+
+    column = _column(_roundtrip(data, tabledata_format))
+
+    assert column[0].tolist() == ["ΛCDM", "ab"]
+    assert column[1].tolist() == []
+
+
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_unicodechar_variable_array_written_as_utf8_char(tabledata_format):
+    data = _votable("unicodeChar", "3x*", ["ΛΛΛab"])
+    t = Table.read(io.BytesIO(data), format="votable")
+    written = io.BytesIO()
+    t.write(written, format="votable", tabledata_format=tabledata_format, version="1.6")
+    table = parse(io.BytesIO(written.getvalue())).get_first_table()
+
+    # 3 characters of unicodeChar become 6 bytes of char
+    assert table.fields[0].datatype == "char"
+    assert table.fields[0].arraysize == "6x*"
+    assert table.array["c"][0].tolist() == ["ΛΛΛ", "ab"]
+
+
+def test_utf8_output_truncates_by_bytes():
+    config = {"version_1_6_or_later": True}
+    field = tree.Field(None, name="c", datatype="char", arraysize="3x2", config=config)
+    converter = get_converter(field, config=config)
+
+    # "ΛΛ" is 4 bytes
+    with pytest.warns(W46):
+        assert converter.output(np.array(["ΛΛ", "a"]), False) == "Λ a  "
+
+
 def test_utf8_datatype_of_string_array_columns():
     col = Column(
         np.array([["ab", "cd"]], dtype="U3"),
@@ -423,7 +461,6 @@ def test_utf8_datatype_of_string_array_columns():
         "width": 3,
     }
 
-    # The unicodeChar string length counted characters, char counts bytes
     col = Column(
         [np.array(["ab", "cd"]), np.array(["ΛΛ", "e"])],
         dtype=object,

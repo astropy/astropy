@@ -1,3 +1,4 @@
 Add support for VOTable 1.6. ``char`` data is now UTF-8, with ``arraysize``
 counting bytes and the ``width`` attribute giving the maximum number of
-characters.
+characters. For arrays of strings such as ``arraysize="10x4"``, the string
+length and ``width`` apply to each string.

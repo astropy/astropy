@@ -1,10 +1,9 @@
-BINARY and BINARY2 ``char`` data is now read and written as UTF-8 for every
-VOTable version. Reading UTF-8 from a pre-1.6 file used to raise
-``UnicodeDecodeError`` and now gives a W55 warning. Writing a non-ASCII value
-used to raise E24 and now only warns, unless ``verify="exception"`` is set,
-which now also applies to TABLEDATA output. Values longer than ``arraysize``
-are now cut with a W46 warning in TABLEDATA and bounded variable-length fields
-as well, and never in the middle of a character. Writing a character outside
-the Basic Multilingual Plane to a fixed-length ``unicodeChar`` field no longer
-gives an unreadable file. Strings in a widened column are no longer truncated
-when the table is written back to VOTable.
+Fix several problems with ``char`` and ``unicodeChar`` data. BINARY and BINARY2
+``char`` values are now read and written as UTF-8 for every VOTable version, so
+pre-1.6 files with non-ASCII text load with a W55 warning instead of failing.
+Writing non-ASCII text to a pre-1.6 ``char`` column gives an E24 warning in every
+format, or an error with ``verify="exception"``. Values longer than
+``arraysize`` are truncated with a W46 warning, without splitting a character.
+Characters outside the BMP in a fixed length ``unicodeChar`` field no longer
+make the file unreadable, and strings in a column that has been widened are
+no longer truncated when the table is written back to VOTable.
