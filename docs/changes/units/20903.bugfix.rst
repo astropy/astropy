@@ -1,0 +1,3 @@
+``CompositeUnit.decompose()`` no longer caches a unit in itself when its
+bases are already irreducible. This avoids a reference cycle that prevented
+such units from being freed when the cyclic garbage collector is disabled.

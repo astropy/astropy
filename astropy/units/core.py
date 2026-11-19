@@ -2519,16 +2519,6 @@ class CompositeUnit(UnitBase):
         if len(bases) == 0 and self._decomposed_cache is not None:
             return self._decomposed_cache
 
-        for base in self.bases:
-            if not isinstance(base, IrreducibleUnit) or (
-                len(bases) and base not in bases
-            ):
-                break
-        else:
-            if len(bases) == 0:
-                self._decomposed_cache = self
-            return self
-
         x = CompositeUnit(
             self.scale, self.bases, self.powers, decompose=True, decompose_bases=bases
         )

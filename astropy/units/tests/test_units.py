@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 
+import gc
 import itertools
 import operator
 import pickle
+import weakref
 from contextlib import nullcontext
 from fractions import Fraction
 
@@ -175,6 +177,52 @@ def test_units_conversion():
 
 def test_decompose():
     assert u.Ry == u.Ry.decompose()
+
+
+def test_decompose_irreducible_unit_creates_no_reference_cycle():
+    """Regression test for #20903.
+
+    CompositeUnit.decompose() must not cache the unit in itself when the
+    bases are already irreducible. That self-reference is a cycle, so the
+    unit cannot be freed by reference counting and leaks if the cyclic
+    garbage collector is disabled.
+    """
+    # Collect leftover cycles from earlier tests before recording new ones.
+    gc.collect()
+    del gc.garbage[:]
+
+    gc.disable()
+    gc.set_debug(gc.DEBUG_SAVEALL)
+    try:
+        unit = u.s**-1
+        unit.decompose()
+        ref = weakref.ref(unit)
+        del unit
+        assert ref() is None
+
+        # Quantity construction looks up _physical_type_id, which decomposes.
+        q = 1e-12 / u.s
+        ref_q = weakref.ref(q)
+        ref_unit = weakref.ref(q.unit)
+        del q
+        assert ref_q() is None
+        assert ref_unit() is None
+
+        # Decomposing an already-decomposed result must also avoid a cycle.
+        decomposed = (u.km / u.s).decompose()
+        decomposed.decompose()
+        ref_decomposed = weakref.ref(decomposed)
+        del decomposed
+        assert ref_decomposed() is None
+
+        gc.collect()
+        leaked = [o for o in gc.garbage if isinstance(o, u.UnitBase)]
+        assert leaked == []
+    finally:
+        gc.set_debug(0)
+        gc.enable()
+        del gc.garbage[:]
+        gc.collect()
 
 
 def test_dimensionless_to_si():
