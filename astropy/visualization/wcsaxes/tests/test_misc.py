@@ -17,6 +17,7 @@ from packaging.version import Version
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
+from astropy.table import QTable
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.visualization import quantity_support
@@ -1271,6 +1272,73 @@ def test_plot_quantity_axes_without_wcs():
     # Pixel coordinates are still known
     (line,) = ax.plot([1, 2] * u.pix, [3, 4] * u.pix)
     assert_allclose(line.get_xydata(), [[1, 3], [2, 4]])
+
+
+def test_quantity_in_data(celestial_axes):
+    # Quantities that are looked up by name in the data argument are converted
+    # in the same way as quantities that are passed directly
+    ax = celestial_axes
+    world = ax.get_transform("world")
+    data = {
+        "x": [10.1, 10.2] * u.deg,
+        "y": [20.1, 20.2] * u.deg,
+        "err": [1, 1] * u.arcmin,
+        "flux": [1.0, 2.0],
+        "pixel": [3.0, 4.0],
+    }
+    expected = [[36360, 72360], [36720, 72720]]
+
+    (line,) = ax.plot("x", "y", "o", data=data, transform=world)
+    assert_allclose(line.get_xydata(), expected)
+    # The label is still taken from the name, and the format is still used
+    assert line.get_label() == "y"
+    assert line.get_marker() == "o"
+    (line,) = ax.plot("x", "y", "", data=data, transform=ax.get_transform("icrs"))
+    assert_allclose(line.get_xydata(), [[10.1, 20.1], [10.2, 20.2]])
+    (line,) = ax.plot("y", "o", data=data, transform=world)
+    assert_allclose(line.get_xydata(), [[0, 72360], [1, 72720]])
+    # Entries that are not quantities are left unchanged
+    (line,) = ax.plot("x", "pixel", "o", data=data, transform=world)
+    assert_allclose(line.get_xydata(), [[36360, 3], [36720, 4]])
+
+    # Entries that are not coordinates are passed on to Matplotlib
+    points = ax.scatter("x", "y", c="flux", data=data, transform=world)
+    assert_allclose(points.get_offsets(), expected)
+    assert_allclose(points.get_array(), [1, 2])
+    points = ax.scatter(x="x", y="y", data=QTable(data), transform=world)
+    assert_allclose(points.get_offsets(), expected)
+
+    container = ax.errorbar("x", "y", xerr="err", data=data, transform=world)
+    assert_allclose(container[0].get_xydata(), expected)
+    assert_allclose(container[2][0].get_segments()[0][:, 0], [36300, 36420])
+
+    grid = {"x": data["x"], "y": data["y"], "z": [[1.0]]}
+    mesh = ax.pcolormesh("x", "y", "z", data=grid, transform=world)
+    assert_allclose(mesh.get_coordinates()[:, :, 0], [[36360, 36720]] * 2)
+    assert_allclose(mesh.get_coordinates()[:, :, 1], [[72360] * 2, [72720] * 2])
+
+    # The data argument itself is not modified
+    assert data["x"].unit == u.deg
+
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        ax.plot("x", "y", "o", data=data)
+    with pytest.raises(u.UnitConversionError, match="pixel coordinates"):
+        ax.contour("x", "y", "z", data=grid)
+    with pytest.raises(TypeError, match="units that other transforms expect"):
+        ax.scatter("x", "y", data=data, transform=ax.transAxes)
+
+
+def test_quantity_in_data_used_with_different_units():
+    # The same entry cannot be converted to two different units
+    wcs = _celestial_wcs("arcsec")
+    wcs.wcs.cunit = ["arcsec", "deg"]
+    wcs.wcs.crval = [36000, 20]
+    wcs.wcs.cdelt = [-36, 0.01]
+    fig = Figure()
+    ax = fig.add_subplot(1, 1, 1, projection=wcs)
+    data = {"x": [10.1, 10.2] * u.deg}
+    with pytest.raises(ValueError, match="'x' in data is used for coordinates"):
+        ax.plot("x", "x", data=data, transform=ax.get_transform("world"))
 
 
 def test_plot_quantity_with_quantity_support(celestial_axes):

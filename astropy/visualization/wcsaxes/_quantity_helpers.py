@@ -61,9 +61,52 @@ def get_transform_input_units(ax, transform):
     return getattr(transform, "_wcsaxes_input_units", (UNKNOWN_UNIT, UNKNOWN_UNIT))
 
 
-def to_value(value, unit):
+class ConvertedData:
+    # Wrapper for the ``data`` argument of plotting methods, in which the
+    # entries that are used as coordinates are replaced by plain values in
+    # the units that the transform expects. Matplotlib looks up arguments
+    # that are strings in ``data``, and derives labels from these strings, so
+    # the arguments themselves are left unchanged.
+
+    def __init__(self, data):
+        self._data = data
+        self._converted = {}
+
+    def __getitem__(self, name):
+        if name in self._converted:
+            return self._converted[name][1]
+        return self._data[name]
+
+    def __contains__(self, name):
+        # Matplotlib treats any string for which the lookup succeeds as the
+        # name of an entry
+        try:
+            self._data[name]
+        except Exception:
+            return False
+        return True
+
+    def convert(self, name, unit):
+        if name not in self:
+            return
+        value = self._data[name]
+        converted = to_value(value, unit)
+        if converted is value:
+            return
+        if self._converted.setdefault(name, (unit, converted))[0] != unit:
+            raise ValueError(
+                f"The entry '{name}' in data is used for coordinates that "
+                "the transform expects in different units"
+            )
+
+
+def to_value(value, unit, data=None):
     # Convert a Quantity, or a list or tuple that contains quantities, to plain
-    # values in the given unit, and return anything else unchanged
+    # values in the given unit, and return anything else unchanged. If data
+    # is given, a string is the name of an entry to convert in data.
+    if data is not None and isinstance(value, str):
+        data.convert(value, unit)
+        return value
     if unit is None or not (
         isinstance(value, u.Quantity)
         or (
@@ -94,27 +137,44 @@ def to_value(value, unit):
         raise u.UnitConversionError(f"{exc}: {expected}") from None
 
 
-def convert_plot_args(args, x_unit, y_unit):
-    # Convert quantities in arguments given as ([x], y, [fmt]) groups
+def convert_plot_args(args, x_unit, y_unit, data=None):
+    # Convert quantities in arguments given as ([x], y, [fmt]) groups, where
+    # a string is a format unless it is the name of an entry in data
+
+    def is_fmt(arg):
+        return isinstance(arg, str) and (data is None or arg not in data)
+
     args = list(args)
     converted = []
     while args:
         group = [args.pop(0)]
-        if args and not isinstance(args[0], str):
+        if args and not is_fmt(args[0]):
             group.append(args.pop(0))
         units = (x_unit, y_unit)[-len(group) :]
-        converted += [to_value(value, unit) for value, unit in zip(group, units)]
-        if args and isinstance(args[0], str):
+        converted += [to_value(value, unit, data) for value, unit in zip(group, units)]
+        if args and is_fmt(args[0]):
             converted.append(args.pop(0))
     return converted
 
 
-def convert_grid_args(args, x_unit, y_unit):
+def convert_grid_args(args, x_unit, y_unit, data=None):
     # Convert quantities in arguments given as ([X, Y], Z, ...), where X and Y
     # are optional and present if there are at least three arguments
     if len(args) < 3:
         return args
-    return [to_value(args[0], x_unit), to_value(args[1], y_unit), *args[2:]]
+    return [
+        to_value(args[0], x_unit, data),
+        to_value(args[1], y_unit, data),
+        *args[2:],
+    ]
+
+
+def wrap_data(kwargs):
+    # Replace the ``data`` argument of a plotting method, if given, by a
+    # ConvertedData wrapper, and return it
+    if kwargs.get("data") is not None:
+        kwargs["data"] = ConvertedData(kwargs["data"])
+    return kwargs.get("data")
 
 
 def convert_quantities(method, x=(), y=(), convert_args=None):
@@ -127,16 +187,17 @@ def convert_quantities(method, x=(), y=(), convert_args=None):
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         x_unit, y_unit = get_transform_input_units(self, kwargs.get("transform"))
+        data = wrap_data(kwargs)
         if convert_args is not None:
-            args = convert_args(args, x_unit, y_unit)
+            args = convert_args(args, x_unit, y_unit, data)
         args = list(args)
         for name, unit in [(name, x_unit) for name in x] + [
             (name, y_unit) for name in y
         ]:
             if (index := names.index(name)) < len(args):
-                args[index] = to_value(args[index], unit)
+                args[index] = to_value(args[index], unit, data)
             elif name in kwargs:
-                kwargs[name] = to_value(kwargs[name], unit)
+                kwargs[name] = to_value(kwargs[name], unit, data)
         return method(self, *args, **kwargs)
 
     wrapper.__doc__ = f"""

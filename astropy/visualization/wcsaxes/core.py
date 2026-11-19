@@ -23,6 +23,7 @@ from ._quantity_helpers import (
     convert_quantities,
     get_frame_input_units,
     get_transform_input_units,
+    wrap_data,
 )
 from .coordinates_map import CoordinatesMap
 from .frame import RectangularFrame, RectangularFrame1D
@@ -268,7 +269,9 @@ class WCSAxes(Axes):
         # go to all the segments that make up the contour map.
 
         args = convert_grid_args(
-            args, *get_transform_input_units(self, kwargs.get("transform"))
+            args,
+            *get_transform_input_units(self, kwargs.get("transform")),
+            wrap_data(kwargs),
         )
         transform = kwargs.pop("transform", None)
 
@@ -300,7 +303,9 @@ class WCSAxes(Axes):
         # See notes for contour above.
 
         args = convert_grid_args(
-            args, *get_transform_input_units(self, kwargs.get("transform"))
+            args,
+            *get_transform_input_units(self, kwargs.get("transform")),
+            wrap_data(kwargs),
         )
         transform = kwargs.pop("transform", None)
 
