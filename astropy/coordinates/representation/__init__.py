@@ -4,9 +4,18 @@ used to represent low-level cartesian, spherical, cylindrical, and other
 coordinates.
 """
 
-from .base import BaseDifferential, BaseRepresentation, BaseRepresentationOrDifferential
+from .base import (
+    BaseDifferential,
+    BasePhysicalDifferential,
+    BaseRepresentation,
+    BaseRepresentationOrDifferential,
+)
 from .cartesian import CartesianDifferential, CartesianRepresentation
-from .cylindrical import CylindricalDifferential, CylindricalRepresentation
+from .cylindrical import (
+    CylindricalDifferential,
+    CylindricalPhysicalDifferential,
+    CylindricalRepresentation,
+)
 from .geodetic import (
     BaseBodycentricRepresentation,
     BaseGeodeticRepresentation,
@@ -18,11 +27,13 @@ from .spherical import (
     BaseSphericalCosLatDifferential,
     BaseSphericalDifferential,
     PhysicsSphericalDifferential,
+    PhysicsSphericalPhysicalDifferential,
     PhysicsSphericalRepresentation,
     RadialDifferential,
     RadialRepresentation,
     SphericalCosLatDifferential,
     SphericalDifferential,
+    SphericalPhysicalDifferential,
     SphericalRepresentation,
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
@@ -42,6 +53,7 @@ __all__ = [
     "BaseBodycentricRepresentation",
     "BaseDifferential",
     "BaseGeodeticRepresentation",
+    "BasePhysicalDifferential",
     "BaseRepresentation",
     "BaseRepresentationOrDifferential",
     "BaseSphericalCosLatDifferential",
@@ -49,14 +61,17 @@ __all__ = [
     "CartesianDifferential",
     "CartesianRepresentation",
     "CylindricalDifferential",
+    "CylindricalPhysicalDifferential",
     "CylindricalRepresentation",
     "GRS80GeodeticRepresentation",
     "PhysicsSphericalDifferential",
+    "PhysicsSphericalPhysicalDifferential",
     "PhysicsSphericalRepresentation",
     "RadialDifferential",
     "RadialRepresentation",
     "SphericalCosLatDifferential",
     "SphericalDifferential",
+    "SphericalPhysicalDifferential",
     "SphericalRepresentation",
     "UnitSphericalCosLatDifferential",
     "UnitSphericalDifferential",

@@ -14,12 +14,15 @@ from astropy.coordinates.representation import (
     DIFFERENTIAL_CLASSES,
     DUPLICATE_REPRESENTATIONS,
     REPRESENTATION_CLASSES,
+    BaseDifferential,
     BaseRepresentation,
     CartesianDifferential,
     CartesianRepresentation,
     CylindricalDifferential,
+    CylindricalPhysicalDifferential,
     CylindricalRepresentation,
     PhysicsSphericalDifferential,
+    PhysicsSphericalPhysicalDifferential,
     PhysicsSphericalRepresentation,
     RadialDifferential,
     RadialRepresentation,
@@ -45,6 +48,7 @@ matrices = {
 def setup_function(func):
     func.REPRESENTATION_CLASSES_ORIG = deepcopy(REPRESENTATION_CLASSES)
     func.DUPLICATE_REPRESENTATIONS_ORIG = deepcopy(DUPLICATE_REPRESENTATIONS)
+    func.DIFFERENTIAL_CLASSES_ORIG = deepcopy(DIFFERENTIAL_CLASSES)
 
 
 def teardown_function(func):
@@ -52,6 +56,8 @@ def teardown_function(func):
     REPRESENTATION_CLASSES.update(func.REPRESENTATION_CLASSES_ORIG)
     DUPLICATE_REPRESENTATIONS.clear()
     DUPLICATE_REPRESENTATIONS.update(func.DUPLICATE_REPRESENTATIONS_ORIG)
+    DIFFERENTIAL_CLASSES.clear()
+    DIFFERENTIAL_CLASSES.update(func.DIFFERENTIAL_CLASSES_ORIG)
 
 
 def components_equal(rep1, rep2):
@@ -1696,6 +1702,34 @@ def test_subclass_representation():
     assert c.ra.unit is u.deg
     assert c.dec.value == -2
     assert c.dec.unit is u.deg
+
+
+@pytest.mark.parametrize(
+    "rep_cls, phys_cls",
+    [
+        (CylindricalRepresentation, CylindricalPhysicalDifferential),
+        (PhysicsSphericalRepresentation, PhysicsSphericalPhysicalDifferential),
+    ],
+)
+def test_subclass_with_own_differential(rep_cls, phys_cls):
+    # A subclass can use its own differential class, as well as the
+    # physical differential of its parent class.
+    class MyRepresentation(rep_cls):
+        pass
+
+    class MyDifferential(BaseDifferential):
+        base_representation = MyRepresentation
+
+    assert MyRepresentation._compatible_differentials == [MyDifferential, phys_cls]
+
+    rep = MyRepresentation.from_cartesian(CartesianRepresentation(1, 2, 3, unit=u.kpc))
+    vel = CartesianDifferential(10, 20, 30, unit=u.km / u.s)
+    for diff_cls in (MyDifferential, phys_cls):
+        rep_with_vel = rep.with_differentials(vel.represent_as(diff_cls, rep))
+        assert isinstance(rep_with_vel.differentials["s"], diff_cls)
+        assert_allclose_quantity(
+            rep_with_vel.differentials["s"].to_cartesian(rep).xyz, vel.d_xyz
+        )
 
 
 def test_minimal_subclass():
