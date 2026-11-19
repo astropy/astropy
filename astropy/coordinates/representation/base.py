@@ -1594,6 +1594,7 @@ class BaseDifferential(BaseRepresentationOrDifferential):
         components will simply be combined.  If ``other`` is a representation,
         it will be used as a base for which to evaluate the differential,
         and the result is a new representation.
+        Incompatible differential types return ``NotImplemented``.
 
         Parameters
         ----------

@@ -971,10 +971,12 @@ class TestRadialDifferential:
     ("operation", "method"),
     [(operator.add, "__add__"), (operator.sub, "__sub__")],
 )
-@pytest.mark.parametrize("reverse", [False, True])
-def test_incompatible_differential_arithmetic(differential, operation, method, reverse):
+@pytest.mark.parametrize("radial_first", [False, True])
+def test_incompatible_differential_arithmetic(
+    differential, operation, method, radial_first
+):
     radial = RadialDifferential(10 * u.km / u.s)
-    first, second = (radial, differential) if reverse else (differential, radial)
+    first, second = (radial, differential) if radial_first else (differential, radial)
 
     assert getattr(first, method)(second) is NotImplemented
     with pytest.raises(TypeError, match="unsupported operand type"):
@@ -1330,12 +1332,10 @@ class TestDifferentialConversion:
         so5 = so1 - uo
         so5c = sd_cls(0 * u.deg, 0.0 * u.deg, ro.d_distance)
         assert np.all(representation_equal(so5, so5c))
-        so6 = ro + so1
-        assert type(so6) is sd_cls
-        assert np.all(representation_equal(so6, so4c))
-        so7 = ro + uo
-        assert type(so7) is sd_cls
-        assert np.all(representation_equal(so7, so1c))
+        for other, expected in ((so1, so4c), (uo, so1c)):
+            combined = ro + other
+            assert type(combined) is sd_cls
+            assert np.all(representation_equal(combined, expected))
         assert_representation_allclose(self.s + (uo + ro), self.s + so1)
 
 
