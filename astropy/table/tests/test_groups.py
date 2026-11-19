@@ -9,9 +9,22 @@ from hypothesis.strategies import integers
 
 from astropy import coordinates, time
 from astropy import units as u
-from astropy.table import Column, NdarrayMixin, QTable, Table, table_helpers, unique
+from astropy.table import (
+    Column,
+    MaskedColumn,
+    NdarrayMixin,
+    QTable,
+    Table,
+    groups,
+    table_helpers,
+    unique,
+)
+from astropy.table.soco import SCEngine
+from astropy.table.sorted_array import SortedArray
 from astropy.time import Time
+from astropy.utils.compat.optional_deps import HAS_SORTEDCONTAINERS
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.utils.masked import Masked
 
 
 def sort_eq(list1, list2):
@@ -890,3 +903,282 @@ def test_get_group_column_grouped_by_table(T1):
 
     with pytest.raises(KeyError):
         cg.groups.get_group((3, "b"))
+
+
+def get_edge_values(dtype):
+    """Values at the extremes of ``dtype`` and other special values."""
+    if dtype.kind == "b":
+        return [False, True]
+    if dtype.kind == "f":
+        finfo = np.finfo(dtype)
+        # Include the nearest neighbors of +/-0 and of +/-inf, and NaN with the sign
+        # bit set (-np.nan), which numpy sorts to the end like any other NaN.
+        # fmt: off
+        return [
+            -np.nan, -np.inf, -finfo.max, -1.5, -finfo.smallest_subnormal, -0.0,
+            0.0, finfo.smallest_subnormal, finfo.tiny, 2.5, finfo.max, np.inf, np.nan,
+        ]
+        # fmt: on
+    info = np.iinfo(dtype)
+    return [info.min, info.min + 1, 0, 1, info.max - 1, info.max]
+
+
+@pytest.mark.parametrize(
+    "dtype",
+    [
+        "?",
+        "i1",
+        "u1",
+        "i2",
+        "u2",
+        "i4",
+        "u4",
+        "i8",
+        "u8",
+        "f2",
+        "f4",
+        "f8",
+        ">i8",
+        ">f8",
+    ],
+)
+def test_radix_argsort_matches_numpy(dtype):
+    """The radix sort must give exactly the same indices as a stable numpy argsort."""
+    dtype = np.dtype(dtype)
+    rng = np.random.default_rng(0)
+    if dtype.kind in "iu":
+        info = np.iinfo(dtype)
+        wide_range = rng.integers(
+            info.min, info.max, size=2000, dtype=dtype.newbyteorder("="), endpoint=True
+        )
+    else:
+        # Mixed-sign fractional values that fit in float16 (max 65504). Note that
+        # any float data generally needs all 4 radix passes since the exponent
+        # bits vary.
+        wide_range = rng.standard_normal(2000) * 1000
+    for vals in (
+        rng.integers(0, 2, size=2000),  # one radix pass for ints
+        rng.integers(0, 200, size=2000),  # one radix pass for ints
+        wide_range,  # several radix passes
+        rng.choice(np.array(get_edge_values(dtype), dtype=dtype), size=2000),
+    ):
+        a = vals.astype(dtype)
+        if dtype.kind == "f":
+            # Include negative zero and NaN. Use unary minus since multiplying NaN by
+            # -1 does not reliably set its sign bit.
+            a[::7] = -a[::7]
+        idx = groups._radix_argsort([a])
+        assert np.array_equal(idx, np.argsort(a, kind="stable"))
+
+
+def test_radix_argsort_multiple_keys():
+    rng = np.random.default_rng(0)
+    a = rng.integers(0, 5, size=3000)
+    b = rng.integers(-(2**20), 2**20, size=3000) / 3
+    c = rng.choice([True, False], size=3000)
+    idx = groups._radix_argsort([a, b, c])
+    assert np.array_equal(idx, np.lexsort([c, b, a]))
+
+
+@given(arrays("float64", shape=integers(0, 50)))
+def test_radix_argsort_float_hypothesis(a):
+    assert np.array_equal(groups._radix_argsort([a]), np.argsort(a, kind="stable"))
+
+
+@pytest.mark.parametrize(
+    "col",
+    [
+        np.array(["a", "b"] * 600),
+        np.ones(1200, dtype=np.complex128),
+        pytest.param(
+            np.ones(1200, dtype=np.longdouble),
+            marks=pytest.mark.skipif(
+                np.dtype(np.longdouble).itemsize <= 8,
+                reason="longdouble is the same as float64 on this platform",
+            ),
+        ),
+        np.ones((1200, 2)),
+        np.arange(1200).astype("datetime64[s]"),
+        np.ma.MaskedArray(np.arange(1200), mask=[True] + [False] * 1199),
+        Masked(np.arange(1200) * u.m, mask=[True] + [False] * 1199),
+        coordinates.SkyCoord(np.arange(1200), np.zeros(1200), unit="deg"),
+    ],
+)
+def test_radix_sortable_arrays_unsupported(col):
+    """Keys that the radix sort cannot handle fall back to the generic sort."""
+    # QTable so that a masked Quantity stays a Masked mixin
+    keys = QTable([col], names=["a"])
+    assert groups._get_radix_sortable_arrays(keys) is None
+
+
+def test_group_by_radix_matches_generic_sort(monkeypatch):
+    """Grouping with the radix sort and the generic stable sort gives the same table."""
+    rng = np.random.default_rng(0)
+    n = 3000
+    t = QTable()
+    t["int"] = rng.integers(0, 10, size=n)
+    t["float"] = rng.integers(-5, 5, size=n) / 4
+    t["float"][::97] = np.nan
+    t["bool"] = rng.choice([True, False], size=n)
+    t["quantity"] = rng.integers(0, 3, size=n) * u.m
+    t["time"] = Time("2026-01-01") + rng.integers(0, 4, size=n) * u.day
+    # Masked columns with no masked values, which use the radix sort on the
+    # unmasked data: np.ma based MaskedColumn, and astropy Masked for a Quantity
+    # and for the jd1/jd2 of a Time that has had a masked value set and cleared.
+    t["masked"] = MaskedColumn(rng.integers(0, 3, size=n))
+    t["masked_quantity"] = Masked(
+        rng.integers(0, 3, size=n) * u.m, mask=np.zeros(n, dtype=bool)
+    )
+    t["masked_time"] = t["time"].copy()
+    t["masked_time"][0] = np.ma.masked
+    t["masked_time"][0] = t["time"][0]
+    assert isinstance(t["masked_quantity"], Masked)
+    assert t["masked_time"].masked
+    for name in ("masked", "masked_quantity", "masked_time"):
+        assert groups._get_radix_sortable_arrays(t[[name]]) is not None
+    t["str"] = rng.choice(["x", "y"], size=n)
+    t["order"] = np.arange(n)
+
+    key_sets = [
+        ["int"],
+        ["float"],
+        ["bool", "int"],
+        ["quantity", "time"],
+        ["masked", "int"],
+        ["masked_quantity", "int"],
+        ["masked_time"],
+        ["str", "int"],
+    ]
+    keys_array = t["int", "bool"].as_array()
+
+    def get_group_indices(keys_sorted):
+        """Group boundaries from each key column's own ``!=`` comparison.
+
+        This is independent of ``get_sortable_arrays()``, which is what the code
+        under test uses to find the boundaries.
+        """
+        cols = (
+            keys_sorted.itercols() if isinstance(keys_sorted, Table) else [keys_sorted]
+        )
+        diffs = np.zeros(len(keys_sorted) - 1, dtype=bool)
+        for col in cols:
+            diffs |= np.asarray(col[1:] != col[:-1])
+        return np.flatnonzero(np.concatenate(([True], diffs, [True])))
+
+    for keys in [*key_sets, keys_array, t["time", "int"]]:
+        tg_radix = t.group_by(keys)
+        with monkeypatch.context() as m:
+            m.setattr(groups, "_RADIX_SORT_MIN_LENGTH", n + 1)
+            tg_generic = t.group_by(keys)
+        assert np.all(tg_radix.groups.indices == tg_generic.groups.indices)
+        assert np.all(tg_radix["order"] == tg_generic["order"])
+
+        # "order" is arange(n) so the grouped "order" column is the sort permutation
+        keys_sorted = (t[keys] if isinstance(keys, list) else keys)[
+            np.asarray(tg_radix["order"])
+        ]
+        assert np.all(tg_radix.groups.indices == get_group_indices(keys_sorted))
+
+    cg_radix = t["order"].group_by(keys_array)
+    with monkeypatch.context() as m:
+        m.setattr(groups, "_RADIX_SORT_MIN_LENGTH", n + 1)
+        cg_generic = t["order"].group_by(keys_array)
+    assert np.all(cg_radix.groups.indices == cg_generic.groups.indices)
+    assert np.all(cg_radix == cg_generic)
+    assert np.all(
+        cg_radix.groups.indices == get_group_indices(keys_array[np.asarray(cg_radix)])
+    )
+
+
+INDEX_ENGINES = [
+    SortedArray,
+    pytest.param(
+        SCEngine,
+        marks=pytest.mark.skipif(
+            not HAS_SORTEDCONTAINERS, reason="requires sortedcontainers"
+        ),
+    ),
+]
+
+
+@pytest.mark.parametrize("engine", INDEX_ENGINES)
+def test_group_by_with_index(engine):
+    """Grouping using the sort order from a table index gives the same result."""
+    rng = np.random.default_rng(0)
+    n = 2000
+    t = Table()
+    t["time"] = Time("2026-01-01") + rng.integers(0, 4, size=n) * u.day
+    t["int"] = rng.integers(0, 3, size=n)
+    t["order"] = np.arange(n)
+    tg = t.group_by(["time", "int"])
+    t.add_index(["time", "int"], engine=engine)
+    tg_index = t.group_by(["time", "int"])
+    assert np.all(tg_index.groups.indices == tg.groups.indices)
+    assert np.all(tg_index.groups.keys == tg.groups.keys)
+    for grp_index, grp in zip(tg_index.groups, tg.groups):
+        assert np.all(np.sort(grp_index["order"]) == grp["order"])
+
+
+@pytest.mark.parametrize("engine", [None, *INDEX_ENGINES])
+def test_group_by_empty(engine):
+    """Grouping a zero-length table (with or without an index) or column."""
+    t = Table({"a": np.array([], dtype=int), "b": np.array([], dtype=float)})
+    if engine is not None:
+        t.add_index("a", engine=engine)
+    tg = t.group_by("a")
+    assert len(tg) == 0
+    assert len(tg.groups.indices) == 0
+    assert len(tg.groups.keys) == 0
+    assert tg.groups.keys.colnames == ["a"]
+
+    cg = t["b"].group_by(t["a"])
+    assert len(cg) == 0
+    assert len(cg.groups.indices) == 0
+    assert len(cg.groups.keys) == 0
+
+    cg = t["b"].group_by(np.array([], dtype=int))
+    assert len(cg.groups.indices) == 0
+
+    # Grouping by an external keys table must not modify that table
+    keys = Table({"a": np.array([], dtype=int)})
+    tg = t.group_by(keys)
+    assert tg.groups.keys.meta["grouped_by_table_cols"] is False
+    assert keys.meta == {}
+
+
+@pytest.mark.parametrize("n", [100, 2000])
+def test_group_by_noncanonical_bool(n):
+    """A bool buffer can hold any nonzero byte for True; all must be one group.
+
+    Covers both the small-table (np.lexsort) and the radix sort paths.
+    """
+    flag = np.resize(np.array([1, 255, 1, 255], dtype=np.uint8), n).view(bool)
+    secondary = np.resize([0, 0, 1, 1], n)
+    assert np.all(flag)
+    expected = [0, n // 2, n]
+
+    keys = np.empty(n, dtype=[("flag", "?"), ("secondary", "i4")])
+    keys["flag"] = flag
+    keys["secondary"] = secondary
+    t = Table({"value": np.ones(n)})
+    assert t.group_by(keys).groups.indices.tolist() == expected
+
+    t = Table({"flag": flag, "secondary": secondary, "value": np.ones(n)})
+    tg = t.group_by(["flag", "secondary"])
+    assert tg.groups.indices.tolist() == expected
+    assert tg.groups.aggregate(np.sum)["value"].tolist() == [n / 2, n / 2]
+
+    # All values are logically equal so a stable sort keeps the original order.
+    # (np.argsort itself sorts bools by the raw byte, so is not the reference here.)
+    assert np.array_equal(groups._radix_argsort([flag]), np.arange(n))
+
+
+def test_group_by_nested_structured_masked_keys():
+    """A nested structured masked key has a structured mask; it must fall back."""
+    keys = np.zeros(4, dtype=[("nested", [("a", "i8"), ("b", "i8")])])
+    keys["nested"]["a"] = [2, 1, 2, 1]
+    keys = np.ma.array(keys)
+    assert groups._get_radix_sortable_arrays(keys) is None
+    tg = Table({"row": np.arange(4)}).group_by(keys)
+    assert tg["row"].tolist() == [1, 3, 0, 2]
+    assert tg.groups.indices.tolist() == [0, 2, 4]
