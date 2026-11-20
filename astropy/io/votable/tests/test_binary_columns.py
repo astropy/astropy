@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import converters, parse_single_table, tree
-from astropy.io.votable.exceptions import W46
+from astropy.io.votable.exceptions import W46, W60
 from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
 
@@ -99,14 +99,16 @@ def every_datatype_votable(tabledata_format):
     return document
 
 
-def binary_votable(tag, fields, stream):
+def binary_votable(tag, fields, stream, version="1.4"):
     """
-    Return a VOTable document with the given FIELD elements, and *stream* as
-    its data in the *tag* element, BINARY or BINARY2.
+    Return a VOTable document of the given *version* with the given FIELD
+    elements, and *stream* as its data in the *tag* element, BINARY or
+    BINARY2.
     """
     return io.BytesIO(
         b'<?xml version="1.0" encoding="utf-8"?>\n'
-        b'<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">\n'
+        b'<VOTABLE version="' + version.encode() + b'" '
+        b'xmlns="http://www.ivoa.net/xml/VOTable/v1.3">\n'
         b"<RESOURCE><TABLE>" + fields.encode() + b"<DATA><" + tag.encode() + b">"
         b'<STREAM encoding="base64">' + base64.b64encode(stream) + b"</STREAM>"
         b"</" + tag.encode() + b"></DATA></TABLE></RESOURCE></VOTABLE>"
@@ -328,10 +330,11 @@ def test_partial_last_row_is_dropped():
     assert array.tolist() == [(1.5, "ab"), (1.5, "ab")]
 
 
-def test_bad_string_in_a_column_not_read_raises():
+def test_bad_string_in_a_column_not_read_warns():
     """
-    parse_single_table with columns=["d"] on a BINARY2 table whose other
-    column holds a non-ASCII char string raises UnicodeDecodeError.
+    parse_single_table with columns=["d"] and verify="warn" on a BINARY2
+    table whose other column holds a char string that is not valid UTF-8
+    warns W60.
 
     Reading value by value decodes every column, so the column reader checks
     the strings it does not return too.
@@ -343,8 +346,27 @@ def test_bad_string_in_a_column_not_read_raises():
         b"\x00" + struct.pack(">I", 2) + b"a\xe9" + struct.pack(">d", 2.0),
     )
 
-    with pytest.raises(UnicodeDecodeError):
-        parse_single_table(document, columns=["d"])
+    with pytest.warns(W60):
+        parse_single_table(document, columns=["d"], verify="warn")
+
+
+def test_strings_as_long_as_their_width_are_read_by_columns(monkeypatch):
+    """
+    parse_single_table on a VOTable 1.6 BINARY2 table with a fixed and a
+    bounded char field of arraysize 8 and width 2, each holding a value of 2
+    characters, gives those values with the column reader.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="f" datatype="char" arraysize="8" width="2"/>'
+        '<FIELD name="v" datatype="char" arraysize="8*" width="2"/>',
+        b"\x00" + b"ab".ljust(8, b"\x00") + struct.pack(">I", 2) + b"cd",
+        version="1.6",
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.tolist() == [("ab", "cd")]
 
 
 def test_empty_stream_gives_no_rows():
