@@ -12,10 +12,16 @@ import numpy as np
 
 from astropy import units as u
 from astropy.units import SpecificTypeQuantity
+from astropy.utils.masked import Masked, get_data_and_mask
 
 from . import formats
 
 __all__ = ["Angle", "Latitude", "Longitude"]
+
+# The vectorized sexagesimal formatter in ``Angle.to_string`` has a fixed setup
+# cost, so the per-element loop is quicker below this many values (measured
+# crossover: about seven).
+_VECTORIZE_MIN_SIZE = 8
 
 
 # these are used by the `hms` and `dms` attributes
@@ -336,14 +342,41 @@ class Angle(SpecificTypeQuantity):
         if format == "latex_inline":
             format = "latex"
 
-        # Create an iterator so we can format each element of what
-        # might be an array.
+        # Convert Quantity to value in the requested unit so we can format it.
+        values = self.to_value(unit)
+
+        # For sexagesimal formatting, try using a vectorized path for non-small arrays,
+        # otherwise fall back to a per-element loop by defining a formatting function.
         if not decimal and (unit == u.degree or unit == u.hourangle):
             # Sexagesimal.
             if sep == "fromunit":
                 if format not in separators:
                     raise ValueError(f"Unknown format '{format}'")
                 sep = separators[format][unit]
+
+            # Fast path: build the whole sexagesimal array with NumPy string operations
+            # instead of looping ``do_format`` over the elements. The helper returns
+            # ``None`` for cases it cannot handle (very old NumPy, out-of-range degrees
+            # or an unusable separator), in which case we fall through to the
+            # per-element path below.
+            if values.size >= _VECTORIZE_MIN_SIZE:
+                unmasked, mask = get_data_and_mask(values)
+                result = formats._decimal_to_sexagesimal_string_array(
+                    unmasked,
+                    precision=precision,
+                    sep=sep,
+                    pad=pad,
+                    fields=fields,
+                    alwayssign=alwayssign,
+                )
+                if result is not None:
+                    if format == "latex":
+                        result = "$" + result + "$"
+                        # As in the per-element path, NaN gets no delimiters.
+                        result[np.isnan(unmasked)] = "nan"
+                    return result if mask is None else Masked(result, mask)
+
+            # Cannot do vectorized formatting, continue on with per-element formatting
             func = functools.partial(
                 formats._decimal_to_sexagesimal_string,
                 precision=precision,
@@ -383,7 +416,7 @@ class Angle(SpecificTypeQuantity):
             return f"${s}$" if format == "latex" else s
 
         format_ufunc = np.vectorize(do_format, otypes=["U"])
-        result = format_ufunc(self.to_value(unit))
+        result = format_ufunc(values)
         return result if result.ndim else result[()]
 
     def _wrap_at(self, wrap_angle):

@@ -50,6 +50,7 @@ from astropy.time import Time
 from astropy.units import allclose as quantity_allclose
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 from astropy.utils.exceptions import AstropyDeprecationWarning
+from astropy.utils.masked import Masked
 from astropy.wcs import WCS
 
 RA = 1.0 * u.deg
@@ -965,6 +966,43 @@ def test_to_string():
         assert sc.to_string("hmsdms") == wrap("01h02m03s +01d02m03s")
         with_kwargs = sc.to_string("hmsdms", precision=3, pad=True, alwayssign=True)
         assert with_kwargs == wrap("+01h02m03.000s +01d02m03.000s")
+
+
+@pytest.mark.parametrize("style", ["decimal", "dms", "hmsdms"])
+def test_to_string_array(style):
+    """Array ``to_string`` matches formatting each coordinate on its own.
+
+    This covers the vectorized code path, which formats both angles for the
+    whole array at once instead of looping over the elements.
+    """
+    rng = np.random.default_rng(12345)
+    ra = rng.uniform(0, 360, 25)
+    dec = rng.uniform(-90, 90, 25)
+    sc = SkyCoord(ra, dec, unit="deg")
+
+    result = sc.to_string(style)
+    expected = [SkyCoord(r, d, unit="deg").to_string(style) for r, d in zip(ra, dec)]
+    assert result == expected
+
+    # And the shape is preserved for a multidimensional coordinate.
+    sc2d = sc[:24].reshape(4, 6)
+    result2d = sc2d.to_string(style)
+    assert result2d.shape == sc2d.shape
+    assert np.all(result2d.ravel() == np.array(expected[:24]))
+
+
+def test_to_string_array_masked():
+    """Masked coordinates are formatted element by element, mask and all."""
+    values = np.linspace(0, 100, 12)
+    sc = SkyCoord(
+        ra=Masked(values, mask=[True] + [False] * 11) * u.deg, dec=values / 2 * u.deg
+    )
+    expected = [
+        f"{lon.to_string(unit=u.hour, pad=True)}"
+        f" {lat.to_string(unit=u.degree, pad=True, alwayssign=True)}"
+        for lon, lat in zip(sc.ra, sc.dec)
+    ]
+    assert sc.to_string("hmsdms") == expected
 
 
 def test_repr():

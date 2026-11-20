@@ -939,12 +939,24 @@ class SkyCoord(MaskableShapedLikeNDArray):
                 f"{sph_coord.lon.to_string(**lonargs)}"
                 f" {sph_coord.lat.to_string(**latargs)}"
             )
+        elif not self.masked:
+            # Format both angles for the whole array at once and join them,
+            # rather than looping element by element, so large coordinate
+            # arrays benefit from the vectorized Angle.to_string.
+            lon_string = np.asarray(sph_coord.lon.to_string(**lonargs))
+            lat_string = np.asarray(sph_coord.lat.to_string(**latargs))
+            coord_string = lon_string + " " + lat_string
+            if len(sph_coord.shape) <= 1:
+                coord_string = coord_string.tolist()
         else:
-            coord_string = []
-            for lonangle, latangle in zip(sph_coord.lon.ravel(), sph_coord.lat.ravel()):
-                coord_string += [
-                    f"{lonangle.to_string(**lonargs)} {latangle.to_string(**latargs)}"
-                ]
+            # Masked angles render as their mask, which only the per-element
+            # formatting can put inside the joined string.
+            coord_string = [
+                f"{lonangle.to_string(**lonargs)} {latangle.to_string(**latargs)}"
+                for lonangle, latangle in zip(
+                    sph_coord.lon.ravel(), sph_coord.lat.ravel()
+                )
+            ]
             if len(sph_coord.shape) > 1:
                 coord_string = np.array(coord_string).reshape(sph_coord.shape)
 

@@ -16,13 +16,16 @@ astropy.coordinates.angles. Mainly they are conversions from one format
 of data to another.
 """
 
+import re
 import threading
 from warnings import warn
 
 import numpy as np
 
 from astropy import units as u
+from astropy.time.formats import _format_template
 from astropy.utils import parsing
+from astropy.utils.compat.numpycompat import NUMPY_LT_2_1
 
 from .errors import (
     IllegalHourError,
@@ -358,6 +361,11 @@ def parse_angle(angle, unit=None, debug=False):
     return _AngleParser().parse(angle, unit, debug=debug)
 
 
+# A ``{name:spec}`` replacement field.  A separator containing one cannot be
+# used as the literal text of a format template.
+_TEMPLATE_FIELD = re.compile(r"\{\w+:")
+
+
 def _decimal_to_sexagesimal(a, /):
     """
     Convert a floating-point input to a 3 tuple
@@ -381,6 +389,11 @@ def _decimal_to_sexagesimal_string(
     """
     Given a floating point angle, convert it to string
     """
+    if fields < 1 or fields > 3:
+        raise ValueError("fields must be 1, 2, or 3")
+
+    sep = _normalize_sep(sep, fields)
+
     values = _decimal_to_sexagesimal(angle)
     # Check to see if values[0] is negative, using np.copysign to handle -0
     sign = np.copysign(1.0, values[0])
@@ -393,28 +406,6 @@ def _decimal_to_sexagesimal_string(
         pad = 3 if sign == -1 else 2
     else:
         pad = 0
-
-    if not isinstance(sep, tuple):
-        sep = tuple(sep)
-
-    if fields < 1 or fields > 3:
-        raise ValueError("fields must be 1, 2, or 3")
-
-    if not sep:  # empty string, False, or None, etc.
-        sep = ("", "", "")
-    elif len(sep) == 1:
-        if fields == 3:
-            sep = sep + (sep[0], "")
-        elif fields == 2:
-            sep = sep + ("", "")
-        else:
-            sep = ("", "", "")
-    elif len(sep) == 2:
-        sep = sep + ("",)
-    elif len(sep) != 3:
-        raise ValueError(
-            "Invalid separator specification for converting angle to string."
-        )
 
     # Simplify the expression based on the requested precision.  For
     # example, if the seconds will round up to 60, we should convert
@@ -450,3 +441,138 @@ def _decimal_to_sexagesimal_string(
             last_value = "0" + last_value
         literal += f"{last_value}{sep[2]}"
     return literal
+
+
+def _normalize_sep(sep, fields):
+    """Expand ``sep`` to the three separators that follow each field."""
+    if not isinstance(sep, tuple):
+        sep = tuple(sep)
+    if not sep:  # empty string, False, or None, etc.
+        return ("", "", "")
+    if len(sep) == 1:
+        if fields == 3:
+            return sep + (sep[0], "")
+        if fields == 2:
+            return sep + ("", "")
+        return ("", "", "")
+    if len(sep) == 2:
+        return sep + ("",)
+    if len(sep) != 3:
+        raise ValueError(
+            "Invalid separator specification for converting angle to string."
+        )
+    return sep
+
+
+def _seconds_format(precision):
+    """Printf format for the seconds, zero-padded to two integer digits.
+
+    Equivalent to how `_decimal_to_sexagesimal_string` formats them, with the
+    trailing zeros of a ``precision=None`` fraction stripped by the caller.
+    """
+    if precision is None:
+        return "%011.8f"
+    return f"%0{precision + 3 if precision else 2}.{precision}f"
+
+
+def _decimal_to_sexagesimal_string_array(
+    angle, *, precision=None, pad=False, sep=(":",), fields=3, alwayssign=False
+):
+    """Vectorized equivalent of `_decimal_to_sexagesimal_string`.
+
+    The fields are decomposed, rounded and carried just as in the per-element
+    version, so the output is identical, and the strings are then assembled
+    from a format template with array operations.  The sign goes on with the
+    leading field, so ``alwayssign`` is dealt with here rather than in another
+    pass over the strings.
+
+    Returns ``None`` when the array cannot be handled this way, so that the
+    caller can fall back to the per-element path: on NumPy < 2.1 (where
+    ``np.strings.zfill`` is buggy), for degrees that do not fit the int64
+    buffer the digits are written into, and for a separator that is not a
+    string or cannot be used as the literal text of a template.
+    """
+    if NUMPY_LT_2_1:
+        return None
+
+    if fields < 1 or fields > 3:
+        raise ValueError("fields must be 1, 2, or 3")
+
+    sep = _normalize_sep(sep, fields)
+    if not all(isinstance(s, str) for s in sep) or any(
+        _TEMPLATE_FIELD.search(s) for s in sep
+    ):
+        return None
+
+    angle = np.asarray(angle, dtype=float)
+    negative = np.signbit(angle)
+    finite = np.isfinite(angle)
+    if not finite.all():
+        # The integer casts below cannot take the non-finite values, so they
+        # are zeroed here and their strings written at the end.  The sign is
+        # taken above, so that -inf keeps it.
+        nan = np.isnan(angle)
+        angle = np.where(finite, angle, 0.0)
+
+    # np.array, not np.asarray: the fields are carried into each other below.
+    d, m, s = (np.array(part) for part in _decimal_to_sexagesimal(np.abs(angle)))
+
+    if fields == 3:
+        # Printf rounds the seconds exactly as the per-element formatting does,
+        # so a "60" here is the same carry as ``round(s, ndp) >= 60`` there.
+        seconds_format = _seconds_format(precision)
+        seconds = np.strings.mod(seconds_format, s)
+        carry = np.strings.startswith(seconds, "60")
+        if carry.any():
+            seconds[carry] = seconds_format % 0.0
+            m += carry
+    elif fields == 2:
+        m += s >= 30.0
+    else:
+        # Rounding the seconds into the minutes here too would round twice.
+        d += m + s / 60.0 >= 30.0
+
+    if fields >= 2:
+        carry = m >= 60.0
+        m[carry] = 0.0
+        d[carry] += 1.0
+
+    # The leading field has a variable number of digits, so it is written to
+    # its own column and stripped, rather than going into the template.
+    largest = int(d.max()) if d.size else 0
+    if largest >= 10**18:
+        return None
+    width = max(1, len(str(largest)))
+    out = _format_template(f"{{deg:0{width}d}}", {"deg": d.astype(np.int64)}, d.shape)
+    out = np.strings.lstrip(out, "0")
+    if pad:
+        # A minimum width of two digits, not a fixed one, so that larger
+        # values keep all of theirs.
+        out = np.strings.zfill(out, 2)
+    else:
+        out[out == ""] = "0"
+    if not finite.all():
+        # Not in place: "inf" needs a wider dtype.
+        out = np.where(finite, out, "inf")
+    out = np.where(negative, "-", "+" if alwayssign else "") + out
+
+    if fields == 1:
+        out = out + sep[0]
+    else:
+        tail = _format_template(
+            sep[0] + "{min:02d}" + sep[1], {"min": m.astype(np.int64)}, d.shape
+        )
+        out = out + tail
+        if fields == 3:
+            if precision is None:
+                # Drop trailing zeros of the fraction, and the point if all of
+                # them went.  This cannot eat into the seconds, since the strip
+                # stops at the point.
+                seconds = np.strings.rstrip(np.strings.rstrip(seconds, "0"), ".")
+            out = out + seconds + sep[2]
+
+    if not finite.all():
+        # The infinities were written above, but NaN gets no fields at all.
+        # There is room for the shorter string, so this can be done in place.
+        out[nan] = "nan"
+    return out
