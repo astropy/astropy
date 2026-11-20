@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_equal
 
+from astropy.io import fits
 from astropy.io.fits import util
 from astropy.io.fits.util import _rstrip_inplace, ignore_sigint
 from astropy.utils.compat.optional_deps import HAS_PIL
@@ -199,3 +200,17 @@ def test_rstrip_inplace():
     s = np.repeat(" a a ", 1000).reshape((10, 10, 10))[:2, :3, :4]
     _rstrip_inplace(s)
     assert_equal(s, " a a")
+
+
+def test_string_column_with_non_ascii_bytes_stays_bytes_while_ascii_column_decodes():
+    names = np.array([b"\xe9t\xe9", b"ok"], dtype="S6")
+    hdu = fits.BinTableHDU.from_columns(
+        [
+            fits.Column(name="name", format="6A", array=names),
+            fits.Column(name="id", format="4A", array=np.array([b"A1", b"B22"])),
+        ]
+    )
+    assert hdu.data["name"].dtype == np.dtype("S6")
+    assert_equal(hdu.data["name"], names)
+    assert hdu.data["id"].dtype == np.dtype("U4")
+    assert_equal(hdu.data["id"], np.array(["A1", "B22"]))
