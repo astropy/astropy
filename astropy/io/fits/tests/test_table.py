@@ -2131,6 +2131,17 @@ class TestTableFunctions(FitsTestCase):
         np.testing.assert_array_equal(thdu.data["a"], [""] * 3)
         np.testing.assert_array_equal(thdu.data["b"], [12] * 3)
 
+    def test_zero_row_table_with_multidim_string_column_keeps_trailing_dims(self):
+        col = fits.Column(
+            name="s", format="10A", dim="(5,2)", array=np.zeros((0, 2), dtype="S5")
+        )
+        fits.BinTableHDU.from_columns([col]).writeto(self.temp("empty_multidim.fits"))
+
+        with fits.open(self.temp("empty_multidim.fits")) as hdul:
+            assert hdul[1].data["s"].dtype == np.dtype("U5")
+            assert hdul[1].data["s"].shape == (0, 2)
+            assert Table(hdul[1].data)["s"].shape == (0, 2)
+
     def test_string_column_padding(self):
         a = ["img1", "img2", "img3a", "p"]
         s = (

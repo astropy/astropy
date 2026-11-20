@@ -1,6 +1,5 @@
 Converting string (``A``) columns of FITS binary tables to unicode is now much
 faster, since the ASCII bytes are decoded in a single vectorized step instead of
-element by element. For example, ``BinTableHDU.from_columns`` with large string
-columns is up to ~100x faster, and accessing string columns of tables read from
+element by element. For example, accessing string columns of tables read from
 files (e.g., ``hdul[1].data['NAME']`` or ``Table(hdul[1].data)``) is typically
-several times faster.
+2-3x faster.

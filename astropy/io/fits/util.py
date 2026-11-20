@@ -262,25 +262,20 @@ def decode_ascii(s):
             s = s.decode("ascii", errors="replace")
             return s.replace("\ufffd", "?")
     elif isinstance(s, np.ndarray) and issubclass(s.dtype.type, np.bytes_):
-        # The view(type(s)) calls return the same array subclass as the input
-        if s.size == 0:
-            # Empty input gives an empty 1-d array of the same width (kept from
-            # when np.strings.decode was used, which returned float64 for empty
-            # arrays: https://github.com/numpy/numpy/issues/13156)
-            dt = s.dtype.str.replace("S", "U")
-            ns = np.array([], dtype=dt).view(type(s))
+        # Numpy byte to string conversion is very slow.  Since we expect
+        # ASCII, we can go much faster by going via integers.
+        # We add the axis to make the last axis contiguous for viewing
+        # as numbers; here, we cannot be chararray, so also view as ndarray.
+        # At the end, we reshape to the input shape and view as its subclass.
+        raw = s[..., np.newaxis].view(np.uint8, np.ndarray)
+        if (itemsize := s.dtype.itemsize) == 0 or raw.max(initial=0) > 127:
+            # Fall back to strict ascii decode for non-ascii and zero-width
+            # cols. Preserves UnicodeDecodeError raising behavior.
+            ns = s.astype((np.str_, itemsize))
         else:
-            itemsize = s.dtype.itemsize
-            raw = np.ascontiguousarray(s).view(np.uint8)
-            if itemsize == 0 or raw.max() > 127:
-                # Fall back to strict ascii decode for non-ascii and zero-width
-                # cols. Preserves UnicodeDecodeError raising behavior.
-                ns = s.astype((np.str_, itemsize))
-            else:
-                # Decode by widening each ascii byte to 4 bytes, which maps to UCS4
-                ns = raw.astype(np.uint32).view((np.str_, itemsize)).reshape(s.shape)
-            ns = ns.view(type(s))
-        return ns
+            # Decode by widening each ascii byte to 4 bytes, which maps to UCS4
+            ns = raw.astype(np.uint32).view((np.str_, itemsize)).reshape(s.shape)
+        return ns.view(type(s))
     elif isinstance(s, np.ndarray) and not issubclass(s.dtype.type, np.str_):
         # Don't silently pass through on non-string arrays; we don't want
         # to hide errors where things that are not stringy are attempting
