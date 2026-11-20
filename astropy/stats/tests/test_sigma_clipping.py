@@ -116,6 +116,34 @@ def test_sigma_clip_masked_array():
     assert_allclose(np.nanmean(out), 1.0)
 
 
+@pytest.mark.parametrize("axis", [None, 0])
+@pytest.mark.parametrize("cenfunc", ["median", np.nanmedian])
+def test_sigma_clip_quantity_masked_output(axis, cenfunc):
+    """
+    Test that the masked output for a Quantity input is a masked
+    Quantity with the clipped values masked, for the fast C
+    implementation (string ``cenfunc``) and the Python implementation
+    (callable ``cenfunc``).
+    """
+    data = np.ones(10) << u.Jy
+    data[-1] = 100.0 << u.Jy
+    expected_mask = np.zeros(10, dtype=bool)
+    expected_mask[-1] = True
+
+    result, lower, upper = sigma_clip(
+        data, cenfunc=cenfunc, axis=axis, return_bounds=True
+    )
+
+    assert isinstance(result, np.ma.MaskedArray)
+    assert isinstance(result.data, u.Quantity)
+    assert result.data.unit == u.Jy
+    assert_equal(result.mask, expected_mask)
+    assert_equal(result.data[~expected_mask], data[~expected_mask])
+    assert np.mean(result) == 1.0 << u.Jy
+    assert lower.unit == u.Jy
+    assert upper.unit == u.Jy
+
+
 def test_sigma_clip_class():
     with NumpyRNGContext(12345):
         data = np.random.randn(100)
