@@ -619,6 +619,54 @@ def test_column_aggregate_f8():
         assert tga.pformat() == [" a ", "---", "0.0", "1.0"]
 
 
+def test_table_aggregate_multidim_column():
+    """https://github.com/astropy/astropy/issues/20409
+
+    aggregate(np.mean) and aggregate(np.sum) on a multidimensional column
+    should reduce along the row axis for each group and keep the trailing
+    dimensions, instead of either silently returning wrong values or
+    dropping the column.
+    """
+    t = Table()
+    t["key"] = [1, 2, 2, 3, 3, 3]
+    t["data"] = np.arange(6 * 3).reshape(6, 3).astype(float)
+    g = t.group_by("key")
+
+    tg_mean = g.groups.aggregate(np.mean)
+    expected_mean = np.array(
+        [
+            t["data"][0:1].mean(axis=0),
+            t["data"][1:3].mean(axis=0),
+            t["data"][3:6].mean(axis=0),
+        ]
+    )
+    assert tg_mean["data"].shape == (3, 3)
+    np.testing.assert_allclose(tg_mean["data"], expected_mean)
+
+    tg_sum = g.groups.aggregate(np.sum)
+    expected_sum = np.array(
+        [
+            t["data"][0:1].sum(axis=0),
+            t["data"][1:3].sum(axis=0),
+            t["data"][3:6].sum(axis=0),
+        ]
+    )
+    assert tg_sum["data"].shape == (3, 3)
+    np.testing.assert_allclose(tg_sum["data"], expected_sum)
+
+    # Case where the number of groups does not evenly divide the number of
+    # rows in each group: previously this raised inside aggregate() and the
+    # column was silently dropped with only a warning.
+    t2 = Table()
+    t2["key"] = [1, 1, 2, 2, 2]
+    t2["data"] = np.arange(5 * 3).reshape(5, 3)
+    g2 = t2.group_by("key")
+    tg2 = g2.groups.aggregate(np.mean)
+    assert "data" in tg2.colnames
+    expected2 = np.array([t2["data"][0:2].mean(axis=0), t2["data"][2:5].mean(axis=0)])
+    np.testing.assert_allclose(tg2["data"], expected2)
+
+
 def test_table_group_select_empty():
     """Test selecting no groups returns a table with empty keys and no indices"""
     tg = Table({"a": [1, 2], "b": [3, 4]}).group_by("a")

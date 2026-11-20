@@ -1,0 +1,6 @@
+Fixed ``Table.group_by().groups.aggregate()`` (and the equivalent ``Column``
+groups aggregate) silently returning incorrect values, or dropping the
+column entirely, when aggregating a multidimensional column with ``np.mean``
+or another reduction that uses ``reduceat``. The per-group count used for
+averaging is now broadcast correctly against the row axis only, preserving
+any trailing dimensions.
