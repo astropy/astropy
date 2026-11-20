@@ -1236,17 +1236,19 @@ class _NonLinearLSQFitter(Fitter):
                 else:
                     full_deriv = np.ravel(weights) * full
 
-            pars = [getattr(model, name) for name in model.param_names]
-            fixed = [par.fixed for par in pars]
-            tied = [par.tied for par in pars]
-            tied = list(np.where([par.tied is not False for par in pars], True, tied))
-            fix_and_tie = np.logical_or(fixed, tied)
-            ind = np.logical_not(fix_and_tie)
+            if model.has_tied:
+                # Chain rule: the derivative with respect to a free parameter
+                # also picks up the contribution of every parameter tied to it.
+                param_jac = _free_to_full_param_jacobian(model)
+                residues = np.tensordot(param_jac.T, full_deriv, axes=1)
+            else:
+                ind = np.logical_not(
+                    [getattr(model, name).fixed for name in model.param_names]
+                )
+                residues = full_deriv[np.nonzero(ind)]
 
             if not model.col_fit_deriv:
-                residues = np.asarray(full_deriv[np.nonzero(ind)]).T
-            else:
-                residues = full_deriv[np.nonzero(ind)]
+                residues = np.asarray(residues).T
 
             return [np.ravel(_) for _ in residues]
         else:
@@ -2238,6 +2240,58 @@ def fitter_to_model_params_array(
                 model._array_to_parameters()
 
     return parameters
+
+
+def _free_to_full_param_jacobian(model):
+    """
+    Jacobian of the mapping from the free (fitted) parameters to the full
+    model parameter vector, evaluated at the model's current parameters.
+
+    Rows for free parameters form the identity and rows for fixed parameters
+    are zero. Rows for tied parameters are estimated by central differences
+    of the ``tied`` callables, since these are arbitrary functions of the
+    model.
+
+    Returns
+    -------
+    jac : ndarray
+        Array of shape ``(len(model.parameters), n_free)``.
+    """
+    full_params = model.parameters.copy()
+    _, fit_param_indices, _ = model_to_fit_params(model)
+    param_metrics = model._param_metrics
+    free_index = np.concatenate(
+        [
+            np.arange(full_params.size)[param_metrics[model.param_names[idx]]["slice"]]
+            for idx in fit_param_indices
+        ]
+    ).astype(int)
+    free_params = full_params[free_index]
+
+    jac = np.zeros((full_params.size, free_params.size))
+    rel_step = np.cbrt(np.finfo(float).eps)
+    try:
+        for k, value in enumerate(free_params):
+            step = rel_step * max(1.0, abs(value))
+            columns = []
+            for sign in (1, -1):
+                perturbed = free_params.copy()
+                perturbed[k] = value + sign * step
+                # Reset so that tied expressions never see values left over
+                # from the previous perturbation.
+                model.parameters = full_params
+                columns.append(
+                    fitter_to_model_params_array(
+                        model, perturbed, False, fit_param_indices=fit_param_indices
+                    )
+                )
+            jac[:, k] = (columns[0] - columns[1]) / (2 * step)
+    finally:
+        model.parameters = full_params
+
+    # Free parameters map onto themselves exactly.
+    jac[free_index] = np.eye(free_params.size)
+    return jac
 
 
 def fitter_to_model_params(model, fps, use_min_max_bounds=True):

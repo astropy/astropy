@@ -1,0 +1,5 @@
+Fixed the analytic Jacobian used by ``LevMarLSQFitter``, ``TRFLSQFitter``,
+``DogBoxLSQFitter``, and ``LMLSQFitter`` for models with tied parameters. The
+derivatives with respect to tied parameters were previously dropped instead of
+being propagated to the free parameters they depend on, so fits could stop
+away from the least-squares minimum.
