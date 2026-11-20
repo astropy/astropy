@@ -142,6 +142,7 @@ intersphinx_mapping.update(
         "fsspec": ("https://filesystem-spec.readthedocs.io/en/latest/", None),
         "cycler": ("https://matplotlib.org/cycler/", None),
         "dask": ("https://docs.dask.org/en/stable/", None),
+        "lz4": ("https://python-lz4.readthedocs.io/en/stable/", None),
     }
 )
 
@@ -610,6 +611,7 @@ links_to_become_substitutions: dict[str, str] = {
     "HDF5": "https://www.hdfgroup.org/HDF5",
     "h5py": "https://www.h5py.org",
     "Parquet": "https://parquet.apache.org",
+    "lz4": "https://python-lz4.readthedocs.io/en/stable/",
 }
 
 processed_links = {
