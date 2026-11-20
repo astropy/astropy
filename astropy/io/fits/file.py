@@ -141,6 +141,70 @@ def _normalize_fits_mode(mode):
     return mode
 
 
+def _wrap_fileobj_if_compressed(fileobj, mode):
+    """
+    Wrap a file-like object in a decompression object if the data it
+    contains is compressed, and return the wrapper; return the object
+    unchanged otherwise.
+
+    Compression is detected from the magic bytes at the current
+    position of the object, whose position is restored before
+    returning.  If the position cannot be restored after peeking,
+    the error is allowed to propagate rather than returning a stream
+    whose position has been shifted by the peek.  This provides
+    compression detection for file-like
+    objects such as ``io.BytesIO``, which are not recognized by
+    `isfile` and so do not get the detection done for real file
+    objects in ``_File._open_fileobj`` (gh-16171).
+
+    Only the streaming compression formats (gzip, bzip2, lzma) are
+    handled; zip archives require a filename or a ``zipfile.ZipFile``
+    object.  Only read modes are handled, so that writing to
+    file-like objects is unaffected.
+    """
+    if mode not in (None, "readonly", "copyonwrite", "denywrite"):
+        return fileobj
+
+    if (
+        isfile(fileobj)
+        or isinstance(fileobj, (str, bytes, os.PathLike))
+        or not hasattr(fileobj, "read")
+        or not hasattr(fileobj, "seek")
+        or not hasattr(fileobj, "tell")
+    ):
+        return fileobj
+
+    try:
+        pos = fileobj.tell()
+    except OSError:
+        return fileobj
+
+    try:
+        magic = fileobj.read(6)
+    except OSError:
+        magic = None
+    finally:
+        # Always restore the position, even if reading failed.  If the
+        # position cannot be restored, the stream may have been shifted
+        # by the peek, so let the error propagate rather than silently
+        # handing a shifted stream to ``_File``.
+        fileobj.seek(pos)
+
+    if not isinstance(magic, bytes):
+        # A text-mode object, or the peek failed; either way compression
+        # cannot be detected
+        return fileobj
+
+    if magic.startswith(GZIP_MAGIC):
+        return gzip.GzipFile(fileobj=fileobj, mode="rb")
+    elif HAS_BZ2 and magic.startswith(BZIP2_MAGIC):
+        return bz2.BZ2File(fileobj, mode="r")
+    elif HAS_LZMA and magic.startswith(LZMA_MAGIC):
+        return lzma.LZMAFile(fileobj, mode="r")
+    else:
+        return fileobj
+
+
 class _File:
     """
     Represents a FITS file on disk (or in some other file-like object).
