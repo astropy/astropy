@@ -9,6 +9,11 @@ class HighLevelWCSWrapper(HighLevelWCSMixin):
     """
     Wrapper class that can take any :class:`~astropy.wcs.wcsapi.BaseLowLevelWCS`
     object and expose the high-level WCS API.
+
+    Parameters
+    ----------
+    low_level_wcs : `~astropy.wcs.wcsapi.BaseLowLevelWCS`
+        The low-level WCS object to wrap.
     """
 
     def __init__(self, low_level_wcs):
