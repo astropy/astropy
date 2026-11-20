@@ -1,0 +1,4 @@
+Writing a VOTable as TABLEDATA could write one byte past the end of a memory
+buffer when a row was exactly 256, 512, 1024, ... bytes long and no earlier
+row was longer, which could make Python crash later at an unrelated point.
+This no longer happens.

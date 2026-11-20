@@ -113,6 +113,7 @@ SKIP_TESTS = [
     "test_defined_constants_do_not_change",
     "test_physical_constants_versions",
     "test_utc_conversion_does_not_update_erfa",
+    "test_write_tabledata_row_as_long_as_buffer",
 ]
 
 # Run the tests!
