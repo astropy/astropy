@@ -442,7 +442,7 @@ class FITSFixedWarning(AstropyWarning):
     """
 
 
-class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):
+class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):  # numpydoc ignore=PR01
     """WCS objects perform standard WCS transformations, and correct for
     `SIP`_ and `distortion paper`_ table-lookup transformations, based
     on the WCS keywords and supplementary data read from a FITS file.
@@ -528,10 +528,6 @@ class WCS(FITSWCSAPIMixin, _LookupTableMixin, WCSBase):
         unit strings to perform.  By default, performs none.  See
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
-
-    _do_set : bool, optional
-        For internal use only. If `False`, `~astropy.wcs.Wcsprm.set` is
-        not called after construction.
 
     preserve_units : bool, optional
         By default, some units are converted to SI, for example spectral
@@ -3736,7 +3732,7 @@ def __WCS_unpickle__(cls, dct, fits_data):
     return self
 
 
-def find_all_wcs(
+def find_all_wcs(  # numpydoc ignore=PR01
     header, relax=True, keysel=None, fix=True, translate_units="", _do_set=True
 ):
     """
@@ -3790,10 +3786,6 @@ def find_all_wcs(
         unit strings to perform.  By default, performs none.  See
         `WCS.fix` for more information about this parameter.  Only
         effective when ``fix`` is `True`.
-
-    _do_set : bool, optional
-        For internal use only. If `False`, `~astropy.wcs.Wcsprm.set` is
-        not called on the resulting objects.
 
     Returns
     -------
