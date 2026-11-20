@@ -16,6 +16,7 @@ table column attributes such as name, format, dtype, meta, and description.
 import os
 import re
 import sys
+import threading
 import warnings
 import weakref
 from collections import OrderedDict
@@ -286,7 +287,7 @@ class DataInfo(metaclass=DataInfoMeta):
     _attr_defaults = {"dtype": np.dtype("O")}
     _attrs_no_copy = set()
     _info_summary_attrs = ("dtype", "shape", "unit", "format", "description", "class")
-    __slots__ = ["_attrs", "_parent_cls", "_parent_ref"]
+    __slots__ = ["_attrs", "_parent_cls_local", "_parent_ref"]
     # This specifies the list of object attributes which must be stored in
     # order to re-create the object after serialization.  This is independent
     # of normal `info` attributes like name or description.  Subclasses will
@@ -315,6 +316,22 @@ class DataInfo(metaclass=DataInfoMeta):
         # except for dtype where the default is object.
         if bound:
             self._attrs = {}
+        else:
+            # The class that this unbound descriptor was accessed from, which
+            # is stored per thread (see __get__).
+            self._parent_cls_local = threading.local()
+
+    @property
+    def _parent_cls(self):
+        try:
+            return self._parent_cls_local.cls
+        except AttributeError:
+            msg = (
+                "no data class is set for this info object in the current "
+                "thread. Access info from the data class (e.g., "
+                "``Quantity.info``) in this thread before using it."
+            )
+            raise AttributeError(msg) from None
 
     @property
     def _parent(self):
@@ -339,8 +356,16 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
     def __get__(self, instance, owner_cls):
         if instance is None:
-            # This is an unbound descriptor on the class
-            self._parent_cls = owner_cls
+            # This is an unbound descriptor on the class. It is shared by the
+            # subclasses of the class that defines it (e.g., Quantity and
+            # Latitude), so the class it was accessed from is stored per
+            # thread. Otherwise an access from another class in another thread
+            # could change the class used by, e.g., _construct_from_dict.
+            # Within one thread, the class is that of the most recent
+            # access, so use the returned object right away (e.g.,
+            # ``Latitude.info._construct_from_dict(map)``) rather than
+            # keeping it while info is accessed from another class.
+            self._parent_cls_local.cls = owner_cls
             return self
 
         info = instance.__dict__.get("info")
@@ -374,6 +399,13 @@ that temporary object is now lost.  Instead force a permanent reference (e.g.
 
         else:
             raise TypeError("info must be set with a DataInfo instance")
+
+    def __reduce_ex__(self, protocol):
+        # Recreate an unbound descriptor through __init__ so that it gets its
+        # own thread-local storage, which cannot be pickled or copied.
+        if not hasattr(self, "_attrs"):
+            return (self.__class__, ())
+        return super().__reduce_ex__(protocol)
 
     def __getstate__(self):
         # If this is an unbound descriptor, _attrs is uninitialized, so
