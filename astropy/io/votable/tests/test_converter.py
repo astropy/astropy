@@ -132,6 +132,18 @@ def test_utf8_char_parse_counts_bytes():
         c.parse("ΛCDM")
 
 
+def test_unicodechar_parse_counts_utf16_units():
+    """
+    parse() of "𝜆_obs" for a unicodeChar arraysize="5" field warns W46: it is
+    5 characters, but 𝜆 takes 2 UTF-16 code units.
+    """
+    field = tree.Field(None, name="c", datatype="unicodeChar", arraysize="5")
+    c = converters.get_converter(field)
+
+    with pytest.warns(exceptions.W46):
+        c.parse("𝜆_obs")
+
+
 def test_char_binoutput_fixed_masked_and_bytes():
     field = tree.Field(None, name="c", datatype="char", arraysize="3", config={})
     c = converters.get_converter(field, config={})

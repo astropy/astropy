@@ -410,10 +410,8 @@ class Char(Converter):
         return True
 
     def parse(self, value, config=None, pos=None):
-        if self.arraysize != "*":
-            length = len(value.encode("utf-8")) if self.is_utf8_version else len(value)
-            if length > self.arraysize:
-                vo_warn(W46, ("char", self.arraysize), config, pos)
+        if self.arraysize != "*" and self._length(value) > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), config, pos)
         if not self.is_utf8_version and not value.isascii():
             vo_warn(W55, (self.field_name, value), config, pos)
         self._check_width(value, config, pos)
@@ -422,6 +420,19 @@ class Char(Converter):
     def _check_width(self, value, config=None, pos=None):
         if self._width_limit is not None and len(value) > self._width_limit:
             vo_warn(W61, (self.field_name, self._width_limit, value), config, pos)
+
+    def _length(self, value):
+        """Length of *value* in the units of arraysize."""
+        # UTF-8 bytes from VOTable 1.6 (section 2.2), characters before
+        if self.is_utf8_version:
+            return len(value.encode("utf-8"))
+        return len(value)
+
+    def _cut(self, value, n):
+        """Drop characters from the end of *value* until it fits in *n* units."""
+        if self.is_utf8_version:
+            return _truncate_utf8(value.encode("utf-8"), n).decode("utf-8")
+        return value[:n]
 
     def output(self, value, mask):
         if mask:
@@ -433,15 +444,9 @@ class Char(Converter):
         if not self.is_utf8_version and not value.isascii():
             warn_or_raise(E24, E24, (value, self.field_name), self._write_config)
 
-        if self.arraysize != "*":
-            if self.is_utf8_version:
-                encoded = value.encode("utf-8", errors="replace")
-                if len(encoded) > self.arraysize:
-                    vo_warn(W46, ("char", self.arraysize), self._write_config)
-                    value = _truncate_utf8(encoded, self.arraysize).decode("utf-8")
-            elif len(value) > self.arraysize:
-                vo_warn(W46, ("char", self.arraysize), self._write_config)
-                value = value[: self.arraysize]
+        if self.arraysize != "*" and self._length(value) > self.arraysize:
+            vo_warn(W46, ("char", self.arraysize), self._write_config)
+            value = self._cut(value, self.arraysize)
 
         return xml_escape_cdata(value)
 
@@ -555,9 +560,24 @@ class UnicodeChar(Converter):
             self._struct_format = f">{self.arraysize * 2:d}s"
 
     def parse(self, value, config=None, pos=None):
-        if self.arraysize != "*" and len(value) > self.arraysize:
+        if self.arraysize != "*" and self._length(value) > self.arraysize:
             vo_warn(W46, ("unicodeChar", self.arraysize), config, pos)
         return value, False
+
+    def _length(self, value):
+        """Length of *value* in the units of arraysize."""
+        # UTF-16 code units (VOTable 1.6 section 2.1): one for each character
+        # in the BMP, two for each character outside it
+        if value.isascii() or max(value) <= "\uffff":
+            return len(value)
+        return len(value.encode("utf_16_be")) // 2
+
+    def _cut(self, value, n):
+        """Drop characters from the end of *value* until it fits in *n* units."""
+        if value.isascii() or max(value) <= "\uffff":
+            return value[:n]
+        # If the cut splits a character outside the BMP (2 units), "ignore" drops it
+        return value.encode("utf_16_be")[: 2 * n].decode("utf_16_be", errors="ignore")
 
     def _check_bmp(self, value):
         if not value.isascii() and max(value) > "\uffff":
@@ -565,14 +585,10 @@ class UnicodeChar(Converter):
 
     def _encode(self, value, n_units):
         self._check_bmp(value)
-        encoded = value.encode("utf_16_be")
-        if n_units is not None and len(encoded) > 2 * n_units:
+        if n_units is not None and self._length(value) > n_units:
             vo_warn(W46, ("unicodeChar", n_units), self._write_config)
-            encoded = encoded[: 2 * n_units]
-            # Don't leave half of a surrogate pair.
-            if encoded and 0xD8 <= encoded[-2] <= 0xDB:
-                encoded = encoded[:-2]
-        return encoded
+            value = self._cut(value, n_units)
+        return value.encode("utf_16_be")
 
     def output(self, value, mask):
         if mask:
@@ -721,23 +737,26 @@ class _StringArrayMixin:
     `UnicodeChar` converter for one string.
     """
 
-    @property
-    def _utf8(self):
-        # From VOTable 1.6 the string length of a char array is in UTF-8 bytes
-        return getattr(self._scalar, "is_utf8_version", False)
-
     def _split(self, value):
         # The padding of the last string never arrives: the XML parser
         # strips trailing whitespace from the cell.
         width = self._scalar.arraysize
-        if self._utf8:
-            data = value.encode("utf-8")
-            parts = (
-                self._scalar._decode(data[i : i + width])
-                for i in range(0, len(data), width)
-            )
-            return [x.rstrip(" ") for x in parts]
-        return [value[i : i + width].rstrip(" ") for i in range(0, len(value), width)]
+        if self._scalar._length(value) == len(value):
+            # Every character is one unit
+            return [
+                value[i : i + width].rstrip(" ") for i in range(0, len(value), width)
+            ]
+        cut = self._scalar._cut
+        parts = []
+        start = 0
+        while start < len(value):
+            # A string of width units never has more than width characters.
+            # A character wider than width units only comes from a broken
+            # file; taking it whole keeps the loop moving.
+            part = cut(value[start : start + width], width) or value[start]
+            parts.append(part.rstrip(" "))
+            start += len(part)
+        return parts
 
     def _parse_strings(self, parts, shape, config, pos):
         parse = self._scalar.parse
@@ -758,6 +777,8 @@ class _StringArrayMixin:
 
     def output(self, value, mask):
         width = self._scalar.arraysize
+        length = self._scalar._length
+        cut = self._scalar._cut
         output = self._scalar.output
         result = []
         for x, m in self._flat(value, mask):
@@ -765,35 +786,29 @@ class _StringArrayMixin:
                 x = ""
             elif isinstance(x, bytes):
                 x = x.decode("utf-8")
-            # Pad before escaping, so that "&amp;" counts as one character
-            if self._utf8:
-                encoded = x.encode("utf-8", errors="replace")
-                if len(encoded) > width:
-                    vo_warn(W46, (self._datatype, width), None, None)
-                    encoded = _truncate_utf8(encoded, width)
-                padded = encoded.ljust(width, b" ").decode("utf-8")
-            else:
-                if len(x) > width:
-                    vo_warn(W46, (self._datatype, width), None, None)
-                padded = f"{x[:width]:<{width}}"
-            result.append(output(padded, False))
+            n = length(x)
+            if n > width:
+                # The scalar output() warns and makes the same cut
+                n = length(cut(x, width))
+            # Count the padding before escaping, so "&amp;" counts as one unit
+            result.append(output(x, False) + " " * (width - n))
         return "".join(result)
 
 
 class StringArray(_StringArrayMixin, Array):
     """
     Handles a fixed-size array of fixed-length strings, such as
-    ``arraysize="10x4"``: 4 strings of 10 characters.
+    ``arraysize="10x4"``: 4 strings of 10 units each.
 
     Each string is converted by *base*, the `Char` or `UnicodeChar`
-    converter of the field.
+    converter of the field, which also says what a unit is (see its
+    ``_length``).
     """
 
     def __init__(self, field, base, arraysize, config=None, pos=None):
         Array.__init__(self, field, config, pos)
 
         self._base = self._scalar = base
-        self._datatype = field.datatype
         self._arraysize = arraysize
         self.format = f"{tuple(arraysize)}{base.format}"
         self._items = prod(arraysize)
@@ -836,11 +851,9 @@ class StringVarArray(_StringArrayMixin, VarArray):
         VarArray.__init__(self, field, base, arraysize, config, pos)
 
         self._scalar = getattr(base, "_base", base)
-        self._datatype = field.datatype
         self._shape = (-1, *arraysize)
         self._items = prod(arraysize)
-        # The BINARY formats store the length of the array in primitives:
-        # characters, or UTF-8 bytes for char from VOTable 1.6
+        # The BINARY formats store the length of the array in units of arraysize
         self._chars = self._items * self._scalar.arraysize
         self.default = np.zeros((0, *arraysize), dtype=self._scalar.format)
 
@@ -1800,6 +1813,32 @@ def _max_utf8_bytes(column):
     return n
 
 
+def _max_utf16_units(strings):
+    """The most UTF-16 code units any string of the ``U`` array *strings* takes."""
+    strings = np.ascontiguousarray(strings).reshape(-1)
+    n = strings.dtype.itemsize // 4
+    if strings.size == 0 or n == 0:
+        return 0
+    # numpy stores each character as a 32-bit code point; those above U+FFFF
+    # take 2 UTF-16 units
+    codes = strings.view(strings.dtype.byteorder + "u4").reshape(-1, n)
+    return int((np.char.str_len(strings) + (codes > 0xFFFF).sum(axis=1)).max())
+
+
+def _fit_utf16(result, arrays):
+    """
+    Widen the string length of a ``unicodeChar`` *result* of
+    `numpy_to_votable_dtype`, which counts characters, to the most UTF-16
+    code units any string in *arrays* takes.
+    """
+    if result["datatype"] != "unicodeChar":
+        return
+    length = _string_length(result["arraysize"])
+    n = max((_max_utf16_units(x) for x in arrays), default=0)
+    if n > int(length):
+        result["arraysize"] = f"{n}{result['arraysize'][len(length) :]}"
+
+
 def _all_strings(column):
     return all(
         isinstance(x, (str, bytes)) or x is np.ma.masked or x is None for x in column
@@ -1914,6 +1953,7 @@ def table_column_to_votable_datatype(column, *, version=None):
     result = numpy_to_votable_dtype(column.dtype, column.shape[1:])
     if result["datatype"] == "unicodeChar" and votable_string_dtype == "char":
         result["datatype"] = "char"
+    _fit_utf16(result, [column])
 
     # Keep the original string length unless the column has grown wider
     if original_arraysize is not None and "arraysize" in result:
