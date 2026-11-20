@@ -106,6 +106,11 @@ BZIP2_MAGIC = b"\x42\x5a"
 LZMA_MAGIC = b"\xfd7zXZ\x00"
 LZW_MAGIC = b"\x1f\x9d"
 
+# This should be in sync with the default for tiled compression in
+# hdu.compressed.settings; cannot import from there unfortunately.
+
+DEFAULT_GZIP_LEVEL = 6
+
 
 def _is_bz2file(fileobj):
     if HAS_BZ2:
@@ -577,7 +582,7 @@ class _File:
                     "Use 'update' mode instead"
                 )
             # Handle gzip files
-            kwargs = {"mode": IO_FITS_MODES[mode]}
+            kwargs = {"mode": IO_FITS_MODES[mode], "compresslevel": DEFAULT_GZIP_LEVEL}
             if isinstance(obj_or_name, str):
                 kwargs["filename"] = obj_or_name
             else:

@@ -8,6 +8,7 @@ import mmap
 import os
 import pathlib
 import shutil
+import subprocess
 import sys
 import urllib.request
 import zipfile
@@ -1107,6 +1108,26 @@ class TestFileFunctions(FitsTestCase):
 
         with fits.open(self.temp("test.fits.gz")) as hdul:
             assert np.all(hdul[0].data == data)
+
+    @pytest.mark.skipif(
+        sys.platform.startswith("win32"), reason="No 'file' util on Windows?"
+    )
+    def test_write_gzip_compresslevel(self):
+        """
+        Ensure files written through gzip are compressed at default level.
+
+        Should be DEFAULT_GZIP_LEVEL(6), while Python < 3.15 defaults to 9.
+        """
+
+        data = np.arange(100)
+        hdu = fits.PrimaryHDU(data=data)
+        testfile = self.temp("test.fits.gz")
+        hdu.writeto(testfile)
+
+        # Check compression level (`file` will only report levels 1 and 9 though)
+        testfile = os.path.expanduser(testfile)
+        s = subprocess.run(["file", f"{testfile}"], check=False, capture_output=True)
+        assert b"max speed" not in s.stdout and b"max compression" not in s.stdout
 
     @pytest.mark.parametrize("ext", ["gz", "bz2", "zip", "xz", "Z"])
     def test_compressed_ext_but_not_compressed(self, ext):
