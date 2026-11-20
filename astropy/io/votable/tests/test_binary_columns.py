@@ -369,6 +369,86 @@ def test_strings_as_long_as_their_width_are_read_by_columns(monkeypatch):
     assert array.tolist() == [("ab", "cd")]
 
 
+def test_utf8_strings_are_read_by_columns(monkeypatch):
+    """
+    parse_single_table on a VOTable 1.6 BINARY2 table with a fixed and a
+    variable-length char field, holding ASCII text in the first row and
+    UTF-8 text with 2- and 4-byte characters in the second, gives those
+    values with the column reader.
+    """
+    first_row = b"\x00" + b"ab".ljust(8, b"\x00") + struct.pack(">I", 1) + b"x"
+    second_row = (
+        b"\x00"
+        + "ΛCDM".encode().ljust(8, b"\x00")
+        + struct.pack(">I", 8)
+        + "𝜆_obs".encode()
+    )
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="f" datatype="char" arraysize="8"/>'
+        '<FIELD name="v" datatype="char" arraysize="*"/>',
+        first_row + second_row,
+        version="1.6",
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.tolist() == [("ab", "x"), ("ΛCDM", "𝜆_obs")]
+
+
+def test_width_counts_the_characters_of_utf8_strings(monkeypatch):
+    """
+    parse_single_table on a VOTable 1.6 BINARY2 table with a char field of
+    arraysize 8 and width 4 holding "ΛCDM", 4 characters in 5 bytes, gives it
+    with the column reader.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="f" datatype="char" arraysize="8" width="4"/>',
+        b"\x00" + "ΛCDM".encode().ljust(8, b"\x00"),
+        version="1.6",
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.tolist() == [("ΛCDM",)]
+
+
+def test_fixed_string_that_is_not_utf8_warns():
+    """
+    parse_single_table with verify="warn" on a VOTable 1.6 BINARY2 table
+    whose fixed char value holds bytes that are not UTF-8 warns W60.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="f" datatype="char" arraysize="4"/>',
+        b"\x00" + b"a\xe9\x00\x00",
+        version="1.6",
+    )
+
+    with pytest.warns(W60):
+        parse_single_table(document, verify="warn")
+
+
+def test_non_ascii_bytes_after_a_nul_are_read_by_columns(monkeypatch):
+    """
+    parse_single_table on a VOTable 1.4 BINARY2 table whose fixed char value
+    has non-ASCII bytes after its first NUL gives the text before the NUL,
+    with the column reader.
+
+    Reading value by value never decodes the bytes after the NUL.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="f" datatype="char" arraysize="6"/>',
+        b"\x00" + b"ab\x00\xe9\xff\x00",
+    )
+
+    array = read_by_columns(document, monkeypatch)
+
+    assert array.tolist() == [("ab",)]
+
+
 def test_empty_stream_gives_no_rows():
     """
     parse_single_table on a BINARY2 table with an empty stream gives an array

@@ -458,6 +458,15 @@ class Char(Converter):
         if self._width_limit is not None and longest > self._width_limit:
             raise ValueError("a value is longer than the FIELD width")
 
+    @property
+    def _column_encoding(self):
+        """
+        The encoding of the text that `_decode` reads without a warning: it
+        warns W55 for non-ASCII text before VOTable 1.6, and W60 for bytes
+        that are not UTF-8.
+        """
+        return "utf-8" if self.is_utf8_version else "ascii"
+
     def output(self, value, mask):
         if mask:
             return ""
@@ -520,13 +529,13 @@ class Char(Converter):
         """
         Convert a column of values from the BINARY_ format, the same as
         `_binparse_var` on each but without its W46 warning, given that the
-        characters of each value are ``buffer[start:stop]``.
+        bytes of each value are ``buffer[start:stop]``.
 
         Raises where `_binparse_var` would give any other warning.
         """
-        # Non-ASCII text raises here, since _decode may warn W55 or W60 for it
+        encoding = self._column_encoding
         strings = [
-            buffer[start:stop].decode("ascii") for start, stop in zip(starts, stops)
+            buffer[start:stop].decode(encoding) for start, stop in zip(starts, stops)
         ]
         self._check_column_width(max(map(len, strings), default=0))
         return strings, np.zeros(len(strings), dtype=bool)
@@ -544,10 +553,6 @@ class Char(Converter):
         if nbytes == 0:
             # arraysize="0": the numpy steps below need at least one byte
             return np.full(nvalues, ""), mask
-        if nvalues and stored.max() >= 0x80:
-            # _decode may warn W55 or W60 for non-ASCII text. Bytes after a
-            # NUL are never decoded, but they are checked here too, for speed.
-            raise ValueError("a value is not ASCII")
         # numpy stores unicode strings as 4-byte code points, and an ASCII
         # byte is its own code point
         codes = stored.astype(np.uint32)
@@ -556,12 +561,26 @@ class Char(Converter):
         is_nul = stored == 0
         first_nul = is_nul.argmax(axis=1)
         nnul = np.count_nonzero(is_nul, axis=1)
-        if self._width_limit is not None:
-            lengths = np.where(nnul > 0, first_nul, nbytes)
-            self._check_column_width(np.max(lengths, initial=0))
         cut = np.flatnonzero((nnul > 0) & (nnul != nbytes - first_nul))
         codes[cut] *= np.arange(nbytes) < first_nul[cut, None]
-        return codes.view(f"U{nbytes}")[:, 0], mask
+        values = codes.view(f"U{nbytes}")[:, 0]
+        lengths = np.where(nnul > 0, first_nul, nbytes)
+        if nvalues and stored.max() >= 0x80:
+            # Decode the values with non-ASCII bytes one by one, up to their
+            # first NUL as _binparse_fixed does
+            rows = np.flatnonzero(stored.max(axis=1) >= 0x80)
+            data = stored[rows].tobytes()
+            encoding = self._column_encoding
+            decoded = [
+                data[start : start + end].decode(encoding)
+                for start, end in zip(
+                    range(0, len(data), nbytes), lengths[rows].tolist()
+                )
+            ]
+            values[rows] = decoded
+            lengths[rows] = [len(value) for value in decoded]
+        self._check_column_width(np.max(lengths, initial=0))
+        return values, mask
 
     def _binoutput_var(self, value, mask):
         if mask or value is None or value == "":
@@ -693,7 +712,7 @@ class UnicodeChar(Converter):
         """
         Convert a column of values from the BINARY_ format, the same as
         `_binparse_var` on each but without its warning, given that the
-        characters of each value are ``buffer[start:stop]``.
+        bytes of each value are ``buffer[start:stop]``.
         """
         strings = [
             buffer[start:stop].decode("utf_16_be") for start, stop in zip(starts, stops)

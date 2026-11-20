@@ -220,7 +220,7 @@ _NUMBER_BINARY_CONVERTERS = (
     converters.Short,
     converters.UnsignedByte,
 )
-# Bytes per character: unicodeChar is stored as UTF-16
+# Bytes per unit of string length: char counts bytes, unicodeChar UTF-16 units
 _BINARY_CHAR_SIZES = {converters.Char: 1, converters.UnicodeChar: 2}
 
 # Strings are never masked, even where the BINARY2 null bitmap marks them as
@@ -321,13 +321,13 @@ class _BinaryColumnReader:
     `TableElement._parse_binary_columns`.
 
     Each row is runs of fixed-size fields, the first starting with the
-    BINARY2 null bitmap, separated by variable-length strings: a 4-byte count
-    of characters, then the characters.  Without the strings, the fixed-size
-    fields of a row make up one numpy record.
+    BINARY2 null bitmap, separated by variable-length strings: a 4-byte
+    length, then the text.  Without the strings, the fixed-size fields of a
+    row make up one numpy record.
 
     Each row is handled as parts: for each string, the run of fixed-size
-    fields before it, its count and its characters; then the last run.  So
-    the characters of string ``k`` are part ``3 * k + 2``.
+    fields before it, its length and its text; then the last run.  So the
+    text of string ``k`` is part ``3 * k + 2``.
 
     The converter of each field turns its values into a column, with
     ``_binparse_column`` for fixed-size values and ``_binparse_var_column``
@@ -352,7 +352,7 @@ class _BinaryColumnReader:
         nbitmap = (len(fields) + 7) // 8 if mode == 2 else 0
         self.run_sizes = [nbitmap]  # bytes in each run of fixed-size fields
         self.var_fields = []  # field index of each variable-length string
-        self.var_item_sizes = []  # bytes per character of each of those strings
+        self.var_item_sizes = []  # bytes per unit of length of those strings
         self.var_max_counts = []  # their arraysize limit, or -1 for none
         self.record_fields = [("bitmap", np.dtype(("u1", (nbitmap,))))]
         for i, field in enumerate(fields):
@@ -474,7 +474,7 @@ class _BinaryColumnReader:
                 sizes[:, 3 * k + 2] = count[first:last] * item_size
             ends = low + np.cumsum(sizes).reshape(sizes.shape)
             data = np.frombuffer(buffer, np.uint8, ends[-1, -1] - low, low)
-            # Drop each string's count and characters, so that the fixed-size
+            # Drop each string's length and text, so that the fixed-size
             # fields of the rows lie back to back and can be viewed as records
             fixed = data[np.repeat(np.tile(self.is_fixed_part, nrows), sizes.ravel())]
             records = np.ndarray(nrows, self.record_dtype, buffer=fixed)
