@@ -125,8 +125,10 @@ Version 1.1
 <https://www.ivoa.net/documents/VOTable/20130920/REC-VOTable-1.3-20130920.html>`_,
 `Version 1.4
 <https://www.ivoa.net/documents/VOTable/20191021/REC-VOTable-1.4-20191021.html>`_,
-and `Version 1.5
+`Version 1.5
 <https://ivoa.net/documents/VOTable/20250116/REC-VOTable-1.5.html>`_,
+and `Version 1.6
+<https://www.ivoa.net/documents/VOTable/>`_.
 Some flexibility is provided to support the 1.0 draft version and
 other nonstandard usage in the wild, see :ref:`verifying-votables` for more
 details.
@@ -137,8 +139,11 @@ details.
   is documented in more detail in :ref:`warnings` and
   :ref:`exceptions`.
 
-Output always conforms to the 1.1, 1.2, 1.3, 1.4, 1.5 spec, depending on the
-input.
+Output conforms to the version set on the
+`~astropy.io.votable.tree.VOTableFile`, which defaults to 1.4. To write a
+table as another version, pass ``version`` to
+``Table.write(..., format="votable")`` or `~astropy.io.votable.from_table`,
+for example ``version="1.6"``.
 
 .. _verifying-votables:
 
@@ -291,6 +296,9 @@ See Also
 
 - `VOTable Format Definition Version 1.5
   <https://ivoa.net/documents/VOTable/20250116/REC-VOTable-1.5.html>`_
+
+- `VOTable Format Definition Version 1.6
+  <https://www.ivoa.net/documents/VOTable/>`_
 
 - `MIVOT Recommendation Version 1.0
   <https://ivoa.net/documents/MIVOT/20230620/REC-mivot-1.0.pdf>`_

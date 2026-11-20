@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.6" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE>
+  <TABLE>
+   <FIELD name="model" datatype="char" arraysize="5" width="4"/>
+   <FIELD name="name" datatype="char" arraysize="*"/>
+   <DATA>
+    <TABLEDATA>
+     <TR><TD>ΛCDM</TD><TD>Ceçi n'est pas une pipe</TD></TR>
+     <TR><TD>wCDM</TD><TD>வணக்கம்</TD></TR>
+    </TABLEDATA>
+   </DATA>
+  </TABLE>
+ </RESOURCE>
+</VOTABLE>

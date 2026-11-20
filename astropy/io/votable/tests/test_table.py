@@ -14,12 +14,33 @@ import pytest
 
 from astropy import units as u
 from astropy.io.votable import conf, from_table, is_votable, tree, validate
-from astropy.io.votable.converters import Char, UnicodeChar, get_converter
-from astropy.io.votable.exceptions import E01, E25, W39, W46, W50, W58, VOWarning
+from astropy.io.votable.converters import (
+    Char,
+    UnicodeChar,
+    get_converter,
+    table_column_to_votable_datatype,
+)
+from astropy.io.votable.exceptions import (
+    E01,
+    E24,
+    E25,
+    W20,
+    W39,
+    W46,
+    W47,
+    W50,
+    W55,
+    W58,
+    W59,
+    W60,
+    W61,
+    W62,
+    VOWarning,
+)
 from astropy.io.votable.table import parse, writeto
 from astropy.io.votable.tree import Field, VOTableFile
 from astropy.io.votable.xmlutil import check_token
-from astropy.table import Column, Table
+from astropy.table import Column, Table, vstack
 from astropy.table.table_helpers import simple_table
 from astropy.utils.compat.optional_deps import HAS_PYARROW
 from astropy.utils.data import (
@@ -958,6 +979,731 @@ def test_unicodechar_binparse_var_exceeds_arraysize():
 
     assert result == "0123456789"
     assert mask is False
+
+
+def test_char_utf8_truncation_fixed_length():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_char",
+            datatype="char",
+            arraysize="10",
+            ID="utf8_char",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["utf8_char"] = "café"
+
+    for format_name in ["binary", "binary2"]:
+        bio = io.BytesIO()
+        table.format = format_name
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+
+        assert table2.array[0]["utf8_char"] == "café"
+        assert isinstance(table2.array[2]["utf8_char"], str)
+
+
+def test_char_arraysize_semantics_version_difference():
+    votable_pre = tree.VOTableFile()
+    votable_pre.version = "1.4"
+    resource_pre = tree.Resource()
+    votable_pre.resources.append(resource_pre)
+    table_pre = tree.TableElement(votable_pre)
+    resource_pre.tables.append(table_pre)
+
+    table_pre.fields.append(
+        tree.Field(
+            votable_pre,
+            name="char_field",
+            datatype="char",
+            arraysize="5",
+            ID="char_field",
+        )
+    )
+    table_pre.create_arrays(1)
+    table_pre.array[0]["char_field"] = "hello"
+
+    bio_pre = io.BytesIO()
+    table_pre.format = "binary"
+    votable_pre.to_xml(bio_pre)
+    pre_1_6_bytes = bio_pre.getvalue()
+
+    votable_16 = tree.VOTableFile()
+    votable_16.version = "1.6"
+    resource_16 = tree.Resource()
+    votable_16.resources.append(resource_16)
+    table_16 = tree.TableElement(votable_16)
+    resource_16.tables.append(table_16)
+
+    table_16.fields.append(
+        tree.Field(
+            votable_16,
+            name="char_field",
+            datatype="char",
+            arraysize="5",
+            ID="char_field",
+        )
+    )
+    table_16.create_arrays(1)
+    table_16.array[0]["char_field"] = "café"
+
+    bio_16 = io.BytesIO()
+    table_16.format = "binary"
+    votable_16.to_xml(bio_16)
+
+    bio_pre.seek(0)
+    votable_pre_parsed = parse(bio_pre)
+    assert votable_pre_parsed.get_first_table().array[0]["char_field"] == "hello"
+
+    bio_16.seek(0)
+    votable_16_parsed = parse(bio_16)
+    assert votable_16_parsed.get_first_table().array[0]["char_field"] == "café"
+
+
+def test_char_utf8_tabledata_encoding():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_field",
+            datatype="char",
+            arraysize="*",
+            ID="utf8_field",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["utf8_field"] = "test"
+    table.array[1]["utf8_field"] = "café"
+
+    bio = io.BytesIO()
+    table.format = "tabledata"
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    assert table2.array[0]["utf8_field"] == "test"
+    assert table2.array[1]["utf8_field"] == "café"
+
+    xml_content = bio.getvalue().decode("utf-8")
+    assert "café" in xml_content
+
+
+def test_char_utf8_numpy_dtype_round_trip():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_chars",
+            datatype="char",
+            arraysize="20",
+            ID="utf8_chars",
+        )
+    )
+
+    table.create_arrays(1)
+    table.array[0]["utf8_chars"] = "café"
+
+    astropy_table = table.to_table()
+
+    votable2 = tree.VOTableFile.from_table(astropy_table)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[0].datatype == "char"
+    assert table2.array[0]["utf8_chars"] == "café"
+
+
+def test_char_utf8_width_numpy_dtype():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="utf8_chars",
+            datatype="char",
+            arraysize="20",
+            width=5,
+            ID="utf8_chars",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["utf8_chars"] = "café"
+    table.array[1]["utf8_chars"] = "hello"
+
+    astropy_table = table.to_table()
+
+    assert astropy_table["utf8_chars"].dtype == np.dtype("U5")
+    assert astropy_table["utf8_chars"][0] == "café"
+    assert astropy_table["utf8_chars"][1] == "hello"
+
+
+def test_char_utf8_width_round_trip():
+    bio = io.BytesIO()
+
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="name",
+            datatype="char",
+            arraysize="40",
+            width=10,
+            ID="name",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["name"] = "café"
+    table.array[1]["name"] = "ascii"
+
+    votable.to_xml(bio)
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+
+    assert table2.fields[0].datatype == "char"
+    assert table2.fields[0].arraysize == "40"
+    assert table2.fields[0].width == 10
+
+    astropy_table = table2.to_table()
+    assert astropy_table["name"].dtype == np.dtype("U10")
+    assert astropy_table["name"][0] == "café"
+    assert astropy_table["name"][1] == "ascii"
+
+
+def test_char_utf8_width_binary():
+    bio = io.BytesIO()
+
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="val",
+            datatype="char",
+            arraysize="20",
+            width=5,
+            ID="val",
+        )
+    )
+
+    table.create_arrays(2)
+    table.array[0]["val"] = "café"  # 5 UTF-8 bytes, 4 chars
+    table.array[1]["val"] = "hi"
+
+    votable.to_xml(bio, tabledata_format="binary")
+    bio.seek(0)
+
+    votable2 = parse(bio)
+    table2 = votable2.get_first_table()
+    astropy_table = table2.to_table()
+
+    assert astropy_table["val"].dtype == np.dtype("U5")
+    assert astropy_table["val"][0] == "café"
+    assert astropy_table["val"][1] == "hi"
+
+
+def test_char_invalid_utf8_handling():
+    field = tree.Field(
+        tree.VOTableFile(),
+        name="char_field",
+        datatype="char",
+        arraysize="10",
+        ID="test",
+    )
+
+    converter = Char(field, {"version_1_6_or_later": True})
+    read = io.BytesIO(struct.pack(">I", 4) + b"ab\xff\xfe").read
+
+    with pytest.warns(W60, match="not valid UTF-8"):
+        result, mask = converter._binparse_var(read)
+    assert result == "ab\ufffd\ufffd"
+    assert mask is False
+
+
+@pytest.mark.parametrize("fmt", ["binary", "binary2"])
+@pytest.mark.parametrize("arraysize", ["8", "8*", "*"])
+def test_char_utf8_in_pre_16_binary(fmt, arraysize):
+    votable = tree.VOTableFile(version="1.5")
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(
+        tree.Field(votable, name="s", datatype="char", arraysize=arraysize)
+    )
+    table.create_arrays(1)
+    table.array[0]["s"] = "ΛCDM"
+
+    bio = io.BytesIO()
+    with pytest.warns(E24, match="non-ASCII"):
+        votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    with pytest.warns(W55, match="non-ASCII"):
+        table2 = parse(bio, verify="warn").get_first_table()
+    assert table2.array[0]["s"] == "ΛCDM"
+
+
+@pytest.mark.parametrize(
+    "data, size, expected",
+    [
+        (b"abc", 5, b"abc"),
+        (b"abcdef", 3, b"abc"),
+        ("aΛb".encode(), 2, b"a"),  # cut inside the 2-byte Λ
+        ("aΛb".encode(), 3, "aΛ".encode()),
+        ("a€".encode(), 3, b"a"),  # cut inside the 3-byte €
+        ("😀".encode(), 3, b""),  # cut inside a 4-byte sequence
+        (b"a\xffbc", 3, b"a\xffb"),  # invalid bytes are left alone
+    ],
+)
+def test_truncate_utf8(data, size, expected):
+    from astropy.io.votable.converters import _truncate_utf8
+
+    assert _truncate_utf8(data, size) == expected
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+def test_char_width_too_small_warns(fmt):
+    votable = tree.VOTableFile(version="1.6")
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(tree.Field(votable, name="s", datatype="char", arraysize="8"))
+    table.create_arrays(1)
+    table.array[0]["s"] = "ABCDEFG"
+    # A wrong width, as written by a buggy producer
+    table.fields[0].width = 2
+
+    bio = io.BytesIO()
+    votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    with pytest.warns(W61, match=r'width="2" but contains a longer value'):
+        table2 = parse(bio, verify="warn").get_first_table()
+    assert table2.array[0]["s"] == "AB"
+
+
+@pytest.mark.parametrize(
+    "arraysize, value, expected",
+    [
+        ("4", "ΛΛΛ", "ΛΛ"),  # 6 bytes into 4, without splitting a Λ
+        (None, "Λ", ""),  # a scalar char holds one byte, so Λ cannot fit
+    ],
+)
+def test_char_fixed_binary_truncation_warns(arraysize, value, expected):
+    votable = tree.VOTableFile(version="1.6")
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", W47)
+        table.fields.append(
+            tree.Field(votable, name="s", datatype="char", arraysize=arraysize)
+        )
+    table.create_arrays(1)
+    table.array[0]["s"] = value
+
+    bio = io.BytesIO()
+    with pytest.warns(W46, match="too long"):
+        votable.to_xml(bio, tabledata_format="binary")
+    bio.seek(0)
+    assert parse(bio).get_first_table().array[0]["s"] == expected
+
+
+def _one_cell_votable(version, datatype, arraysize, value):
+    votable = tree.VOTableFile(version=version)
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+    table.fields.append(
+        tree.Field(votable, name="s", datatype=datatype, arraysize=arraysize)
+    )
+    table.create_arrays(1)
+    table.array[0]["s"] = value
+    return votable
+
+
+@pytest.mark.parametrize(
+    "arraysize, fmt",
+    [
+        ("4", "tabledata"),
+        ("4*", "tabledata"),
+        ("4*", "binary"),
+        ("4*", "binary2"),
+    ],
+)
+def test_char_too_long_is_truncated_with_warning(arraysize, fmt):
+    # "ΛΛΛ" fits the U4 column (3 characters) but is 6 UTF-8 bytes.
+    votable = _one_cell_votable("1.6", "char", arraysize, "ΛΛΛ")
+    bio = io.BytesIO()
+    with pytest.warns(W46, match="too long for specified length of 4"):
+        votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    assert parse(bio, verify="exception").get_first_table().array[0]["s"] == "ΛΛ"
+
+
+def test_char_too_long_tabledata_pre_16():
+    # Before 1.6 arraysize counts characters.
+    field = tree.Field(None, name="s", datatype="char", arraysize="3", config={})
+    converter = get_converter(field, config={})
+    with pytest.warns(W46, match="too long"):
+        assert converter.output("abcdef", False) == "abc"
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary"])
+@pytest.mark.parametrize("arraysize", ["3", "3*"])
+def test_char_widened_column_not_truncated(arraysize, fmt):
+    table = _one_cell_votable("1.4", "char", arraysize, "abc").get_first_table()
+    table = table.to_table()
+
+    bio = io.BytesIO()
+    table.write(bio, format="votable", tabledata_format=fmt)
+    bio.seek(0)
+    assert parse(bio).get_first_table().fields[0].arraysize == arraysize
+
+    widened = vstack([table, Table({"s": ["abcdefgh"]})])
+    bio = io.BytesIO()
+    widened.write(bio, format="votable", tabledata_format=fmt)
+    bio.seek(0)
+    result = parse(bio).get_first_table()
+    assert result.fields[0].arraysize == arraysize.replace("3", "8")
+    assert list(result.array["s"]) == ["abc", "abcdefgh"]
+
+
+def test_char_unbounded_arraysize_kept_for_fixed_width_column():
+    col = Column(
+        np.array(["abc"], dtype="U5"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "*"},
+    )
+    assert table_column_to_votable_datatype(col) == {
+        "datatype": "char",
+        "arraysize": "*",
+    }
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary"])
+def test_write_warnings_not_hidden_by_verify_ignore(fmt):
+    bio = io.BytesIO()
+    _one_cell_votable("1.4", "char", "3", "abc").to_xml(bio)
+    bio.seek(0)
+    votable = parse(bio, verify="ignore")
+    votable.get_first_table().array[0]["s"] = "zł"
+
+    with pytest.warns(E24, match="non-ASCII"):
+        votable.to_xml(io.BytesIO(), tabledata_format=fmt)
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+@pytest.mark.parametrize("arraysize", ["3", "3*"])
+def test_unicodechar_non_bmp(fmt, arraysize):
+    # 3 UTF-16 code units
+    votable = _one_cell_votable("1.5", "unicodeChar", arraysize, "a😀")
+    bio = io.BytesIO()
+    with pytest.warns(W62, match="outside the Basic Multilingual Plane"):
+        votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    assert parse(bio).get_first_table().array[0]["s"] == "a😀"
+
+    # 4 UTF-16 code units
+    votable = _one_cell_votable("1.5", "unicodeChar", arraysize, "ab😀")
+    bio = io.BytesIO()
+    with pytest.warns(W62), pytest.warns(W46, match="too long"):
+        votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    assert parse(bio).get_first_table().array[0]["s"] == "ab"
+
+
+def test_char_utf8_bounded_variable_length():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    resource = tree.Resource()
+    votable.resources.append(resource)
+    table = tree.TableElement(votable)
+    resource.tables.append(table)
+
+    table.fields.append(
+        tree.Field(
+            votable,
+            name="val",
+            datatype="char",
+            arraysize="20*",
+            ID="val",
+        )
+    )
+
+    table.create_arrays(3)
+    table.array[0]["val"] = "café"
+    table.array[1]["val"] = "hello"
+    table.array[2]["val"] = ""
+
+    for fmt in ["tabledata", "binary", "binary2"]:
+        bio = io.BytesIO()
+        table.format = fmt
+        votable.to_xml(bio)
+        bio.seek(0)
+
+        votable2 = parse(bio)
+        table2 = votable2.get_first_table()
+        assert table2.array[0]["val"] == "café", f"fmt={fmt}"
+        assert table2.array[1]["val"] == "hello", f"fmt={fmt}"
+        assert table2.array[2]["val"] == "", f"fmt={fmt}"
+
+
+def test_unicodechar_deprecation_warning_16():
+    votable = tree.VOTableFile()
+    votable.version = "1.6"
+    with pytest.warns(W59, match="deprecated"):
+        tree.Field(
+            votable,
+            name="uc",
+            datatype="unicodeChar",
+            arraysize="10",
+            ID="uc",
+        )
+
+
+def test_unicodechar_deprecation_warning_once_per_field():
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        votable = _one_cell_votable("1.6", "unicodeChar", "10", "abc")
+        for fmt in ["tabledata", "binary", "binary2"]:
+            votable.to_xml(io.BytesIO(), tabledata_format=fmt)
+    assert [w.category for w in caught] == [W59]
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+def test_version_change_after_building_table(fmt):
+    votable = _one_cell_votable("1.5", "char", "8", "ΛCDM")
+    votable.version = "1.6"
+
+    bio = io.BytesIO()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", E24)
+        votable.to_xml(bio, tabledata_format=fmt)
+    bio.seek(0)
+    votable2 = parse(bio, verify="exception")
+    assert votable2.version == "1.6"
+    assert votable2.get_first_table().array[0]["s"] == "ΛCDM"
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+def test_write_table_version(fmt):
+    t = Table({"s": ["ΛCDM", "ab"]})
+
+    bio = io.BytesIO()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        t.write(bio, format="votable", tabledata_format=fmt, version="1.5")
+    bio.seek(0)
+    votable = parse(bio, verify="exception")
+    assert votable.version == "1.5"
+    field = votable.get_first_table().fields[0]
+    assert (field.datatype, field.arraysize, field.width) == ("unicodeChar", "4", None)
+    assert list(votable.get_first_table().array["s"]) == ["ΛCDM", "ab"]
+
+    assert from_table(t, version="1.6").version == "1.6"
+    assert from_table(t).version == "1.4"
+
+
+def test_versionless_file_read_as_pre_16():
+    xml = """<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE><TABLE>
+  <FIELD name="s" datatype="unicodeChar" arraysize="4"/>
+  <DATA><TABLEDATA><TR><TD>ΛCDM</TD></TR></TABLEDATA></DATA>
+ </TABLE></RESOURCE>
+</VOTABLE>"""
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        votable = parse(io.BytesIO(xml.encode()), verify="warn")
+    assert [w.category for w in caught] == [W20]
+    assert "Assuming 1.4" in str(caught[0].message)
+    assert votable.version == "1.4"
+    assert votable.get_first_table().array[0]["s"] == "ΛCDM"
+
+
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+def test_str_columns_written_as_utf8_char_16(fmt):
+    t = Table(
+        {
+            "ascii": ["abc", "de"],
+            "utf8": ["ΛCDM", "x"],
+            "latin": ["Piszkéstető", "x"],
+            "obj": np.array(["ΛCDM", "longer value"], dtype=object),
+        }
+    )
+    bio = io.BytesIO()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", W59)
+        t.write(bio, format="votable", tabledata_format=fmt, version="1.6")
+
+    bio.seek(0)
+    votable = parse(bio)
+    assert votable.version == "1.6"
+    fields = {f.name: f for f in votable.get_first_table().fields}
+    assert {f.datatype for f in fields.values()} == {"char"}
+    assert (fields["ascii"].arraysize, fields["ascii"].width) == ("3", 3)
+    # "ΛCDM" is 4 characters but 5 UTF-8 bytes.
+    assert (fields["utf8"].arraysize, fields["utf8"].width) == ("5", 4)
+    assert (fields["latin"].arraysize, fields["latin"].width) == ("13", 11)
+    assert fields["obj"].arraysize == "*"
+
+    t2 = votable.get_first_table().to_table()
+    for name in t.colnames:
+        assert list(t2[name]) == list(t[name])
+
+
+def test_utf8_char_datatype_width():
+    # Readers may assume ASCII when width equals arraysize
+    col = Column(np.array(["Λ", "ab"], dtype="U10"))
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "10",
+        "width": None,
+    }
+
+    col = Column(["ΛCDM"], meta={"_votable_string_dtype": "char"})
+    col.info.meta["_votable_arraysize"] = "4"
+    assert table_column_to_votable_datatype(col, version="1.6")["arraysize"] == "5"
+
+    col = Column(["ΛCDM"], meta={"_votable_string_dtype": "unicodeChar"})
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "5",
+        "width": 4,
+    }
+
+    # The unicodeChar bound counted characters
+    col = Column(
+        np.array(["ΛCDM", "ab"], dtype=object),
+        meta={"_votable_string_dtype": "unicodeChar", "_votable_arraysize": "4*"},
+    )
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "5*",
+    }
+
+
+def test_utf8_char_datatype_empty_and_bounded():
+    col = Column(np.array([], dtype="U3"))
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "3",
+        "width": 3,
+    }
+
+    col = Column(
+        np.array(["ΛCDM"], dtype="U4"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "4*"},
+    )
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "5*",
+        "width": 4,
+    }
+
+
+def test_votable_metadata_not_in_table_meta():
+    xml = """<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE><TABLE>
+  <FIELD name="s" datatype="unicodeChar" arraysize="4"/>
+  <DATA><TABLEDATA><TR><TD>ΛCDM</TD></TR></TABLEDATA></DATA>
+ </TABLE></RESOURCE>
+</VOTABLE>"""
+    t = Table.read(io.BytesIO(xml.encode()), format="votable")
+    assert not any(key.startswith("_votable") for key in t.meta)
+
+    bio = io.BytesIO()
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", W59)
+        t.write(bio, format="votable", version="1.6")
+    field = parse(io.BytesIO(bio.getvalue())).get_first_table().fields[0]
+    assert (field.datatype, field.arraysize, field.width) == ("char", "5", 4)
+
+
+def test_char_dtype_16():
+    xml = """<?xml version="1.0" encoding="utf-8"?>
+<VOTABLE version="1.6" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+ <RESOURCE><TABLE>
+  <FIELD name="fixed" datatype="char" arraysize="5"/>
+  <FIELD name="narrow" datatype="char" arraysize="5" width="4"/>
+  <FIELD name="wide" datatype="char" arraysize="5" width="9"/>
+  <FIELD name="bounded" datatype="char" arraysize="5*"/>
+  <DATA><TABLEDATA>
+   <TR><TD>ΛCDM</TD><TD>ΛCDM</TD><TD>ΛCDM</TD><TD>ΛCDM</TD></TR>
+  </TABLEDATA></DATA>
+ </TABLE></RESOURCE>
+</VOTABLE>"""
+    t = Table.read(io.BytesIO(xml.encode()), format="votable")
+    assert t.dtype == np.dtype(
+        [("fixed", "U5"), ("narrow", "U4"), ("wide", "U5"), ("bounded", "U5")]
+    )
+    assert all(t[name][0] == "ΛCDM" for name in t.colnames)
+
+    # FITS only takes ASCII
+    for name in t.colnames:
+        t[name][0] = "LCDM"
+    t.write(io.BytesIO(), format="fits")
+
+
+@pytest.mark.parametrize("version", [None, "1.5"])
+def test_str_columns_written_as_unicodechar_pre_16(version):
+    col = Column(["ΛCDM"])
+    assert table_column_to_votable_datatype(col, version=version) == {
+        "datatype": "unicodeChar",
+        "arraysize": "4",
+    }
 
 
 def test_validate_tilde_path(home_is_data):

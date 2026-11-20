@@ -11,9 +11,13 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from astropy.io.votable import parse
+from astropy.io.votable import parse, tree
+from astropy.io.votable.converters import (
+    get_converter,
+    table_column_to_votable_datatype,
+)
 from astropy.io.votable.exceptions import E01, E02, W46
-from astropy.table import Table
+from astropy.table import Column, Table
 
 DATATYPES = ["char", "unicodeChar"]
 FORMATS = ["tabledata", "binary", "binary2"]
@@ -386,3 +390,94 @@ def test_table_read_write_keeps_arraysize(arraysize):
 
     assert field.datatype == "char"
     assert field.arraysize == arraysize
+
+
+def _v16(data):
+    return data.replace(b'version="1.4"', b'version="1.6"')
+
+
+def test_utf8_read_splits_by_bytes():
+    # From 1.6 each string takes 3 bytes: "Λ" is 2 bytes plus one blank
+    column = _column(_v16(_votable("char", "3x2", ["Λ ab"])))
+
+    assert column.tolist() == [["Λ", "ab"]]
+
+
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_utf8_roundtrip(tabledata_format):
+    t = Table({"c": np.array([["Λ", "ab"], ["ΛΛ", "c"]], dtype="U2")})
+    written = io.BytesIO()
+    t.write(written, format="votable", tabledata_format=tabledata_format, version="1.6")
+    table = parse(io.BytesIO(written.getvalue())).get_first_table()
+
+    assert table.fields[0].arraysize == "4x2"
+    assert table.fields[0].width == 2
+    assert table.array["c"].tolist() == [["Λ", "ab"], ["ΛΛ", "c"]]
+
+
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_utf8_roundtrip_variable_array(tabledata_format):
+    # "ΛCDM" is 4 characters but fills all 5 bytes
+    data = _v16(_votable("char", "5x*", ["ΛCDMab", ""]))
+
+    column = _column(_roundtrip(data, tabledata_format))
+
+    assert column[0].tolist() == ["ΛCDM", "ab"]
+    assert column[1].tolist() == []
+
+
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_unicodechar_variable_array_written_as_utf8_char(tabledata_format):
+    data = _votable("unicodeChar", "3x*", ["ΛΛΛab"])
+    t = Table.read(io.BytesIO(data), format="votable")
+    written = io.BytesIO()
+    t.write(written, format="votable", tabledata_format=tabledata_format, version="1.6")
+    table = parse(io.BytesIO(written.getvalue())).get_first_table()
+
+    # 3 characters of unicodeChar become 6 bytes of char
+    assert table.fields[0].datatype == "char"
+    assert table.fields[0].arraysize == "6x*"
+    assert table.array["c"][0].tolist() == ["ΛΛΛ", "ab"]
+
+
+def test_utf8_output_truncates_by_bytes():
+    config = {"version_1_6_or_later": True}
+    field = tree.Field(None, name="c", datatype="char", arraysize="3x2", config=config)
+    converter = get_converter(field, config=config)
+
+    # "ΛΛ" is 4 bytes
+    with pytest.warns(W46):
+        assert converter.output(np.array(["ΛΛ", "a"]), False) == "Λ a  "
+
+
+def test_utf8_datatype_of_string_array_columns():
+    col = Column(
+        np.array([["ab", "cd"]], dtype="U3"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "3x2x*"},
+    )
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "3x2",
+        "width": 3,
+    }
+
+    col = Column(
+        [np.array(["ab", "cd"]), np.array(["ΛΛ", "e"])],
+        dtype=object,
+        meta={"_votable_string_dtype": "unicodeChar", "_votable_arraysize": "3x*"},
+    )
+    assert table_column_to_votable_datatype(col, version="1.6") == {
+        "datatype": "char",
+        "arraysize": "4x*",
+    }
+
+
+def test_widened_string_array_not_truncated():
+    col = Column(
+        np.array([["abcdefgh", "cd"]], dtype="U8"),
+        meta={"_votable_string_dtype": "char", "_votable_arraysize": "3x2"},
+    )
+    assert table_column_to_votable_datatype(col) == {
+        "datatype": "char",
+        "arraysize": "8x2",
+    }

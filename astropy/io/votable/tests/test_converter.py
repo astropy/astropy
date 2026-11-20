@@ -88,10 +88,19 @@ def test_unicode_as_char():
     c.output(b"XYZ", False)  # ASCII bytes succeeds
     value = "zła"
     value_bytes = value.encode("utf-8")
-    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
         c.output(value, False)  # non-ASCII str raises
-    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+    with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
         c.output(value_bytes, False)  # non-ASCII bytes raises
+
+    field = tree.Field(
+        None, name="unicode_in_char", datatype="char", arraysize="*", config={}
+    )
+    c = converters.get_converter(field, config={})
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value, False)
+    with pytest.warns(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
+        c.output(value_bytes, False)
 
 
 def test_unicode_as_char_binary():
@@ -112,6 +121,28 @@ def test_unicode_as_char_binary():
     c._binoutput_fixed("xyz", False)
     with pytest.raises(exceptions.E24, match=r"E24: Attempt to write non-ASCII value"):
         c._binoutput_fixed("zła", False)
+
+
+def test_utf8_char_parse_counts_bytes():
+    config = {"version_1_6_or_later": True}
+    field = tree.Field(None, name="c", datatype="char", arraysize="4", config=config)
+    c = converters.get_converter(field, config=config)
+    # "ΛCDM" is 4 characters but 5 UTF-8 bytes
+    with pytest.warns(exceptions.W46):
+        c.parse("ΛCDM")
+
+
+def test_char_binoutput_fixed_masked_and_bytes():
+    field = tree.Field(None, name="c", datatype="char", arraysize="3", config={})
+    c = converters.get_converter(field, config={})
+    assert c._binoutput_fixed(None, False) == b"\0\0\0"
+    assert c._binoutput_fixed(b"ab", False) == b"ab\0"
+
+
+def test_unicodechar_without_config():
+    field = tree.Field(None, name="u", datatype="unicodeChar", arraysize="*")
+    c = converters.UnicodeChar(field)
+    assert c._config == {}
 
 
 def test_wrong_number_of_elements():

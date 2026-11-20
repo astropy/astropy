@@ -352,7 +352,7 @@ def validate(source, output=sys.stdout, xmllint=False, filename=None):
     return len(lines) == 0 and success == 0
 
 
-def from_table(table, table_id=None):
+def from_table(table, table_id=None, *, version=None):
     """
     Given an `~astropy.table.Table` object, return a
     `~astropy.io.votable.tree.VOTableFile` file structure containing
@@ -366,11 +366,15 @@ def from_table(table, table_id=None):
         If not `None`, set the given id on the returned
         `~astropy.io.votable.tree.TableElement` instance.
 
+    version : str, optional
+        The VOTable version to write, such as ``"1.6"``. Defaults to 1.4.
+        See `~astropy.io.votable.tree.VOTableFile.from_table`.
+
     Returns
     -------
     votable : `~astropy.io.votable.tree.VOTableFile` instance
     """
-    return tree.VOTableFile.from_table(table, table_id=table_id)
+    return tree.VOTableFile.from_table(table, table_id=table_id, version=version)
 
 
 def is_votable(source):

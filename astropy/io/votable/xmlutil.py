@@ -103,9 +103,8 @@ def validate_schema(filename, version="1.1"):
         The path to the XML file to validate
 
     version : str, optional
-        The VOTABLE version to check, which must be a string \"1.0\",
-        \"1.1\", \"1.2\" or \"1.3\".  If it is not one of these,
-        version \"1.1\" is assumed.
+        The VOTABLE version to check, which must be a string from \"1.0\"
+        to \"1.6\".  If it is not one of these, version \"1.1\" is assumed.
 
         For version \"1.0\", it is checked against a DTD, since that
         version did not have an XML Schema.
@@ -116,7 +115,7 @@ def validate_schema(filename, version="1.1"):
         Returns the returncode from xmllint and the stdout and stderr
         as strings
     """
-    supported_schemas = ["1.1", "1.2", "1.3", "1.4", "1.5"]
+    supported_schemas = ["1.1", "1.2", "1.3", "1.4", "1.5", "1.6"]
 
     if version == "1.0":
         schema_path = data.get_pkg_data_filename("data/VOTable.dtd")

@@ -129,9 +129,9 @@ type according to the following table:
   -------------------------------- -------------------------
   unsignedByte                     u1
   -------------------------------- -------------------------
-  char (*variable length*)         O - A ``bytes()`` object.
+  char (*variable length*)         O - A `str` object
   -------------------------------- -------------------------
-  char (*fixed length*)            S
+  char (*fixed length*)            U
   -------------------------------- -------------------------
   unicodeChar (*variable length*)  O - A `str` object
   -------------------------------- -------------------------
@@ -154,6 +154,18 @@ type according to the following table:
 
 If the field is a fixed-size array, the data is stored as a ``numpy``
 fixed-size array.
+
+From VOTable 1.6, ``char`` holds UTF-8 text and ``arraysize`` counts bytes,
+while the optional ``width`` gives the maximum number of characters. A fixed
+length ``char`` FIELD is read as ``U{arraysize}``, or ``U{width}`` if ``width``
+is smaller. When writing with ``version="1.6"``, string columns are written as
+``char``, with ``arraysize`` large enough for the longest UTF-8 encoded value
+and ``width`` set to the column's character length, unless that would wrongly
+mark the column as ASCII. ``unicodeChar`` is deprecated in 1.6.
+
+For an array of strings, such as ``arraysize="10x4"``, the first number is the
+length of each string. In 1.6 that length is in UTF-8 bytes and ``width``
+applies to each string.
 
 If the field is a variable-size array (that is, ``arraysize`` contains
 a '*'), the cell will contain a Python list of ``numpy`` values. Each

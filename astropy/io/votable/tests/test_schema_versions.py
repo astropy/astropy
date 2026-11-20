@@ -11,13 +11,15 @@ V_1_2_TABLE = get_pkg_data_filename("data/empty_table.xml")
 V_1_3_TABLE = get_pkg_data_filename("data/binary2_masked_strings.xml")
 V_1_4_TABLE = get_pkg_data_filename("data/timesys.xml")
 V_1_5_TABLE = get_pkg_data_filename("data/coosys.xml")
+# 1.6 has no new elements, only the new version number.
+V_1_6_TABLE = get_pkg_data_filename("data/utf8_char.xml")
 
 # Schema versions to test against
 V_1_2 = "1.2"
 V_1_3 = "1.3"
 V_1_4 = "1.4"
 V_1_5 = "1.5"
-V_1_6 = "1.6"  # Next (unimplemented) schema
+V_1_6 = "1.6"
 
 # Starting with version 1.4, schemas were upward compatible.
 test_cases = [
@@ -31,30 +33,17 @@ test_cases = [
     (V_1_3_TABLE, V_1_3, 0, None),
     (V_1_3_TABLE, V_1_4, 0, None),
     (V_1_3_TABLE, V_1_5, 0, None),
-    (
-        V_1_3_TABLE,
-        V_1_6,
-        3,
-        b"No matching global declaration available for the validation root",
-    ),
+    (V_1_3_TABLE, V_1_6, 0, None),
     (V_1_4_TABLE, V_1_3, 3, b"TIMESYS.*element is not expected"),
     (V_1_4_TABLE, V_1_4, 0, None),
     (V_1_4_TABLE, V_1_5, 0, None),
-    (
-        V_1_4_TABLE,
-        V_1_6,
-        3,
-        b"No matching global declaration available for the validation root",
-    ),
+    (V_1_4_TABLE, V_1_6, 0, None),
     (V_1_5_TABLE, V_1_3, 3, b"attribute 'refposition' is not allowed"),
     (V_1_5_TABLE, V_1_4, 3, b"attribute 'refposition' is not allowed"),
     (V_1_5_TABLE, V_1_5, 0, None),
-    (
-        V_1_5_TABLE,
-        V_1_6,
-        3,
-        b"No matching global declaration available for the validation root",
-    ),
+    (V_1_5_TABLE, V_1_6, 0, None),
+    (V_1_6_TABLE, V_1_5, 3, b"The value '1.6' is not an element of the set"),
+    (V_1_6_TABLE, V_1_6, 0, None),
 ]
 
 

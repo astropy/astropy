@@ -20,6 +20,7 @@ In particular, this release includes:
 * :ref:`whatsnew-8.1-pyodide-wheels`
 * :ref:`whatsnew-8.1-wcs-init`
 * :ref:`whatsnew-8.1-wcsaxes-quantities`
+* :ref:`whatsnew-8.1-votable-1.6`
 
 In addition to these major changes, Astropy v8.1 includes a large number of
 smaller improvements and bug fixes, which are described in the :ref:`changelog`.
@@ -199,6 +200,26 @@ Quantities in units that cannot be converted to those that the transform
 expects raise an error. The interpretation of plain numbers has not changed:
 these are in the world units of the WCS for ``ax.get_transform("world")`` and
 in degrees for celestial frames such as ``ax.get_transform("icrs")``.
+
+.. _whatsnew-8.1-votable-1.6:
+
+Support for VOTable 1.6
+=======================
+
+:ref:`astropy.io.votable <astropy-io-votable>` can now read and write VOTable
+1.6. The main change in 1.6 is that ``char`` columns hold UTF-8 text, so
+``arraysize`` is a length in bytes, and the ``width`` attribute gives the
+maximum number of characters. ``unicodeChar`` is deprecated.
+
+Tables are still written as VOTable 1.4 by default. To write 1.6, pass
+``version``::
+
+    t.write("table.xml", format="votable", version="1.6")
+
+String columns are then written as UTF-8 ``char`` instead of ``unicodeChar``.
+
+Non-ASCII text in BINARY and BINARY2 ``char`` columns is now also read as UTF-8
+for earlier versions.
 
 
 Contributors to the 8.1 release

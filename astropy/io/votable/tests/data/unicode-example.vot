@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- This is a test table including diverse char and unicodeChar
+ !   FIELDS and PARAMs.  It is intended for help in testing
+ !   VOTable 1.6-compliant processing of such content - if your
+ !   VOTable I/O can round-trip this table and retrieve the original
+ !   content, it's a good sign that it's doing the right things.
+ !-->
+
+<VOTABLE version="1.6" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
+<RESOURCE>
+<TABLE>
+<INFO name="misc" value="Ωμεγα &#xA66E; &#x1F600;"/>
+<PARAM datatype="char" arraysize="6" name="soup1" value="oxtail" width="6"/>
+<PARAM datatype="char" arraysize="8" name="soup2" value="Борщ" width="4"/>
+<PARAM datatype="char" arraysize="16x*" name="philosophers"
+       value="孔子          ΣωκρατηςWittgenstein    "/>
+<FIELD datatype="char" name="chr1"/>
+<FIELD datatype="char" arraysize="*" name="txt"/>
+<FIELD datatype="char" arraysize="10" name="word10"/>
+<FIELD datatype="char" arraysize="10x2" name="words"/>
+<FIELD datatype="unicodeChar" name="uchr1"/>
+<FIELD datatype="unicodeChar" arraysize="*" name="utxt"/>
+<FIELD datatype="unicodeChar" arraysize="5" name="uword10"/>
+<FIELD datatype="unicodeChar" arraysize="5x2" name="uwords"/>
+<FIELD datatype="int" name="ialph"/>
+<DATA>
+<TABLEDATA>
+<TR>
+  <TD>A</TD>
+  <TD>Alpha</TD>
+  <TD>Alpha.....</TD>
+  <TD>A123456789a123456789</TD>
+  <TD>A</TD>
+  <TD>Alpha</TD>
+  <TD>Alpha</TD>
+  <TD>A1234a1234</TD>
+  <TD>1</TD>
+</TR>
+<TR>
+  <TD>B</TD>
+  <TD>Βητα</TD>
+  <TD>Βητα..</TD>
+  <TD>Βητα..beta......</TD>
+  <TD>B</TD>
+  <TD>Βητα</TD>
+  <TD>Βητα.</TD>
+  <TD>Βητα.beta.</TD>
+  <TD>2</TD>
+</TR>
+<TR>
+  <TD>G</TD>
+  <TD>Γ</TD>
+  <TD>&#x393;&#xA66E;.&#x1F600;</TD>
+  <TD>&#x393;&#xA66E;&#x1F600; ABCDEFGHIJ</TD>
+  <TD>Γ</TD>
+  <TD>Γαμμα</TD>
+  <TD>&#x393;&#xA66E;...</TD>
+  <TD>&#x393;&#xA66E;...ABCDE</TD>
+  <TD>3</TD>
+</TR>
+<TR>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+  <TD/>
+</TR>
+</TABLEDATA>
+</DATA>
+</TABLE>
+</RESOURCE>
+</VOTABLE>
