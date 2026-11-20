@@ -590,6 +590,7 @@ class HDUList(list, _Verify):
                 # to get the file object is to check each of the HDU's in the
                 # list until we find the one associated with the file.
                 f = None
+                fm = None
 
                 for hdu in self:
                     info = hdu.fileinfo()
@@ -958,6 +959,10 @@ class HDUList(list, _Verify):
                         if verbose:
                             print("append HDU", hdu.name, extver)
                         hdu._new = False
+                        # Tie the freshly-written HDU to the file so that
+                        # HDU.fileinfo()/HDUList.fileinfo() can report its byte
+                        # locations after the flush (see issue #19089).
+                        hdu._file = self._file
                     hdu._postwriteto()
 
         elif self._file.mode == "update":
