@@ -1,0 +1,3 @@
+Preserve custom comments on ``CHECKSUM`` and ``DATASUM`` cards when
+updating checksums in update mode, and support passing a separate
+``datasum_when`` argument to ``add_checksum``.
