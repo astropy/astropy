@@ -293,7 +293,7 @@ class Converter:
         Raises
         ------
         Exception
-            Where `binparse` would raise for one of the values.
+            Where `binparse` would raise or warn for one of the values.
         """
         raise NotImplementedError(
             "This datatype does not convert a whole binary column at once."
@@ -450,6 +450,14 @@ class Char(Converter):
         if self._width_limit is not None and len(value) > self._width_limit:
             vo_warn(W61, (self.field_name, self._width_limit, value), config, pos)
 
+    def _check_column_width(self, longest):
+        """
+        Raise where `_check_width` would warn W61 for a value of *longest*
+        characters, so that the value-by-value reader gives the warnings.
+        """
+        if self._width_limit is not None and longest > self._width_limit:
+            raise ValueError("a value is longer than the FIELD width")
+
     def output(self, value, mask):
         if mask:
             return ""
@@ -511,12 +519,16 @@ class Char(Converter):
     def _binparse_var_column(self, buffer, starts, stops):
         """
         Convert a column of values from the BINARY_ format, the same as
-        `_binparse_var` on each but without its warning, given that the
+        `_binparse_var` on each but without its W46 warning, given that the
         characters of each value are ``buffer[start:stop]``.
+
+        Raises where `_binparse_var` would give any other warning.
         """
+        # Non-ASCII text raises here, since _decode may warn W55 or W60 for it
         strings = [
             buffer[start:stop].decode("ascii") for start, stop in zip(starts, stops)
         ]
+        self._check_column_width(max(map(len, strings), default=0))
         return strings, np.zeros(len(strings), dtype=bool)
 
     def _binparse_fixed_column(self, stored):
@@ -524,6 +536,8 @@ class Char(Converter):
         Convert a column of values from the BINARY_ format, the same as
         `_binparse_fixed` on each, given the bytes of each value as a row of
         the ``uint8`` array *stored*.
+
+        Raises where `_binparse_fixed` would warn.
         """
         nvalues, nbytes = stored.shape
         mask = np.zeros(nvalues, dtype=bool)
@@ -531,9 +545,9 @@ class Char(Converter):
             # arraysize="0": the numpy steps below need at least one byte
             return np.full(nvalues, ""), mask
         if nvalues and stored.max() >= 0x80:
-            # Raise the same UnicodeDecodeError as _binparse_fixed, which
-            # decodes every byte, even those after a NUL
-            stored.tobytes().decode("ascii")
+            # _decode may warn W55 or W60 for non-ASCII text. Bytes after a
+            # NUL are never decoded, but they are checked here too, for speed.
+            raise ValueError("a value is not ASCII")
         # numpy stores unicode strings as 4-byte code points, and an ASCII
         # byte is its own code point
         codes = stored.astype(np.uint32)
@@ -542,6 +556,9 @@ class Char(Converter):
         is_nul = stored == 0
         first_nul = is_nul.argmax(axis=1)
         nnul = np.count_nonzero(is_nul, axis=1)
+        if self._width_limit is not None:
+            lengths = np.where(nnul > 0, first_nul, nbytes)
+            self._check_column_width(np.max(lengths, initial=0))
         cut = np.flatnonzero((nnul > 0) & (nnul != nbytes - first_nul))
         codes[cut] *= np.arange(nbytes) < first_nul[cut, None]
         return codes.view(f"U{nbytes}")[:, 0], mask

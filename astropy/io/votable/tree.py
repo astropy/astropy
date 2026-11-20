@@ -414,7 +414,8 @@ class _BinaryColumnReader:
         selected = dict(zip(sorted(set(colnumbers)), dtype.names))
         self.names = [selected.get(i) for i in range(len(self.fields))]
         # Unselected strings are decoded too: the value-by-value reader
-        # decodes every string, so a bad one must raise the same error here
+        # decodes every string, so a bad one must stop the column reader, to
+        # leave its warning or error to the value-by-value reader
         self.fixed_fields = [
             i
             for i, (field, name) in enumerate(zip(self.fields, self.names))
