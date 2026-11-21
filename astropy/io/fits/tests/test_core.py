@@ -1110,7 +1110,8 @@ class TestFileFunctions(FitsTestCase):
             assert np.all(hdul[0].data == data)
 
     @pytest.mark.skipif(
-        sys.platform.startswith("win32"), reason="No 'file' util on Windows?"
+        shutil.which("file") is None,
+        reason="'file' isn't available on all platforms",
     )
     def test_write_gzip_compresslevel(self):
         """
