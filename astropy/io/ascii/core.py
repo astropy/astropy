@@ -1005,17 +1005,18 @@ def convert_numpy(numpy_type):
         the required type.
     """
     # Infer converter type from an instance of numpy_type.
-    type_name = np.array([], dtype=numpy_type).dtype.name
-    if "int" in type_name:
-        converter_type = IntType
-    elif "float" in type_name:
-        converter_type = FloatType
-    elif "bool" in type_name:
-        converter_type = BoolType
-    elif "str" in type_name:
-        converter_type = StrType
-    else:
-        converter_type = AllType
+    dtype = np.dtype(numpy_type)
+    match dtype.kind:
+        case "i" | "u":
+            converter_type = IntType
+        case "f":
+            converter_type = FloatType
+        case "b":
+            converter_type = BoolType
+        case "U" | "T":
+            converter_type = StrType
+        case _:
+            converter_type = AllType
 
     def bool_converter(vals):
         """

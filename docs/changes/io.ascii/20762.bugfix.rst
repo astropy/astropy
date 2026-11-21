@@ -1,0 +1,2 @@
+When reading table values from a column specified as numerical, an
+inconsistent converter to ``StringDType`` is now correctly rejected.
