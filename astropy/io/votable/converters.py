@@ -564,22 +564,19 @@ class Char(Converter):
         cut = np.flatnonzero((nnul > 0) & (nnul != nbytes - first_nul))
         codes[cut] *= np.arange(nbytes) < first_nul[cut, None]
         values = codes.view(f"U{nbytes}")[:, 0]
-        lengths = np.where(nnul > 0, first_nul, nbytes)
         if nvalues and stored.max() >= 0x80:
-            # Decode the values with non-ASCII bytes one by one, up to their
-            # first NUL as _binparse_fixed does
+            # _binparse_fixed decodes only the bytes before the first NUL
             rows = np.flatnonzero(stored.max(axis=1) >= 0x80)
+            ends = np.where(nnul[rows] > 0, first_nul[rows], nbytes).tolist()
             data = stored[rows].tobytes()
             encoding = self._column_encoding
             decoded = [
                 data[start : start + end].decode(encoding)
-                for start, end in zip(
-                    range(0, len(data), nbytes), lengths[rows].tolist()
-                )
+                for start, end in zip(range(0, len(data), nbytes), ends)
             ]
             values[rows] = decoded
-            lengths[rows] = [len(value) for value in decoded]
-        self._check_column_width(np.max(lengths, initial=0))
+        if self._width_limit is not None:
+            self._check_column_width(np.char.str_len(values).max(initial=0))
         return values, mask
 
     def _binoutput_var(self, value, mask):

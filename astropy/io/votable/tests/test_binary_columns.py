@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """
 Tests of reading a whole BINARY or BINARY2 stream a column at a time, in
-`~astropy.io.votable.tree.TableElement._parse_binary_columns`.
+astropy.io.votable.tree.TableElement._parse_binary_columns.
 """
 
 import base64
@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from astropy.io.votable import converters, parse_single_table, tree
-from astropy.io.votable.exceptions import W46, W60
+from astropy.io.votable.exceptions import W46, W60, W61
 from astropy.io.votable.tree import Field, Resource, TableElement, VOTableFile
 
 
@@ -115,6 +115,38 @@ def binary_votable(tag, fields, stream, version="1.4"):
     )
 
 
+# The BINARY2 null bitmap of a row with no null values, in a table of up to
+# 8 fields
+NO_NULLS = b"\x00"
+
+
+def fixed_char(text, size, encoding="utf-8"):
+    """
+    Return *text* as a char value of arraysize *size* in a BINARY stream:
+    its bytes, padded with NULs.
+    """
+    return text.encode(encoding).ljust(size, b"\x00")
+
+
+def var_char(text, encoding="utf-8"):
+    """
+    Return *text* as a variable-length char value in a BINARY stream: its
+    length in bytes, then the bytes.
+    """
+    data = text.encode(encoding)
+    return struct.pack(">I", len(data)) + data
+
+
+def var_unicode_char(text):
+    """
+    Return *text* as a variable-length unicodeChar value in a BINARY stream:
+    its length in UTF-16 code units, then the units.  A lone surrogate is
+    kept, which gives a value that does not decode.
+    """
+    data = text.encode("utf_16_be", "surrogatepass")
+    return struct.pack(">I", len(data) // 2) + data
+
+
 def record_column_reader(monkeypatch):
     """
     Make `TableElement._parse_binary_columns` record what it returns, in the
@@ -201,8 +233,8 @@ def test_chunks_hold_at_most_the_chunk_size(monkeypatch):
 
     monkeypatch.setattr(tree._BinaryColumnReader, "_read_rows", recording_read_rows)
     monkeypatch.setattr(tree, "_BINARY_CHUNK_BYTES", 100)
-    short_row = b"\x00" + struct.pack(">I", 4) + b"abcd"
-    long_row = b"\x00" + struct.pack(">I", 54) + b"x" * 54
+    short_row = NO_NULLS + var_char("abcd")
+    long_row = NO_NULLS + var_char("x" * 54)
     document = binary_votable(
         "BINARY2",
         '<FIELD name="c" datatype="char" arraysize="*"/>',
@@ -249,7 +281,7 @@ def test_null_bitmap_masks_integers_and_bits(monkeypatch):
     the bit of its first row masks those two values, with the column reader.
     """
     first_row = b"\xc0" + struct.pack(">i", 7) + b"\x08"
-    second_row = b"\x00" + struct.pack(">i", 8) + b"\x00"
+    second_row = NO_NULLS + struct.pack(">i", 8) + b"\x00"
     document = binary_votable(
         "BINARY2",
         '<FIELD name="i" datatype="int"/><FIELD name="b" datatype="bit"/>',
@@ -269,7 +301,7 @@ def test_bounded_string_over_its_limit_warns(monkeypatch):
     document = binary_votable(
         "BINARY2",
         '<FIELD name="c" datatype="char" arraysize="4*"/>',
-        b"\x00" + struct.pack(">I", 6) + b"abcdef",
+        NO_NULLS + var_char("abcdef"),
     )
 
     with pytest.warns(W46):
@@ -282,20 +314,8 @@ def test_strings_over_their_limits_warn_in_row_order(monkeypatch):
     limit in the first row, and a char string over its limit in the second,
     gives the same W46 warnings in the same order as reading value by value.
     """
-    first_row = (
-        b"\x00"
-        + struct.pack(">I", 2)
-        + b"ab"
-        + struct.pack(">I", 2)
-        + "xy".encode("utf_16_be")
-    )
-    second_row = (
-        b"\x00"
-        + struct.pack(">I", 3)
-        + b"abc"
-        + struct.pack(">I", 1)
-        + "x".encode("utf_16_be")
-    )
+    first_row = NO_NULLS + var_char("ab") + var_unicode_char("xy")
+    second_row = NO_NULLS + var_char("abc") + var_unicode_char("x")
     fields = (
         '<FIELD name="c" datatype="char" arraysize="2*"/>'
         '<FIELD name="u" datatype="unicodeChar" arraysize="1*"/>'
@@ -317,7 +337,7 @@ def test_partial_last_row_is_dropped():
     parse_single_table on a BINARY2 stream that ends partway through its
     third row gives the two complete rows.
     """
-    row = b"\x00" + struct.pack(">d", 1.5) + struct.pack(">I", 2) + b"ab"
+    row = NO_NULLS + struct.pack(">d", 1.5) + var_char("ab")
     document = binary_votable(
         "BINARY2",
         '<FIELD name="d" datatype="double"/>'
@@ -333,8 +353,8 @@ def test_partial_last_row_is_dropped():
 def test_bad_string_in_a_column_not_read_warns():
     """
     parse_single_table with columns=["d"] and verify="warn" on a BINARY2
-    table whose other column holds a char string that is not valid UTF-8
-    warns W60.
+    table whose other column holds "café" in Latin-1, which is not valid
+    UTF-8, warns W60.
 
     Reading value by value decodes every column, so the column reader checks
     the strings it does not return too.
@@ -343,7 +363,7 @@ def test_bad_string_in_a_column_not_read_warns():
         "BINARY2",
         '<FIELD name="c" datatype="char" arraysize="*"/>'
         '<FIELD name="d" datatype="double"/>',
-        b"\x00" + struct.pack(">I", 2) + b"a\xe9" + struct.pack(">d", 2.0),
+        NO_NULLS + var_char("café", encoding="latin-1") + struct.pack(">d", 2.0),
     )
 
     with pytest.warns(W60):
@@ -360,7 +380,7 @@ def test_strings_as_long_as_their_width_are_read_by_columns(monkeypatch):
         "BINARY2",
         '<FIELD name="f" datatype="char" arraysize="8" width="2"/>'
         '<FIELD name="v" datatype="char" arraysize="8*" width="2"/>',
-        b"\x00" + b"ab".ljust(8, b"\x00") + struct.pack(">I", 2) + b"cd",
+        NO_NULLS + fixed_char("ab", 8) + var_char("cd"),
         version="1.6",
     )
 
@@ -376,13 +396,8 @@ def test_utf8_strings_are_read_by_columns(monkeypatch):
     UTF-8 text with 2- and 4-byte characters in the second, gives those
     values with the column reader.
     """
-    first_row = b"\x00" + b"ab".ljust(8, b"\x00") + struct.pack(">I", 1) + b"x"
-    second_row = (
-        b"\x00"
-        + "ΛCDM".encode().ljust(8, b"\x00")
-        + struct.pack(">I", 8)
-        + "𝜆_obs".encode()
-    )
+    first_row = NO_NULLS + fixed_char("ab", 8) + var_char("x")
+    second_row = NO_NULLS + fixed_char("ΛCDM", 8) + var_char("𝜆_obs")
     document = binary_votable(
         "BINARY2",
         '<FIELD name="f" datatype="char" arraysize="8"/>'
@@ -405,7 +420,7 @@ def test_width_counts_the_characters_of_utf8_strings(monkeypatch):
     document = binary_votable(
         "BINARY2",
         '<FIELD name="f" datatype="char" arraysize="8" width="4"/>',
-        b"\x00" + "ΛCDM".encode().ljust(8, b"\x00"),
+        NO_NULLS + fixed_char("ΛCDM", 8),
         version="1.6",
     )
 
@@ -417,16 +432,50 @@ def test_width_counts_the_characters_of_utf8_strings(monkeypatch):
 def test_fixed_string_that_is_not_utf8_warns():
     """
     parse_single_table with verify="warn" on a VOTable 1.6 BINARY2 table
-    whose fixed char value holds bytes that are not UTF-8 warns W60.
+    whose fixed char value holds "café" in Latin-1, which is not UTF-8,
+    warns W60.
     """
     document = binary_votable(
         "BINARY2",
-        '<FIELD name="f" datatype="char" arraysize="4"/>',
-        b"\x00" + b"a\xe9\x00\x00",
+        '<FIELD name="f" datatype="char" arraysize="6"/>',
+        NO_NULLS + fixed_char("café", 6, encoding="latin-1"),
         version="1.6",
     )
 
     with pytest.warns(W60):
+        parse_single_table(document, verify="warn")
+
+
+def test_variable_string_that_is_not_utf8_warns():
+    """
+    parse_single_table with verify="warn" on a VOTable 1.6 BINARY2 table
+    whose variable-length char value holds "café" in Latin-1, which is not
+    UTF-8, warns W60.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="v" datatype="char" arraysize="*"/>',
+        NO_NULLS + var_char("café", encoding="latin-1"),
+        version="1.6",
+    )
+
+    with pytest.warns(W60):
+        parse_single_table(document, verify="warn")
+
+
+def test_bounded_string_longer_than_its_width_warns():
+    """
+    parse_single_table with verify="warn" on a VOTable 1.6 BINARY2 table with
+    a char field of arraysize "8*" and width 2 holding "abc" warns W61.
+    """
+    document = binary_votable(
+        "BINARY2",
+        '<FIELD name="v" datatype="char" arraysize="8*" width="2"/>',
+        NO_NULLS + var_char("abc"),
+        version="1.6",
+    )
+
+    with pytest.warns(W61):
         parse_single_table(document, verify="warn")
 
 
@@ -441,7 +490,7 @@ def test_non_ascii_bytes_after_a_nul_are_read_by_columns(monkeypatch):
     document = binary_votable(
         "BINARY2",
         '<FIELD name="f" datatype="char" arraysize="6"/>',
-        b"\x00" + b"ab\x00\xe9\xff\x00",
+        NO_NULLS + fixed_char("ab\0é", 6),
     )
 
     array = read_by_columns(document, monkeypatch)
@@ -472,12 +521,14 @@ def test_partial_last_row_with_a_bad_string_raises():
     unicodeChar string that does not decode raises UnicodeDecodeError, as
     reading value by value does.
     """
-    row = b"\x00" + struct.pack(">I", 1) + "a".encode("utf_16_be")
+    first_row = NO_NULLS + var_unicode_char("a") + struct.pack(">d", 1.0)
+    # Half of a surrogate pair
+    partial_row = NO_NULLS + var_unicode_char("\ud800")
     document = binary_votable(
         "BINARY2",
         '<FIELD name="u" datatype="unicodeChar" arraysize="*"/>'
         '<FIELD name="d" datatype="double"/>',
-        row + struct.pack(">d", 1.0) + b"\x00" + struct.pack(">I", 1) + b"\xd8\x00",
+        first_row + partial_row,
     )
 
     with pytest.raises(UnicodeDecodeError):
@@ -494,7 +545,7 @@ def test_zero_length_string_is_read_by_columns(datatype, monkeypatch):
         "BINARY2",
         f'<FIELD name="s" datatype="{datatype}" arraysize="0"/>'
         '<FIELD name="d" datatype="double"/>',
-        b"\x00" + struct.pack(">d", 1.0),
+        NO_NULLS + struct.pack(">d", 1.0),
     )
 
     array = read_by_columns(document, monkeypatch)
@@ -531,7 +582,7 @@ def test_unexpected_error_reads_value_by_value(monkeypatch):
     document = binary_votable(
         "BINARY2",
         '<FIELD name="d" datatype="double"/>',
-        b"\x00" + struct.pack(">d", 1.5),
+        NO_NULLS + struct.pack(">d", 1.5),
     )
 
     array = parse_single_table(document).array
