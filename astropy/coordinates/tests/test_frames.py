@@ -115,7 +115,7 @@ def test_impose_nested_obstime():
 
 
 def test_altaz_transform_with_imposed_obstime():
-    location = EarthLocation(-5466045 * u.m, -2404388 * u.m, 2242133 * u.m)
+    location = EarthLocation(-5_466_045 * u.m, -2_404_388 * u.m, 2_242_133 * u.m)
     coord1 = SkyCoord(
         10,
         20,
