@@ -305,6 +305,21 @@ class FLRWTest(
             cosmo.comoving_distance(z1, z2),
         )
 
+    @pytest.mark.skipif(not HAS_SCIPY, reason="scipy required for this test.")
+    def test_age_decreases_with_redshift(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.age` at high redshift.
+
+        Regression test for #17974, with and without radiation.
+        """
+        z = np.geomspace(1e3, 1e8, 4000)
+        for c in (cosmo, cosmo.clone(Tcmb0=0 * u.K)):
+            assert np.all(np.diff(c.age(z).value) < 0)
+
+    def test_age_infinite_future(self, cosmo):
+        """Test :meth:`astropy.cosmology.FLRW.age` is infinite at ``z = -1``."""
+        assert cosmo.age(-1) == np.inf * u.Gyr
+        assert np.isinf(cosmo.age(np.array([-1.0]))).all()
+
     @pytest.mark.skipif(
         not (HAS_PANDAS and HAS_SCIPY), reason="requires pandas and scipy"
     )

@@ -842,6 +842,25 @@ def test_age():
 
 
 @pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
+def test_age_high_redshift_matter_radiation():
+    """Test the age at high redshift against the matter plus radiation solution.
+
+    Regression test for #17974. With massless neutrinos the radiation density
+    scales exactly as ``(1 + z)**4`` and dark energy is negligible at these
+    redshifts, so the age has a closed form.
+    """
+    cosmo = FlatLambdaCDM(70, 0.3, Tcmb0=2.7255, m_nu=0 * u.eV)
+    z = np.geomspace(1e3, 1e8, 30)
+    a = 1 / (1 + z)
+    Or0 = cosmo.Ogamma0 + cosmo.Onu0
+    x = cosmo.Om0 * a / Or0
+    # H0 t = (2 / (3 Om0^2)) [(Om0 a - 2 Or0) sqrt(Or0 + Om0 a) + 2 Or0^(3/2)],
+    # rearranged to avoid cancellation when Om0 a << Or0.
+    expected = 2 * a**2 * (x - 3) / (3 * np.sqrt(Or0) * ((x - 2) * np.sqrt(1 + x) - 2))
+    assert u.allclose(cosmo.age(z), expected * cosmo.hubble_time, rtol=1e-7)
+
+
+@pytest.mark.skipif(not HAS_SCIPY, reason="test requires scipy")
 def test_distmod():
     # WMAP7 but with Omega_relativisitic = 0
     tcos = FlatLambdaCDM(70.4, 0.272, Tcmb0=0.0)
