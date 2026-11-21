@@ -213,6 +213,16 @@ When writing a file (e.g., with the :func:`writeto` function), compression will
 be determined based on the filename extension given, or the compression used in
 a pre-existing file that is being written to.
 
+The compression level when writing gzip files is set to 6, corresponding
+to the default in Python 3.15, while older Python versions were defaulting
+to the much more computationally expensive level of 9.
+Other levels as well as additional options for any of the compression libraries
+can be specified by directly passing the respective file object, like
+``gzip.GzipFile`` or ``bz2.BZ2File`` to :func:`writeto`.
+This even allows to use file objects from other compression libraries like an
+|lz4| ``frame`` where available, but files compressed this way can only be
+opened for reading by using a file object again.
+
 
 Working with non-standard files
 """""""""""""""""""""""""""""""

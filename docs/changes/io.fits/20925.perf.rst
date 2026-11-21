@@ -1,0 +1,3 @@
+Lower gzip compression level for file-level compression (``writeto("file.fits.gz")``)
+to 6, following the default now used for tiled image compression. Enables compression
+speedups of O(10-20) at the expense of a few % increase in file size.
