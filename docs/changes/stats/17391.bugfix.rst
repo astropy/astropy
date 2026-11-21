@@ -1,0 +1,1 @@
+Fix ``histogram`` binning's consistency with numpy for outer edges.
