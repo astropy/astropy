@@ -1,5 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from collections.abc import Mapping
+from typing import Any
+
 import numpy as np
 import pytest
 from numpy import ma
@@ -9,12 +12,18 @@ from astropy.utils.compat.optional_deps import HAS_PLT
 from astropy.visualization.interval import ManualInterval, PercentileInterval
 from astropy.visualization.mpl_normalize import (
     ImageNormalize,
+    ImShowNormResults,
     SimpleNorm,
     imshow_norm,
     imshow_simple_norm,
     simple_norm,
 )
-from astropy.visualization.stretch import LogStretch, PowerStretch, SqrtStretch
+from astropy.visualization.stretch import (
+    LogStretch,
+    PowerStretch,
+    SinhStretch,
+    SqrtStretch,
+)
 
 DATA = np.linspace(0.0, 15.0, 6)
 DATA2 = np.arange(3)
@@ -319,60 +328,243 @@ def test_simplenorm_imshow():
         snorm.imshow(data, ax=ax, norm=ImageNormalize())
 
 
+def check_imshow_simple_norm_results(
+    *,
+    ax,
+    image,
+    original_image,
+    results: ImShowNormResults,
+    imshow_kwargs: Mapping[str | Any] | None = None,
+    simple_norm_imshow_kwargs: Mapping[str | Any] | None = None,
+) -> None:
+    from matplotlib.image import AxesImage
+
+    # Check if return has the correct type and not null
+    assert isinstance(results, ImShowNormResults)
+    assert isinstance(results.image, AxesImage)
+    assert isinstance(results.norm, ImageNormalize)
+
+    # Check if the image is on the correct axis
+    assert results.image.axes is ax
+    # Check if image was added to the axis
+    assert results.image in ax.images
+
+    # Check if parameters were passed to the normalization correctly
+    if imshow_kwargs is None:
+        imshow_kwargs = {}
+    if "vmin" in imshow_kwargs:
+        assert results.norm.vmin == imshow_kwargs["vmin"]
+    if "vmax" in imshow_kwargs:
+        assert results.norm.vmax == imshow_kwargs["vmax"]
+
+    if simple_norm_imshow_kwargs is None:
+        simple_norm_imshow_kwargs = {}
+    match stretch_spec := simple_norm_imshow_kwargs.get("stretch"):
+        case None:
+            pass
+        case "sinh":
+            assert isinstance(results.norm.stretch, SinhStretch)
+        case _:
+            raise ValueError(
+                "Unexpected stretch specification (this match/case is missing likely a branch)"
+            )
+
+    # Check if original data was not modified
+    assert_array_equal(image, original_image)
+
+    # Check if the return of the function is the same as original imshow with the same parameters
+    assert_array_equal(
+        ax.imshow(image, **imshow_kwargs).get_array(),
+        results.image.get_array(),
+    )
+
+
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_imshow_norm():
+def test_imshow_norm_image_axis():
+    from matplotlib.figure import Figure
+
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
+    imNorm = imshow_norm(image, ax=ax)
+    check_imshow_simple_norm_results(
+        ax=ax,
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_norm_normalization():
     from matplotlib.figure import Figure
 
     image = np.random.randn(10, 10)
 
     fig = Figure()
     ax = fig.add_subplot(label="test_imshow_norm")
-    imshow_norm(image, ax=ax)
-
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_norm(image, ax=ax, norm=ImageNormalize())
 
-    fig.clear()
-    imshow_norm(image, ax=ax, vmin=0, vmax=1)
 
-    # make sure the matplotlib version works
-    fig.clear()
-    imres, norm = imshow_norm(image, ax=None)
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_norm_interval():
+    from matplotlib.figure import Figure
 
-    assert isinstance(norm, ImageNormalize)
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_norm")
+    imshow_kwargs = {"vmin": 0, "vmax": 1}
+    imNorm = imshow_norm(image, ax=ax, **imshow_kwargs)
+    check_imshow_simple_norm_results(
+        ax=ax,
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+        imshow_kwargs=imshow_kwargs,
+    )
+
+
+# with pytest-run-parallel
+# @pytest.mark.thread_unsafe
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_norm_no_ax():
+    import matplotlib.pyplot as plt
+
+    image = np.random.randn(10, 10)
+    imageCopy = image.copy()
+
+    imNorm = imshow_norm(image, ax=None)
+    check_imshow_simple_norm_results(
+        ax=plt.gca(),
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+    )
+
+
+def test_imshow_norm_no_PLT(monkeypatch):
+    image = np.random.randn(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_norm(image, ax=None)
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
-def test_imshow_simple_norm():
+def test_imshow_simple_norm_image_axis():
+    from matplotlib.figure import Figure
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    imNorm = imshow_simple_norm(image, ax=ax)
+
+    check_imshow_simple_norm_results(
+        ax=ax,
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_normalization():
     from matplotlib.figure import Figure
 
     image = np.arange(100).reshape(10, 10)
 
     fig = Figure()
     ax = fig.add_subplot(label="test_imshow_simple_norm")
-    imshow_simple_norm(image, ax=ax)
-
     with pytest.raises(ValueError):
         # illegal to manually pass in normalization since that defeats the point
         imshow_simple_norm(image, ax=ax, norm=ImageNormalize())
 
-    fig.clear()
-    imshow_simple_norm(image, ax=ax, vmin=0, vmax=1)
 
-    fig.clear()
-    imshow_simple_norm(image, ax=ax, min_percent=1, max_percent=99.9, stretch="sinh")
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_interval():
+    from matplotlib.figure import Figure
 
-    # make sure the matplotlib version works
-    fig.clear()
-    imres, norm = imshow_simple_norm(image, ax=None)
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
 
-    assert np.all(imres.get_array() == image)
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    imshow_kwargs = {"vmin": 0, "vmax": 1}
+    imNorm = imshow_simple_norm(image, ax=ax, **imshow_kwargs)
+    check_imshow_simple_norm_results(
+        ax=ax,
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+        imshow_kwargs=imshow_kwargs,
+    )
+
+
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_percent():
+    from matplotlib.figure import Figure
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    fig = Figure()
+    ax = fig.add_subplot(label="test_imshow_simple_norm")
+    kwargs = dict(stretch="sinh")
+    imNorm = imshow_simple_norm(
+        image,
+        ax=ax,
+        min_percent=1,
+        max_percent=99.9,
+        **kwargs,
+    )
+    check_imshow_simple_norm_results(
+        ax=ax,
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+        simple_norm_imshow_kwargs=kwargs,
+    )
+
+
+# with pytest-run-parallel
+# @pytest.mark.thread_unsafe
+@pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
+def test_imshow_simple_norm_no_ax():
+    import matplotlib.pyplot as plt
+
+    image = np.arange(100).reshape(10, 10)
+    imageCopy = image.copy()
+
+    imNorm = imshow_simple_norm(image, ax=None)
 
     # ensure the normalization is *not* just minmax like default imshow
-    assert (image.min(), image.max()) == imres.get_clim()
+    assert imNorm.image.get_clim() == (image.min(), image.max())
+    check_imshow_simple_norm_results(
+        ax=plt.gca(),
+        image=image,
+        original_image=imageCopy,
+        results=imNorm,
+    )
 
-    assert isinstance(norm, ImageNormalize)
+
+def test_imshow_simple_norm_no_PLT(monkeypatch):
+    image = np.arange(100).reshape(10, 10)
+
+    monkeypatch.setattr("astropy.visualization.mpl_normalize.HAS_MATPLOTLIB", False)
+
+    # Check if correct error is raised when matplotlib is not available
+    with pytest.raises(ModuleNotFoundError):
+        imshow_simple_norm(image, ax=None)
 
 
 @pytest.mark.skipif(not HAS_PLT, reason="requires matplotlib")
