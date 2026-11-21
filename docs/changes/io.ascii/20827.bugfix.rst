@@ -1,0 +1,2 @@
+Reject obviously non-conform user-provided column descriptions and avoid
+introducing inconformities on wexport to MRT.
