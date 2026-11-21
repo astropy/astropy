@@ -145,7 +145,7 @@ def test_biweight_m_shape(func):
     assert_equal(func(data, M=np.ones(5), axis=(1,)), ref)
 
 
-@pytest.mark.parametrize("M", [2.0, 2, np.float64(2.0)])
+@pytest.mark.parametrize("M", [2.0, 2, np.float64(2.0)], ids=type)
 def test_biweight_location_nan_with_m(M):
     """
     Test that NaN data with ignore_nan=False returns NaN when M is

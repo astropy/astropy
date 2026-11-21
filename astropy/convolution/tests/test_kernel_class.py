@@ -240,7 +240,7 @@ class TestKernels:
 
         assert np.all(np.abs((gauss_3 - test_gauss_3).array) < 0.01)
 
-    @pytest.mark.parametrize("number", NUMS)
+    @pytest.mark.parametrize("number", NUMS, ids=type)
     def test_multiply_scalar(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
@@ -249,7 +249,7 @@ class TestKernels:
         gauss_new = number * gauss
         assert_almost_equal(gauss_new.array, gauss.array * number, decimal=12)
 
-    @pytest.mark.parametrize("number", NUMS)
+    @pytest.mark.parametrize("number", NUMS, ids=type)
     def test_multiply_scalar_type(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
@@ -258,7 +258,7 @@ class TestKernels:
         gauss_new = number * gauss
         assert type(gauss_new) is Gaussian1DKernel
 
-    @pytest.mark.parametrize("number", NUMS)
+    @pytest.mark.parametrize("number", NUMS, ids=type)
     def test_rmultiply_scalar_type(self, number):
         """
         Check if multiplying a kernel with a scalar works correctly.
