@@ -1465,8 +1465,10 @@ class _UnitRegistry:
 
 
 class _UnitContext(ContextDecorator):
-    def __init__(self, init=[], equivalencies=[]):
-        _unit_registries.append(_UnitRegistry(init=init, equivalencies=equivalencies))
+    def __init__(self, init=[], equivalencies=[], command=None, args=(), **kwargs):
+        new_registry = _UnitRegistry(init=init, equivalencies=equivalencies)
+        getattr(new_registry, command)(*args, **kwargs)
+        _unit_registries.append(new_registry)
 
     def __enter__(self) -> None:
         pass
@@ -1543,11 +1545,13 @@ def set_enabled_units(units: object) -> _UnitContext:
       pc           | 3.08568e+16 m   | parsec  ,
     ]
     """
-    # get a context with a new registry, using equivalencies of the current one
-    context = _UnitContext(equivalencies=get_current_unit_registry().equivalencies)
-    # in this new current registry, enable the units requested
-    get_current_unit_registry().set_enabled_units(units)
-    return context
+    # Get a context with a new registry, using equivalencies of the current one.
+    # In this new current registry, enable the units requested.
+    return _UnitContext(
+        equivalencies=get_current_unit_registry().equivalencies,
+        command="set_enabled_units",
+        args=(units,),
+    )
 
 
 def add_enabled_units(units: object) -> _UnitContext:
@@ -1608,11 +1612,11 @@ def add_enabled_units(units: object) -> _UnitContext:
           Primary name | Unit definition | Aliases
     ...
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further units requested
-    get_current_unit_registry().add_enabled_units(units)
-    return context
+    # Get a context with a new registry, which is a copy of the current one.
+    # In this new current registry, enable the further units requested.
+    return _UnitContext(
+        get_current_unit_registry(), command="add_enabled_units", args=(units,)
+    )
 
 
 def set_enabled_equivalencies(equivalencies):
@@ -1642,11 +1646,13 @@ def set_enabled_equivalencies(equivalencies):
         ...     np.exp(1j*phase)  # doctest: +FLOAT_CMP
         <Quantity -1.+1.2246468e-16j>
     """
-    # get a context with a new registry, using all units of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the equivalencies requested
-    get_current_unit_registry().set_enabled_equivalencies(equivalencies)
-    return context
+    # Get a context with a new registry, using all units of the current one.
+    # In this new current registry, enable the equivalencies requested.
+    return _UnitContext(
+        get_current_unit_registry(),
+        command="set_enabled_equivalencies",
+        args=(equivalencies,),
+    )
 
 
 def add_enabled_equivalencies(equivalencies):
@@ -1666,11 +1672,13 @@ def add_enabled_equivalencies(equivalencies):
         list of equivalent pairs, e.g., as returned by
         `~astropy.units.dimensionless_angles`.
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().add_enabled_equivalencies(equivalencies)
-    return context
+    # Get a context with a new registry, which is a copy of the current one.
+    # In this new current registry, enable the further equivalencies requested.
+    return _UnitContext(
+        get_current_unit_registry(),
+        command="add_enabled_equivalencies",
+        args=(equivalencies,),
+    )
 
 
 def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
@@ -1701,11 +1709,11 @@ def set_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
         True
 
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().set_enabled_aliases(aliases)
-    return context
+    # Get a context with a new registry, which is a copy of the current one.
+    # In this new current registry, enable the further equivalencies requested.
+    return _UnitContext(
+        get_current_unit_registry(), command="set_enabled_aliases", args=(aliases,)
+    )
 
 
 def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
@@ -1739,11 +1747,11 @@ def add_enabled_aliases(aliases: dict[str, UnitBase]) -> _UnitContext:
         True
 
     """
-    # get a context with a new registry, which is a copy of the current one
-    context = _UnitContext(get_current_unit_registry())
-    # in this new current registry, enable the further equivalencies requested
-    get_current_unit_registry().add_enabled_aliases(aliases)
-    return context
+    # Get a context with a new registry, which is a copy of the current one.
+    # In this new current registry, enable the further equivalencies requested.
+    return _UnitContext(
+        get_current_unit_registry(), command="add_enabled_aliases", args=(aliases,)
+    )
 
 
 class NamedUnit(UnitBase):
