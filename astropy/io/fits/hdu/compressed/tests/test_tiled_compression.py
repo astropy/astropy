@@ -9,6 +9,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
+from astropy.io.fits.hdu.compressed._quantization import Quantize
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import fitsio_param_to_astropy_param
@@ -370,6 +371,16 @@ def test_non_positive_dither_seed(tmp_path, seed):
             return hdul[1].data.copy()
 
     assert_equal(read_with_seed(seed), read_with_seed(seed + 10000))
+
+
+@pytest.mark.parametrize("bitpix", [-32, -64])
+def test_unquantize_invalid_bytepix(bitpix):
+    # Regression test for uninitialized memory being returned when unquantizing
+    # tiles stored as 8-byte integers, which can happen for GZIP_1 or
+    # NOCOMPRESS tiles in a crafted file.
+    q = Quantize(row=1, dither_method=1, quantize_level=None, bitpix=bitpix)
+    with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
+        q.decode_quantized(np.arange(100, dtype=np.int64), 1.0, 0.0)
 
 
 def test_invalid_tile(tmp_path):

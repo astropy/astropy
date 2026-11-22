@@ -800,13 +800,34 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
 
     // TODO: add support, if needed, for nullcheck=1
 
+    // The unquantize functions only exist for 1, 2 and 4 byte integers, and
+    // any other value would leave the output buffer uninitialized.
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(
+            PyExc_ValueError, "Quantized data can only be stored as 1, 2 or 4 byte integers."
+        );
+        return (PyObject *)NULL;
+    }
+
+    // Make sure we do not read past the end of the input buffer.
+    if (npix < 0 || npix > nbytes / bytepix) {
+        PyErr_SetString(PyExc_ValueError, "Number of pixels does not match the input buffer.");
+        return (PyObject *)NULL;
+    }
+
+    anynull = (int *)malloc((npix > 0 ? npix : 1) * sizeof(int));
+    output_data = (float *)calloc(npix > 0 ? npix : 1, sizeof(float));
+
+    if (anynull == NULL || output_data == NULL) {
+        free(anynull);
+        free(output_data);
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
-        anynull = (int *)malloc(npix * sizeof(int));
-    output_data = (float *)calloc(npix, sizeof(float));
-
     if (bytepix == 1) {
-        unquantize_i1r4(
+        status = unquantize_i1r4(
             row,
             (unsigned char *)input_bytes,
             npix,
@@ -823,7 +844,7 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
         );
     }
     else if (bytepix == 2) {
-        unquantize_i2r4(
+        status = unquantize_i2r4(
             row,
             (short *)input_bytes,
             npix,
@@ -840,7 +861,7 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
         );
     }
     else if (bytepix == 4) {
-        unquantize_i4r4(
+        status = unquantize_i4r4(
             row,
             (int *)input_bytes,
             npix,
@@ -861,7 +882,15 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
 
     Py_END_ALLOW_THREADS
 
-        result = Py_BuildValue("y#", output_bytes, npix * sizeof(float));
+        if (status != 0)
+    {
+        free(output_bytes);
+        free(anynull);
+        PyErr_SetString(CfitsioException, "Failed to unquantize data.");
+        return (PyObject *)NULL;
+    }
+
+    result = Py_BuildValue("y#", output_bytes, (Py_ssize_t)(npix * sizeof(float)));
     free(output_bytes);
     free(anynull);
     return result;
@@ -908,13 +937,34 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
 
     // TODO: add support, if needed, for nullcheck=1
 
+    // The unquantize functions only exist for 1, 2 and 4 byte integers, and
+    // any other value would leave the output buffer uninitialized.
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(
+            PyExc_ValueError, "Quantized data can only be stored as 1, 2 or 4 byte integers."
+        );
+        return (PyObject *)NULL;
+    }
+
+    // Make sure we do not read past the end of the input buffer.
+    if (npix < 0 || npix > nbytes / bytepix) {
+        PyErr_SetString(PyExc_ValueError, "Number of pixels does not match the input buffer.");
+        return (PyObject *)NULL;
+    }
+
+    anynull = (int *)malloc((npix > 0 ? npix : 1) * sizeof(int));
+    output_data = (double *)calloc(npix > 0 ? npix : 1, sizeof(double));
+
+    if (anynull == NULL || output_data == NULL) {
+        free(anynull);
+        free(output_data);
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
-        anynull = (int *)malloc(npix * sizeof(int));
-    output_data = (double *)malloc(npix * sizeof(double));
-
     if (bytepix == 1) {
-        unquantize_i1r8(
+        status = unquantize_i1r8(
             row,
             (unsigned char *)input_bytes,
             npix,
@@ -931,7 +981,7 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
         );
     }
     else if (bytepix == 2) {
-        unquantize_i2r8(
+        status = unquantize_i2r8(
             row,
             (short *)input_bytes,
             npix,
@@ -948,7 +998,7 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
         );
     }
     else if (bytepix == 4) {
-        unquantize_i4r8(
+        status = unquantize_i4r8(
             row,
             (int *)input_bytes,
             npix,
@@ -969,7 +1019,15 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
 
     Py_END_ALLOW_THREADS
 
-        result = Py_BuildValue("y#", output_bytes, npix * sizeof(double));
+        if (status != 0)
+    {
+        free(output_bytes);
+        free(anynull);
+        PyErr_SetString(CfitsioException, "Failed to unquantize data.");
+        return (PyObject *)NULL;
+    }
+
+    result = Py_BuildValue("y#", output_bytes, (Py_ssize_t)(npix * sizeof(double)));
     free(output_bytes);
     free(anynull);
     return result;
