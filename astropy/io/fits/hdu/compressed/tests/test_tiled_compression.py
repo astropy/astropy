@@ -347,6 +347,31 @@ def test_rice_1_invalid_encode_settings():
             Rice1(blocksize=blocksize, bytepix=4, tilesize=100).encode(data)
 
 
+@pytest.mark.parametrize("seed", [0, -1, -37, -9999])
+def test_non_positive_dither_seed(tmp_path, seed):
+    # Regression test for an out-of-bounds read of the table of random numbers
+    # used for dithering when ZDITHER0 is zero or negative. The random number
+    # sequence repeats every 10000 rows, so such seeds should give the same
+    # result as the seed shifted by 10000.
+    data = np.random.default_rng(0).normal(size=(64, 64)).astype(np.float32)
+
+    def read_with_seed(dither_seed):
+        filename = tmp_path / f"seed_{dither_seed}.fits"
+        fits.CompImageHDU(
+            data,
+            compression_type="RICE_1",
+            tile_shape=(16, 64),
+            quantize_method=1,
+            dither_seed=500,
+        ).writeto(filename)
+        with fits.open(filename, mode="update", disable_image_compression=True) as hdul:
+            hdul[1].header["ZDITHER0"] = dither_seed
+        with fits.open(filename) as hdul:
+            return hdul[1].data.copy()
+
+    assert_equal(read_with_seed(seed), read_with_seed(seed + 10000))
+
+
 def test_invalid_tile(tmp_path):
     # Regression test for a bug that caused a segmentation fault if the data
     # for a tile would have resulted in a warning
