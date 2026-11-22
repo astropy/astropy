@@ -1,0 +1,4 @@
+Improved the validation of tile-compressed images so that ``PLIO_1`` and
+``RICE_1`` compressed data with an invalid or inconsistent tile size, block
+size or length, and quantized data with an invalid ``ZDITHER0`` or number of
+bytes per pixel, are handled correctly or raise a ``ValueError``.
