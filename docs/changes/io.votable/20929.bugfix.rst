@@ -1,0 +1,3 @@
+Masked elements inside variable-length array cells are no longer written
+unmasked when a VOTable is written in the TABLEDATA serialization, matching
+the existing behavior of the BINARY and BINARY2 serializations.
