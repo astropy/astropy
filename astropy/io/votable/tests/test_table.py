@@ -1790,13 +1790,19 @@ def test_write_refuses_forbidden_xml_chars_in_bytes_cell(tmp_path):
         t.write(tmp_path / "test.vot", format="votable")
 
 
-@pytest.mark.parametrize("char", ["\t", " ", "\x7f", "\xa0", "\ufffd", "\U0001f600"])
+@pytest.mark.parametrize("char", ["\t", " ", "\x7f", "\xa0", "\ufffd", "\U0001d706"])
 def test_write_allows_permitted_chars(tmp_path, char):
-    # These are legal XML characters and must keep round tripping.  U+007F in
-    # particular is inside [#x20-#xD7FF] and is easy to reject by mistake.
+    """
+    Table.write() as VOTable 1.6 of a string holding a character XML permits
+    reads back unchanged.
+
+    U+007F is inside [#x20-#xD7FF] and is easy to reject by mistake.
+    U+1D706 (mathematical italic small lambda) is outside the Basic
+    Multilingual Plane, in [#x10000-#x10FFFF].
+    """
     path = tmp_path / "test.vot"
     value = f"NGC{char}1068"
-    Table({"target": [value]}).write(path, format="votable")
+    Table({"target": [value]}).write(path, format="votable", version="1.6")
 
     assert Table.read(path, format="votable")["target"][0] == value
 

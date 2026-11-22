@@ -867,6 +867,8 @@ def test_read_bad_value_with_invalid_mask():
     array = parse_single_table(io.BytesIO(content), invalid="mask").array
 
     assert array.tolist() == [(1, None, 3), (4, 5, 6)]
+
+
 def test_field_repr_keeps_xml_forbidden_chars():
     """
     repr() of a Field whose name holds a form feed shows the form feed
