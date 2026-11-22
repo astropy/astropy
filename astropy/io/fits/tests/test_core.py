@@ -1113,6 +1113,9 @@ class TestFileFunctions(FitsTestCase):
         shutil.which("file") is None,
         reason="'file' isn't available on all platforms",
     )
+    @pytest.mark.skipif(
+        sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
+    )
     def test_write_gzip_compresslevel(self):
         """
         Ensure files written through gzip are compressed at default level.

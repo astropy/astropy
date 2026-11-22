@@ -197,9 +197,11 @@ jobs:
       test_command: pytest -Wdefault --astropy-header -m "not hypothesis" -k "not test_data_out_of_range and not test_set_locale and not TestQuantityTyping" --strict-markers --pyargs astropy
 
       # check building a wheel for our oldest supported Python version, as it is
-      # generally the easiest target to miss
+      # generally the easiest target to miss, and also check pyiodide, since it is
+      # easy to break (e.g. by adding tests using subprocesses)
       targets: |
         - cp312-manylinux_x86_64
+        - cp3*-pyodide_wasm32
 
 
   test_limited_api_build:
