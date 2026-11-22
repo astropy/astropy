@@ -351,8 +351,12 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
 
     // Allocate the output buffer up front and outside the thread-released
     // block so that we can report an allocation failure as a Python
-    // exception. The size is computed as a size_t to avoid overflowing an int
-    // for large tiles.
+    // exception. On 32-bit platforms the size in bytes of a large tile does
+    // not fit in a size_t, so we check this before computing it.
+    if ((size_t)tilesize > (size_t)PY_SSIZE_T_MAX / (size_t)bytepix) {
+        return PyErr_NoMemory();
+    }
+
     dbytes = (char *)malloc((size_t)tilesize * bytepix);
 
     if (dbytes == NULL) {
@@ -549,6 +553,12 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
 
     // Number of elements (not bytes) in the output buffer
     na = nx * ny;
+
+    // On 32-bit platforms the size in bytes of a large tile does not fit in a
+    // size_t, so we check this before computing it.
+    if ((size_t)na > (size_t)PY_SSIZE_T_MAX / (size_t)bytepix) {
+        return PyErr_NoMemory();
+    }
 
     dbytes = malloc((size_t)na * (size_t)bytepix);
 
@@ -815,7 +825,13 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
         return (PyObject *)NULL;
     }
 
-    anynull = (int *)malloc((npix > 0 ? npix : 1) * sizeof(int));
+    // On 32-bit platforms the size in bytes of the output may not fit in a
+    // size_t even if the input does.
+    if ((size_t)npix > (size_t)PY_SSIZE_T_MAX / sizeof(float)) {
+        return PyErr_NoMemory();
+    }
+
+    anynull = (int *)calloc(npix > 0 ? npix : 1, sizeof(int));
     output_data = (float *)calloc(npix > 0 ? npix : 1, sizeof(float));
 
     if (anynull == NULL || output_data == NULL) {
@@ -955,7 +971,13 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
         return (PyObject *)NULL;
     }
 
-    anynull = (int *)malloc((npix > 0 ? npix : 1) * sizeof(int));
+    // On 32-bit platforms the size in bytes of the output may not fit in a
+    // size_t even if the input does.
+    if ((size_t)npix > (size_t)PY_SSIZE_T_MAX / sizeof(double)) {
+        return PyErr_NoMemory();
+    }
+
+    anynull = (int *)calloc(npix > 0 ? npix : 1, sizeof(int));
     output_data = (double *)calloc(npix > 0 ? npix : 1, sizeof(double));
 
     if (anynull == NULL || output_data == NULL) {
