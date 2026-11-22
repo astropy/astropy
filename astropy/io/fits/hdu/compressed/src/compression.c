@@ -826,7 +826,8 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
 
     Py_BEGIN_ALLOW_THREADS
 
-    if (bytepix == 1) {
+        if (bytepix == 1)
+    {
         status = unquantize_i1r4(
             row,
             (unsigned char *)input_bytes,
@@ -843,7 +844,8 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 2) {
+    else if (bytepix == 2)
+    {
         status = unquantize_i2r4(
             row,
             (short *)input_bytes,
@@ -860,7 +862,8 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 4) {
+    else if (bytepix == 4)
+    {
         status = unquantize_i4r4(
             row,
             (int *)input_bytes,
@@ -963,7 +966,8 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
 
     Py_BEGIN_ALLOW_THREADS
 
-    if (bytepix == 1) {
+        if (bytepix == 1)
+    {
         status = unquantize_i1r8(
             row,
             (unsigned char *)input_bytes,
@@ -980,7 +984,8 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 2) {
+    else if (bytepix == 2)
+    {
         status = unquantize_i2r8(
             row,
             (short *)input_bytes,
@@ -997,7 +1002,8 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 4) {
+    else if (bytepix == 4)
+    {
         status = unquantize_i4r8(
             row,
             (int *)input_bytes,
