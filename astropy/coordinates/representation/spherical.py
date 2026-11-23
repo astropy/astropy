@@ -1121,17 +1121,62 @@ class SphericalDifferential(BaseSphericalDifferential):
         # All spherical differentials can be done without going to Cartesian,
         # though CosLat needs base for the latitude.
         if issubclass(other_class, UnitSphericalDifferential):
-            return other_class(self.d_lon, self.d_lat)
+            res = other_class(self.d_lon, self.d_lat)
         elif issubclass(other_class, RadialDifferential):
-            return other_class(self.d_distance)
+            res = other_class(self.d_distance)
         elif issubclass(other_class, SphericalCosLatDifferential):
-            return other_class(self._d_lon_coslat(base), self.d_lat, self.d_distance)
+            res = other_class(self._d_lon_coslat(base), self.d_lat, self.d_distance)
         elif issubclass(other_class, UnitSphericalCosLatDifferential):
-            return other_class(self._d_lon_coslat(base), self.d_lat)
+            res = other_class(self._d_lon_coslat(base), self.d_lat)
         elif issubclass(other_class, PhysicsSphericalDifferential):
-            return other_class(self.d_lon, -self.d_lat, self.d_distance)
+            res = other_class(self.d_lon, -self.d_lat, self.d_distance)
+        elif issubclass(other_class, SphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = base.distance / u.radian
+            res = other_class(
+                self._d_lon_coslat(base) * scale,
+                self.d_lat * scale,
+                self.d_distance,
+            )
+        elif issubclass(other_class, PhysicsSphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            res = other_class(
+                self._d_lon_coslat(base) * scale,
+                -self.d_lat * scale,
+                self.d_distance,
+            )
         else:
-            return super().represent_as(other_class, base)
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
+
+            if issubclass(other_class, CylindricalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                scale = base.distance / u.radian
+                v_lat = scale * self.d_lat
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                res = other_class(d_rho, self.d_lon, d_z)
+            elif issubclass(other_class, CylindricalPhysicalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                scale = base.distance / u.radian
+                v_lat = scale * self.d_lat
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                d_phi_phys = self._d_lon_coslat(base) * scale
+                res = other_class(d_rho, d_phi_phys, d_z)
+            else:
+                res = super().represent_as(other_class, base)
+
+        return res
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -1139,13 +1184,56 @@ class SphericalDifferential(BaseSphericalDifferential):
         # though CosLat needs base for the latitude.
         if isinstance(representation, SphericalCosLatDifferential):
             d_lon = cls._get_d_lon(representation.d_lon_coslat, base)
-            return cls(d_lon, representation.d_lat, representation.d_distance)
+            res = cls(d_lon, representation.d_lat, representation.d_distance)
         elif isinstance(representation, PhysicsSphericalDifferential):
-            return cls(
+            res = cls(
                 representation.d_phi, -representation.d_theta, representation.d_r
             )
+        elif isinstance(representation, SphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = base.distance / u.radian
+            d_lon = cls._get_d_lon(representation.d_lon_phys / scale, base)
+            res = cls(
+                d_lon,
+                representation.d_lat_phys / scale,
+                representation.d_distance,
+            )
+        elif isinstance(representation, PhysicsSphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            d_lon = cls._get_d_lon(representation.d_phi_phys / scale, base)
+            res = cls(
+                d_lon,
+                -representation.d_theta_phys / scale,
+                representation.d_r,
+            )
+        else:
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
 
-        return super().from_representation(representation, base)
+            if isinstance(representation, CylindricalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                scale = base_sph.distance / u.radian
+                res = cls(representation.d_phi, v_lat / scale, v_r)
+            elif isinstance(representation, CylindricalPhysicalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                scale = base_sph.distance / u.radian
+                d_lon = cls._get_d_lon(representation.d_phi_phys / scale, base_sph)
+                res = cls(d_lon, v_lat / scale, v_r)
+            else:
+                res = super().from_representation(representation, base)
+
+        return res
 
     def _scale_operation(self, op, *args, scaled_base=False):
         if scaled_base:
@@ -1385,17 +1473,63 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         # All spherical differentials can be done without going to Cartesian,
         # though some need base for the latitude to remove cos(lat).
         if issubclass(other_class, UnitSphericalCosLatDifferential):
-            return other_class(self.d_lon_coslat, self.d_lat)
+            res = other_class(self.d_lon_coslat, self.d_lat)
         elif issubclass(other_class, RadialDifferential):
-            return other_class(self.d_distance)
+            res = other_class(self.d_distance)
         elif issubclass(other_class, SphericalDifferential):
-            return other_class(self._d_lon(base), self.d_lat, self.d_distance)
+            res = other_class(self._d_lon(base), self.d_lat, self.d_distance)
         elif issubclass(other_class, UnitSphericalDifferential):
-            return other_class(self._d_lon(base), self.d_lat)
+            res = other_class(self._d_lon(base), self.d_lat)
         elif issubclass(other_class, PhysicsSphericalDifferential):
-            return other_class(self._d_lon(base), -self.d_lat, self.d_distance)
+            res = other_class(self._d_lon(base), -self.d_lat, self.d_distance)
+        elif issubclass(other_class, SphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = base.distance / u.radian
+            res = other_class(
+                self.d_lon_coslat * scale,
+                self.d_lat * scale,
+                self.d_distance,
+            )
+        elif issubclass(other_class, PhysicsSphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            res = other_class(
+                self.d_lon_coslat * scale,
+                -self.d_lat * scale,
+                self.d_distance,
+            )
+        else:
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
 
-        return super().represent_as(other_class, base)
+            if issubclass(other_class, CylindricalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                scale = base.distance / u.radian
+                v_lat = scale * self.d_lat
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                d_phi = self._d_lon(base)
+                res = other_class(d_rho, d_phi, d_z)
+            elif issubclass(other_class, CylindricalPhysicalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                scale = base.distance / u.radian
+                v_lat = scale * self.d_lat
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                d_phi_phys = self.d_lon_coslat * scale
+                res = other_class(d_rho, d_phi_phys, d_z)
+            else:
+                res = super().represent_as(other_class, base)
+
+        return res
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -1403,12 +1537,54 @@ class SphericalCosLatDifferential(BaseSphericalCosLatDifferential):
         # though we need base for the latitude to remove coslat.
         if isinstance(representation, SphericalDifferential):
             d_lon_coslat = cls._get_d_lon_coslat(representation.d_lon, base)
-            return cls(d_lon_coslat, representation.d_lat, representation.d_distance)
+            res = cls(d_lon_coslat, representation.d_lat, representation.d_distance)
         elif isinstance(representation, PhysicsSphericalDifferential):
             d_lon_coslat = cls._get_d_lon_coslat(representation.d_phi, base)
-            return cls(d_lon_coslat, -representation.d_theta, representation.d_r)
+            res = cls(d_lon_coslat, -representation.d_theta, representation.d_r)
+        elif isinstance(representation, SphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = base.distance / u.radian
+            res = cls(
+                representation.d_lon_phys / scale,
+                representation.d_lat_phys / scale,
+                representation.d_distance,
+            )
+        elif isinstance(representation, PhysicsSphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            res = cls(
+                representation.d_phi_phys / scale,
+                -representation.d_theta_phys / scale,
+                representation.d_r,
+            )
+        else:
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
 
-        return super().from_representation(representation, base)
+            if isinstance(representation, CylindricalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                scale = base_sph.distance / u.radian
+                d_lon_coslat = representation.d_phi * coslat
+                res = cls(d_lon_coslat, v_lat / scale, v_r)
+            elif isinstance(representation, CylindricalPhysicalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                scale = base_sph.distance / u.radian
+                d_lon_coslat = representation.d_phi_phys / scale
+                res = cls(d_lon_coslat, v_lat / scale, v_r)
+            else:
+                res = super().from_representation(representation, base)
+
+        return res
 
     def _scale_operation(self, op, *args, scaled_base=False):
         if scaled_base:
@@ -1449,10 +1625,18 @@ class RadialDifferential(BaseDifferential):
     @classmethod
     def from_representation(cls, representation, base=None):
         if isinstance(
-            representation, (SphericalDifferential, SphericalCosLatDifferential)
+            representation,
+            (
+                SphericalDifferential,
+                SphericalCosLatDifferential,
+                SphericalPhysicalDifferential,
+            ),
         ):
             return cls(representation.d_distance)
-        elif isinstance(representation, PhysicsSphericalDifferential):
+        elif isinstance(
+            representation,
+            (PhysicsSphericalDifferential, PhysicsSphericalPhysicalDifferential),
+        ):
             return cls(representation.d_r)
         else:
             return super().from_representation(representation, base)
@@ -1505,21 +1689,33 @@ class PhysicsSphericalDifferential(BaseDifferential):
         # though CosLat needs base for the latitude. For those, explicitly
         # do the equivalent of self._d_lon_coslat in SphericalDifferential.
         if issubclass(other_class, SphericalDifferential):
-            return other_class(self.d_phi, -self.d_theta, self.d_r)
+            res = other_class(self.d_phi, -self.d_theta, self.d_r)
         elif issubclass(other_class, UnitSphericalDifferential):
-            return other_class(self.d_phi, -self.d_theta)
+            res = other_class(self.d_phi, -self.d_theta)
         elif issubclass(other_class, SphericalCosLatDifferential):
             self._check_base(base)
             d_lon_coslat = self.d_phi * np.sin(base.theta)
-            return other_class(d_lon_coslat, -self.d_theta, self.d_r)
+            res = other_class(d_lon_coslat, -self.d_theta, self.d_r)
         elif issubclass(other_class, UnitSphericalCosLatDifferential):
             self._check_base(base)
             d_lon_coslat = self.d_phi * np.sin(base.theta)
-            return other_class(d_lon_coslat, -self.d_theta)
+            res = other_class(d_lon_coslat, -self.d_theta)
         elif issubclass(other_class, RadialDifferential):
-            return other_class(self.d_r)
+            res = other_class(self.d_r)
+        elif issubclass(other_class, PhysicsSphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = base.r / u.radian
+            d_phi_phys = (self.d_phi * np.sin(base.theta)) * scale
+            res = other_class(d_phi_phys, self.d_theta * scale, self.d_r)
+        elif issubclass(other_class, SphericalPhysicalDifferential):
+            self._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            d_lon_phys = (self.d_phi * np.sin(base.theta)) * scale
+            res = other_class(d_lon_phys, -self.d_theta * scale, self.d_r)
+        else:
+            res = super().represent_as(other_class, base)
 
-        return super().represent_as(other_class, base)
+        return res
 
     @classmethod
     def from_representation(cls, representation, base=None):
@@ -1527,15 +1723,27 @@ class PhysicsSphericalDifferential(BaseDifferential):
         # though we need base for the latitude to remove coslat. For that case,
         # do the equivalent of cls._d_lon in SphericalDifferential.
         if isinstance(representation, SphericalDifferential):
-            return cls(
+            res = cls(
                 representation.d_lon, -representation.d_lat, representation.d_distance
             )
         elif isinstance(representation, SphericalCosLatDifferential):
             cls._check_base(base)
             d_phi = representation.d_lon_coslat / np.sin(base.theta)
-            return cls(d_phi, -representation.d_lat, representation.d_distance)
+            res = cls(d_phi, -representation.d_lat, representation.d_distance)
+        elif isinstance(representation, PhysicsSphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = base.r / u.radian
+            d_phi = (representation.d_phi_phys / scale) / np.sin(base.theta)
+            res = cls(d_phi, representation.d_theta_phys / scale, representation.d_r)
+        elif isinstance(representation, SphericalPhysicalDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            d_phi = (representation.d_lon_phys / scale) / np.sin(base.theta)
+            res = cls(d_phi, -representation.d_lat_phys / scale, representation.d_distance)
+        else:
+            res = super().from_representation(representation, base)
 
-        return super().from_representation(representation, base)
+        return res
 
     def _scale_operation(self, op, *args, scaled_base=False):
         if scaled_base:
@@ -1577,6 +1785,129 @@ class SphericalPhysicalDifferential(BasePhysicalDifferential):
     ) -> None:
         super().__init__(d_lon_phys, d_lat_phys, d_distance, copy=copy)
 
+    def represent_as(self, other_class, base=None):
+        if issubclass(other_class, PhysicsSphericalPhysicalDifferential):
+            res = other_class(self.d_lon_phys, -self.d_lat_phys, self.d_distance)
+        elif issubclass(other_class, SphericalCosLatDifferential):
+            self._check_base(base)
+            scale = base.distance / u.radian
+            res = other_class(
+                self.d_lon_phys / scale,
+                self.d_lat_phys / scale,
+                self.d_distance,
+            )
+        elif issubclass(other_class, SphericalDifferential):
+            self._check_base(base)
+            scale = base.distance / u.radian
+            d_lon = (self.d_lon_phys / scale) / np.cos(base.lat)
+            res = other_class(
+                d_lon,
+                self.d_lat_phys / scale,
+                self.d_distance,
+            )
+        elif issubclass(other_class, RadialDifferential):
+            res = other_class(self.d_distance)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            self._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            d_phi = (self.d_lon_phys / scale) / np.sin(base.theta)
+            res = other_class(
+                d_phi,
+                -self.d_lat_phys / scale,
+                self.d_distance,
+            )
+        else:
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
+
+            if issubclass(other_class, CylindricalPhysicalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                v_lat = self.d_lat_phys
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                res = other_class(d_rho, self.d_lon_phys, d_z)
+            elif issubclass(other_class, CylindricalDifferential):
+                self._check_base(base)
+                coslat = np.cos(base.lat)
+                sinlat = np.sin(base.lat)
+                v_lat = self.d_lat_phys
+                v_r = self.d_distance
+                d_rho = v_r * coslat - v_lat * sinlat
+                d_z = v_r * sinlat + v_lat * coslat
+                scale = base.distance / u.radian
+                d_phi = (self.d_lon_phys / scale) / coslat
+                res = other_class(d_rho, d_phi, d_z)
+            else:
+                res = super().represent_as(other_class, base)
+
+        return res
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        if isinstance(representation, PhysicsSphericalPhysicalDifferential):
+            res = cls(
+                representation.d_phi_phys,
+                -representation.d_theta_phys,
+                representation.d_r,
+            )
+        elif isinstance(representation, SphericalCosLatDifferential):
+            cls._check_base(base)
+            scale = base.distance / u.radian
+            res = cls(
+                representation.d_lon_coslat * scale,
+                representation.d_lat * scale,
+                representation.d_distance,
+            )
+        elif isinstance(representation, SphericalDifferential):
+            cls._check_base(base)
+            scale = base.distance / u.radian
+            d_lon_coslat = representation._d_lon_coslat(base)
+            res = cls(
+                d_lon_coslat * scale,
+                representation.d_lat * scale,
+                representation.d_distance,
+            )
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "r", getattr(base, "distance", 1.0)) / u.radian
+            d_lon_coslat = representation.d_phi * np.sin(base.theta)
+            res = cls(
+                d_lon_coslat * scale,
+                -representation.d_theta * scale,
+                representation.d_r,
+            )
+        else:
+            from .cylindrical import (
+                CylindricalDifferential,
+                CylindricalPhysicalDifferential,
+            )
+
+            if isinstance(representation, CylindricalPhysicalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                res = cls(representation.d_phi_phys, v_lat, v_r)
+            elif isinstance(representation, CylindricalDifferential):
+                base_sph = base.represent_as(SphericalRepresentation)
+                coslat = np.cos(base_sph.lat)
+                sinlat = np.sin(base_sph.lat)
+                v_r = representation.d_rho * coslat + representation.d_z * sinlat
+                v_lat = -representation.d_rho * sinlat + representation.d_z * coslat
+                scale = base_sph.distance / u.radian
+                d_lon_phys = (representation.d_phi * coslat) * scale
+                res = cls(d_lon_phys, v_lat, v_r)
+            else:
+                res = super().from_representation(representation, base)
+
+        return res
+
 
 class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
     """Differential(s) of 3D physics-convention spherical coords., in physical units.
@@ -1610,3 +1941,78 @@ class PhysicsSphericalPhysicalDifferential(BasePhysicalDifferential):
         copy: bool = True,
     ) -> None:
         super().__init__(d_phi_phys, d_theta_phys, d_r, copy=copy)
+
+    def represent_as(self, other_class, base=None):
+        if issubclass(other_class, SphericalPhysicalDifferential):
+            res = other_class(self.d_phi_phys, -self.d_theta_phys, self.d_r)
+        elif issubclass(other_class, PhysicsSphericalDifferential):
+            self._check_base(base)
+            scale = base.r / u.radian
+            d_phi = (self.d_phi_phys / scale) / np.sin(base.theta)
+            res = other_class(
+                d_phi,
+                self.d_theta_phys / scale,
+                self.d_r,
+            )
+        elif issubclass(other_class, SphericalCosLatDifferential):
+            self._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            res = other_class(
+                self.d_phi_phys / scale,
+                -self.d_theta_phys / scale,
+                self.d_r,
+            )
+        elif issubclass(other_class, SphericalDifferential):
+            self._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            d_lon = (self.d_phi_phys / scale) / np.sin(base.theta)
+            res = other_class(
+                d_lon,
+                -self.d_theta_phys / scale,
+                self.d_r,
+            )
+        elif issubclass(other_class, RadialDifferential):
+            res = other_class(self.d_r)
+        else:
+            res = super().represent_as(other_class, base)
+
+        return res
+
+    @classmethod
+    def from_representation(cls, representation, base=None):
+        if isinstance(representation, SphericalPhysicalDifferential):
+            res = cls(
+                representation.d_lon_phys,
+                -representation.d_lat_phys,
+                representation.d_distance,
+            )
+        elif isinstance(representation, PhysicsSphericalDifferential):
+            cls._check_base(base)
+            scale = base.r / u.radian
+            d_phi_phys = (representation.d_phi * np.sin(base.theta)) * scale
+            res = cls(
+                d_phi_phys,
+                representation.d_theta * scale,
+                representation.d_r,
+            )
+        elif isinstance(representation, SphericalCosLatDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            res = cls(
+                representation.d_lon_coslat * scale,
+                -representation.d_lat * scale,
+                representation.d_distance,
+            )
+        elif isinstance(representation, SphericalDifferential):
+            cls._check_base(base)
+            scale = getattr(base, "distance", getattr(base, "r", 1.0)) / u.radian
+            d_phi_phys = (representation.d_lon * np.cos(base.lat)) * scale
+            res = cls(
+                d_phi_phys,
+                -representation.d_lat * scale,
+                representation.d_distance,
+            )
+        else:
+            res = super().from_representation(representation, base)
+
+        return res

@@ -1,0 +1,4 @@
+Added direct representation conversions between spherical, cylindrical, and
+physical differential representations to avoid Cartesian intermediate roundtrips,
+eliminating small floating-point residuals in components that are mathematically
+zero.

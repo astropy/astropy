@@ -28,6 +28,7 @@ from astropy.coordinates.representation import (
     RadialRepresentation,
     SphericalCosLatDifferential,
     SphericalDifferential,
+    SphericalPhysicalDifferential,
     SphericalRepresentation,
     UnitSphericalCosLatDifferential,
     UnitSphericalDifferential,
@@ -2364,3 +2365,44 @@ def test_differential_norm_radial():
     # Unlike most non-Cartesian differentials, the norm of a radial differential does not require `base`
     rep = RadialDifferential(1 * u.km / u.s)
     assert_allclose_quantity(rep.norm(), 1 * u.km / u.s)
+
+
+def test_differential_direct_conversions_issue_20902():
+    # Direct conversions between differentials without Cartesian roundtrip residuals (issue #20902)
+    s = SphericalRepresentation(10 * u.deg, 20 * u.deg, 1 * u.kpc)
+    d = SphericalCosLatDifferential(1 * u.mas / u.yr, 0 * u.mas / u.yr, 0 * u.km / u.s)
+
+    sd = d.represent_as(SphericalDifferential, base=s)
+    assert sd.d_lat.value == 0
+    assert sd.d_distance.value == 0
+
+    cd = d.represent_as(CylindricalDifferential, base=s)
+    assert cd.d_rho.value == 0
+    assert cd.d_z.value == 0
+
+    spd = d.represent_as(SphericalPhysicalDifferential, base=s)
+    assert spd.d_lat_phys.value == 0
+    assert spd.d_distance.value == 0
+
+    cpd = d.represent_as(CylindricalPhysicalDifferential, base=s)
+    assert cpd.d_rho.value == 0
+    assert cpd.d_z.value == 0
+
+    # Test roundtrips with non-trivial angles
+    s2 = SphericalRepresentation(12.3456 * u.deg, 23.4567 * u.deg, 1.234 * u.kpc)
+    d2 = SphericalCosLatDifferential(1 * u.mas / u.yr, 0 * u.mas / u.yr, 0 * u.km / u.s)
+
+    for target_cls in (
+        SphericalDifferential,
+        SphericalPhysicalDifferential,
+        CylindricalDifferential,
+        CylindricalPhysicalDifferential,
+        PhysicsSphericalDifferential,
+        PhysicsSphericalPhysicalDifferential,
+    ):
+        converted = d2.represent_as(target_cls, base=s2)
+        base_conv = s2.represent_as(target_cls.base_representation)
+        roundtrip = converted.represent_as(SphericalCosLatDifferential, base=base_conv)
+        assert roundtrip.d_lat.value == 0
+        assert roundtrip.d_distance.value == 0
+        assert_allclose_quantity(roundtrip.d_lon_coslat, d2.d_lon_coslat)
