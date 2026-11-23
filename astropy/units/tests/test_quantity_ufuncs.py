@@ -1689,7 +1689,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", jv_like_ufuncs)
         def test_jv_scalar(self, function):
-            q = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            q = function(200.0 * u.cm / (2.0 * u.m), 3.0 * u.km / (6000.0 * u.m))
             assert q.unit == u.dimensionless_unscaled
             assert q.value == function(1.0, 0.5)
 
@@ -1728,7 +1728,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", (sps.beta, sps.betaln))
         def test_two_arg_dimensionless(self, function):
-            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            q_out = function(200.0 * u.cm / (2.0 * u.m), 3.0 * u.km / (6000.0 * u.m))
             assert q_out.unit == u.dimensionless_unscaled
             assert_allclose(q_out.value, function(1.0, 0.5))
 
@@ -1738,26 +1738,22 @@ if HAS_SCIPY:
         @pytest.mark.parametrize("function", (sps.betainc,))
         def test_three_arg_dimensionless(self, function):
             q_out = function(
-                2.0 * u.m / (2.0 * u.m),
-                3.0 * u.m / (6.0 * u.m),
-                4.0 * u.m / (8.0 * u.m),
+                200.0 * u.cm / (2.0 * u.m),
+                3.0 * u.km / (6000.0 * u.m),
+                400.0 * u.mm / (0.8 * u.m),
             )
             assert q_out.unit == u.dimensionless_unscaled
             assert_allclose(q_out.value, function(1.0, 0.5, 0.5))
 
             with pytest.raises(u.UnitsError):
-                function(
-                    1.0 * u.kg,
-                    0.5 * u.dimensionless_unscaled,
-                    0.5 * u.dimensionless_unscaled,
-                )
+                function(1.0 * u.kg, 0.5 * u.one, 0.5 * u.one)
 
         @pytest.mark.parametrize("function", (sps.hyp2f1,))
         def test_four_arg_dimensionless(self, function):
             q_out = function(
-                2.0 * u.m / (2.0 * u.m),
-                3.0 * u.m / (6.0 * u.m),
-                4.0 * u.m / (8.0 * u.m),
+                200.0 * u.cm / (2.0 * u.m),
+                3.0 * u.km / (6000.0 * u.m),
+                400.0 * u.mm / (0.8 * u.m),
                 0.2 * u.dimensionless_unscaled,
             )
             assert q_out.unit == u.dimensionless_unscaled
@@ -1768,7 +1764,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", (sps.fresnel,))
         def test_one_arg_dimensionless_2out(self, function):
-            q_out = function(2.0 * u.m / (2.0 * u.m))
+            q_out = function(200.0 * u.cm / (2.0 * u.m))
             assert isinstance(q_out, tuple)
             assert len(q_out) == 2
             assert q_out[0].unit == u.dimensionless_unscaled
@@ -1782,7 +1778,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", (sps.airy,))
         def test_one_arg_dimensionless_4out(self, function):
-            q_out = function(2.0 * u.m / (2.0 * u.m))
+            q_out = function(200.0 * u.cm / (2.0 * u.m))
             assert isinstance(q_out, tuple)
             assert len(q_out) == 4
             for i in range(4):
@@ -1796,7 +1792,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", (sps.pbdv,))
         def test_two_arg_dimensionless_2out(self, function):
-            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            q_out = function(200.0 * u.cm / (2.0 * u.m), 3.0 * u.km / (6000.0 * u.m))
             assert isinstance(q_out, tuple)
             assert len(q_out) == 2
             assert q_out[0].unit == u.dimensionless_unscaled
@@ -1810,7 +1806,7 @@ if HAS_SCIPY:
 
         @pytest.mark.parametrize("function", (sps.ellipj,))
         def test_two_arg_dimensionless_4out(self, function):
-            q_out = function(2.0 * u.m / (2.0 * u.m), 3.0 * u.m / (6.0 * u.m))
+            q_out = function(200.0 * u.cm / (2.0 * u.m), 3.0 * u.km / (6000.0 * u.m))
             assert isinstance(q_out, tuple)
             assert len(q_out) == 4
             for i in range(4):
@@ -1825,11 +1821,7 @@ if HAS_SCIPY:
         @pytest.mark.parametrize("function", (sps.mathieu_modcem1,))
         def test_mathieu_mod_angle_input(self, function):
             # mathieu_modcem1(m, q, x): m,q dimensionless, x is angle (degrees).
-            q_out = function(
-                1.0 * u.dimensionless_unscaled,
-                1.0 * u.dimensionless_unscaled,
-                45.0 * u.deg,
-            )
+            q_out = function(1.0 * u.one, 1.0 * u.one, 45.0 * u.deg)
             assert isinstance(q_out, tuple)
             assert len(q_out) == 2
             assert q_out[0].unit == u.dimensionless_unscaled
@@ -1837,11 +1829,7 @@ if HAS_SCIPY:
             assert_allclose(q_out[0].value, v_out[0])
 
             # Accept radians, convert to degrees internally.
-            q_rad = function(
-                1.0 * u.dimensionless_unscaled,
-                1.0 * u.dimensionless_unscaled,
-                (np.pi / 4) * u.rad,
-            )
+            q_rad = function(1.0 * u.one, 1.0 * u.one, (np.pi / 4) * u.rad)
             assert_allclose(q_rad[0].value, v_out[0], rtol=1e-10)
 
             with pytest.raises(u.UnitsError):
@@ -1850,9 +1838,9 @@ if HAS_SCIPY:
         @pytest.mark.parametrize("function", (sps.obl_ang1,))
         def test_four_arg_dimensionless_2out(self, function):
             q_out = function(
-                2.0 * u.m / (2.0 * u.m),
-                3.0 * u.m / (6.0 * u.m),
-                4.0 * u.m / (8.0 * u.m),
+                200.0 * u.cm / (2.0 * u.m),
+                3.0 * u.km / (6000.0 * u.m),
+                400.0 * u.mm / (0.8 * u.m),
                 0.2 * u.dimensionless_unscaled,
             )
             assert isinstance(q_out, tuple)
@@ -1866,9 +1854,9 @@ if HAS_SCIPY:
         @pytest.mark.parametrize("function", (sps.obl_ang1_cv,))
         def test_five_arg_dimensionless_2out(self, function):
             q_out = function(
-                2.0 * u.m / (2.0 * u.m),
-                3.0 * u.m / (6.0 * u.m),
-                4.0 * u.m / (8.0 * u.m),
+                200.0 * u.cm / (2.0 * u.m),
+                3.0 * u.km / (6000.0 * u.m),
+                400.0 * u.mm / (0.8 * u.m),
                 0.2 * u.dimensionless_unscaled,
                 0.1 * u.dimensionless_unscaled,
             )
@@ -1929,13 +1917,13 @@ if HAS_SCIPY:
             with pytest.raises(u.UnitsError):
                 sps.ellipeinc(1.0 * u.kg, 0.5 * u.one)
 
+        # mathieu_cem is deprecated in scipy 2.0 in favour of mathieu_ce.
+        @pytest.mark.filterwarnings(
+            "ignore:`scipy.special.mathieu_cem` is deprecated:DeprecationWarning"
+        )
         def test_mathieu_cem_angle_input(self):
             # mathieu_cem(m, q, x): m,q dimensionless, x is angle (degrees).
-            q_out = sps.mathieu_cem(
-                1.0 * u.dimensionless_unscaled,
-                0.5 * u.dimensionless_unscaled,
-                45.0 * u.deg,
-            )
+            q_out = sps.mathieu_cem(1.0 * u.one, 0.5 * u.one, 45.0 * u.deg)
             assert isinstance(q_out, tuple)
             assert len(q_out) == 2
             assert q_out[0].unit == u.dimensionless_unscaled
@@ -1943,11 +1931,7 @@ if HAS_SCIPY:
             assert_allclose(q_out[0].value, v_out[0])
 
             # Accept radians, convert to degrees internally.
-            q_rad = sps.mathieu_cem(
-                1.0 * u.dimensionless_unscaled,
-                0.5 * u.dimensionless_unscaled,
-                (np.pi / 4) * u.rad,
-            )
+            q_rad = sps.mathieu_cem(1.0 * u.one, 0.5 * u.one, (np.pi / 4) * u.rad)
             assert_allclose(q_rad[0].value, v_out[0], rtol=1e-10)
 
             # A dimensionless x is interpreted as radian (not degrees!) if
@@ -1958,6 +1942,35 @@ if HAS_SCIPY:
 
             with pytest.raises(u.UnitsError):
                 sps.mathieu_cem(1.0 * u.one, 0.5 * u.one, 45.0 * u.kg)
+
+        @pytest.mark.skipif(
+            not hasattr(sps, "mathieu_ce"), reason="mathieu_ce needs scipy>=2.0"
+        )
+        @pytest.mark.parametrize("name", ("mathieu_ce", "mathieu_se"))
+        def test_mathieu_ce_se_angle_input(self, name):
+            # mathieu_ce/se(m, q, x): m,q dimensionless, x is angle (radians).
+            function = getattr(sps, name)
+            q_out = function(1.0 * u.one, 0.5 * u.one, 0.5 * u.rad)
+            assert isinstance(q_out, tuple)
+            assert len(q_out) == 2
+            assert q_out[0].unit == u.dimensionless_unscaled
+            assert q_out[1].unit == u.dimensionless_unscaled
+            v_out = function(1.0, 0.5, 0.5)
+            assert_allclose(q_out[0].value, v_out[0])
+            assert_allclose(q_out[1].value, v_out[1])
+
+            # Accept degrees, convert to radians internally.
+            q_deg = function(1.0 * u.one, 0.5 * u.one, 45.0 * u.deg)
+            assert_allclose(q_deg[0].value, function(1.0, 0.5, np.pi / 4)[0])
+
+            # A dimensionless x is interpreted as radian if the
+            # dimensionless_angles equivalency is enabled.
+            with u.add_enabled_equivalencies(u.dimensionless_angles()):
+                q_plain = function(1.0 * u.one, 0.5 * u.one, 0.5 * u.one)
+            assert_allclose(q_plain[0].value, v_out[0])
+
+            with pytest.raises(u.UnitsError):
+                function(1.0 * u.one, 0.5 * u.one, 0.5 * u.kg)
 
         # --- Arithmetic-like function tests ---
 

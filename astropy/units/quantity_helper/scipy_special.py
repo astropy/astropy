@@ -186,6 +186,14 @@ dimless_dimless_angle_to_2out_sps_ufuncs = (
     "mathieu_modsem1", "mathieu_modsem2",
 )  # fmt: skip
 
+# scipy >= 2.0 adds mathieu_ce and mathieu_se, which take x in radians
+# (and deprecates mathieu_cem and mathieu_sem). As above, the ufuncs that
+# Quantity.__array_ufunc__ sees are the underscored ones.
+dimless_dimless_radian_to_2out_sps_ufuncs = (
+    "mathieu_ce", "mathieu_se",
+    "_mathieu_ce", "_mathieu_se",
+)  # fmt: skip
+
 # ============================================================================
 # Category 3: Arithmetic-like (preserve units).
 #
@@ -222,6 +230,7 @@ scipy_special_ufuncs = (
     + two_arg_two_out_sps_ufuncs
     + two_arg_four_out_sps_ufuncs
     + dimless_dimless_angle_to_2out_sps_ufuncs
+    + dimless_dimless_radian_to_2out_sps_ufuncs
     + four_arg_two_out_sps_ufuncs
     + five_arg_two_out_sps_ufuncs
     + ("cbrt", "radian", "round")
@@ -311,87 +320,21 @@ def helper_four_arg_dimensionless(f, unit1, unit2, unit3, unit4):
     return converters, dimensionless_unscaled
 
 
-def helper_dimensionless_to_dimensionless_2out(f, unit):
-    """Single dimensionless input, two dimensionless outputs."""
-    if unit is None:
-        return [None], (dimensionless_unscaled, dimensionless_unscaled)
+def helper_dimensionless_inputs_2out(f, *units):
+    """Any number of dimensionless inputs, two dimensionless outputs."""
     try:
-        return (
-            [get_converter(unit, dimensionless_unscaled)],
-            (dimensionless_unscaled, dimensionless_unscaled),
-        )
+        converters = [_get_dim_converter(unit) for unit in units]
     except UnitsError:
         raise UnitTypeError(
             f"Can only apply '{f.__name__}' function to dimensionless quantities"
         )
+    return converters, (dimensionless_unscaled,) * 2
 
 
-def helper_dimensionless_to_dimensionless_4out(f, unit):
-    """Single dimensionless input, four dimensionless outputs."""
-    out_units = (dimensionless_unscaled,) * 4
-    if unit is None:
-        return [None], out_units
-    try:
-        return [get_converter(unit, dimensionless_unscaled)], out_units
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
-
-
-def helper_two_arg_dimensionless_2out(f, unit1, unit2):
-    """Two dimensionless inputs, two dimensionless outputs."""
-    try:
-        converters = [_get_dim_converter(u) for u in (unit1, unit2)]
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
-    return converters, (dimensionless_unscaled, dimensionless_unscaled)
-
-
-def helper_two_arg_dimensionless_4out(f, unit1, unit2):
-    """Two dimensionless inputs, four dimensionless outputs."""
-    try:
-        converters = [_get_dim_converter(u) for u in (unit1, unit2)]
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
+def helper_dimensionless_inputs_4out(f, *units):
+    """Any number of dimensionless inputs, four dimensionless outputs."""
+    converters, _ = helper_dimensionless_inputs_2out(f, *units)
     return converters, (dimensionless_unscaled,) * 4
-
-
-def helper_three_arg_dimensionless_2out(f, unit1, unit2, unit3):
-    """Three dimensionless inputs, two dimensionless outputs."""
-    try:
-        converters = [_get_dim_converter(u) for u in (unit1, unit2, unit3)]
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
-    return converters, (dimensionless_unscaled, dimensionless_unscaled)
-
-
-def helper_four_arg_dimensionless_2out(f, unit1, unit2, unit3, unit4):
-    """Four dimensionless inputs, two dimensionless outputs."""
-    try:
-        converters = [_get_dim_converter(u) for u in (unit1, unit2, unit3, unit4)]
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
-    return converters, (dimensionless_unscaled, dimensionless_unscaled)
-
-
-def helper_five_arg_dimensionless_2out(f, *units):
-    """Five dimensionless inputs, two dimensionless outputs."""
-    try:
-        converters = [_get_dim_converter(u) for u in units]
-    except UnitsError:
-        raise UnitTypeError(
-            f"Can only apply '{f.__name__}' function to dimensionless quantities"
-        )
-    return converters, (dimensionless_unscaled, dimensionless_unscaled)
 
 
 # --- Angle-aware helpers ---
@@ -412,24 +355,34 @@ def helper_angle_dimensionless_to_dimensionless(f, unit1, unit2):
     return [conv1, conv2], dimensionless_unscaled
 
 
-def helper_dimless_dimless_angle_to_2out(f, unit1, unit2, unit3):
-    """First two args dimensionless, third arg is angle (converted to degrees).
-
-    Returns two dimensionless outputs. Used for mathieu_cem and mathieu_sem,
-    which expect x in degrees internally.
-    """
-    from astropy.units.si import degree
-
+def _dimless_dimless_angle_to_2out(f, unit1, unit2, unit3, angle_unit):
+    """First two args dimensionless, third arg an angle in ``angle_unit``."""
     try:
-        conv1 = _get_dim_converter(unit1)
-        conv2 = _get_dim_converter(unit2)
-        conv3 = get_converter(unit3, degree)
+        converters = [
+            _get_dim_converter(unit1),
+            _get_dim_converter(unit2),
+            get_converter(unit3, angle_unit),
+        ]
     except UnitsError:
         raise UnitTypeError(
             f"Can only apply '{f.__name__}' function to "
             f"(dimensionless, dimensionless, angle) quantities"
         )
-    return [conv1, conv2, conv3], (dimensionless_unscaled, dimensionless_unscaled)
+    return converters, (dimensionless_unscaled, dimensionless_unscaled)
+
+
+def helper_dimless_dimless_angle_to_2out(f, unit1, unit2, unit3):
+    """For mathieu_cem and similar, which take x in degrees."""
+    from astropy.units.si import degree
+
+    return _dimless_dimless_angle_to_2out(f, unit1, unit2, unit3, degree)
+
+
+def helper_dimless_dimless_radian_to_2out(f, unit1, unit2, unit3):
+    """For mathieu_ce and mathieu_se, which take x in radians."""
+    from astropy.units.si import radian
+
+    return _dimless_dimless_angle_to_2out(f, unit1, unit2, unit3, radian)
 
 
 def get_scipy_special_helpers():
@@ -503,25 +456,25 @@ def get_scipy_special_helpers():
     for name in one_arg_two_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless_2out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_2out
 
     # Dimensionless -> dimensionless (nin=1, nout=4).
     for name in one_arg_four_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_dimensionless_to_dimensionless_4out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_4out
 
     # Dimensionless -> dimensionless (nin=2, nout=2).
     for name in two_arg_two_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_two_arg_dimensionless_2out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_2out
 
     # Dimensionless -> dimensionless (nin=2, nout=4).
     for name in two_arg_four_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_two_arg_dimensionless_4out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_4out
 
     # Dimensionless, dimensionless, angle (degrees) -> 2 dimensionless outputs.
     for name in dimless_dimless_angle_to_2out_sps_ufuncs:
@@ -529,17 +482,23 @@ def get_scipy_special_helpers():
         if ufunc is not None:
             SCIPY_HELPERS[ufunc] = helper_dimless_dimless_angle_to_2out
 
+    # Dimensionless, dimensionless, angle (radians) -> 2 dimensionless outputs.
+    for name in dimless_dimless_radian_to_2out_sps_ufuncs:
+        ufunc = getattr(sps, name, None)
+        if ufunc is not None:
+            SCIPY_HELPERS[ufunc] = helper_dimless_dimless_radian_to_2out
+
     # Dimensionless -> dimensionless (nin=4, nout=2).
     for name in four_arg_two_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_four_arg_dimensionless_2out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_2out
 
     # Dimensionless -> dimensionless (nin=5, nout=2).
     for name in five_arg_two_out_sps_ufuncs:
         ufunc = getattr(sps, name, None)
         if ufunc is not None:
-            SCIPY_HELPERS[ufunc] = helper_five_arg_dimensionless_2out
+            SCIPY_HELPERS[ufunc] = helper_dimensionless_inputs_2out
 
     # Special cases.
     SCIPY_HELPERS[sps.cbrt] = UFUNC_HELPERS[np.cbrt]
