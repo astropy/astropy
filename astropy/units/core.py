@@ -2525,8 +2525,6 @@ class CompositeUnit(UnitBase):
             ):
                 break
         else:
-            if len(bases) == 0:
-                self._decomposed_cache = self
             return self
 
         x = CompositeUnit(

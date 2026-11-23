@@ -1,9 +1,11 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 """Regression tests for the units package."""
 
+import gc
 import itertools
 import operator
 import pickle
+import weakref
 from contextlib import nullcontext
 from fractions import Fraction
 
@@ -175,6 +177,33 @@ def test_units_conversion():
 
 def test_decompose():
     assert u.Ry == u.Ry.decompose()
+
+
+@pytest.mark.parametrize(
+    "make_unit",
+    [
+        lambda: u.s**-1,
+        lambda: u.kg * u.m / u.s**2,
+        lambda: u.CompositeUnit(1, [], []),
+        lambda: (u.km / u.s).decompose(),  # noqa: PLW0108 - A bound method would retain the result.
+        lambda: (1e-12 / u.s).unit,
+    ],
+    ids=["inverse-second", "compound", "dimensionless", "decomposed", "quantity"],
+)
+def test_decompose_no_reference_cycle(make_unit):
+    # Regression test for #20903: reference counting should free temporary units.
+    gc_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        unit = make_unit()
+        unit.decompose()
+        unit.decompose()
+        ref = weakref.ref(unit)
+        del unit
+        assert ref() is None
+    finally:
+        if gc_enabled:
+            gc.enable()
 
 
 def test_dimensionless_to_si():

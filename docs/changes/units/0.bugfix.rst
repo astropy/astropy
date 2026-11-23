@@ -1,0 +1,2 @@
+Fixed a reference cycle in already-decomposed composite units, allowing temporary
+units to be released even when cyclic garbage collection is disabled.
