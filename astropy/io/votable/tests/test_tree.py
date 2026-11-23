@@ -867,3 +867,31 @@ def test_read_bad_value_with_invalid_mask():
     array = parse_single_table(io.BytesIO(content), invalid="mask").array
 
     assert array.tolist() == [(1, None, 3), (4, 5, 6)]
+
+
+def test_field_repr_keeps_xml_forbidden_chars():
+    """
+    repr() of a Field whose name holds a form feed shows the form feed
+    unchanged.
+    """
+    field = tree.Field(
+        VOTableFile(), ID="target", name="NGC\x0c1068", datatype="char", arraysize="*"
+    )
+
+    assert repr(field) == (
+        '<FIELD ID="target" arraysize="*" datatype="char" name="NGC\x0c1068"/>'
+    )
+
+
+def test_values_repr_keeps_xml_forbidden_chars():
+    """
+    repr() of a Values whose ref holds a form feed shows the form feed
+    unchanged.
+    """
+    votable = VOTableFile()
+    field = tree.Field(
+        votable, ID="target", name="target", datatype="char", arraysize="*"
+    )
+    values = tree.Values(votable, field, ref="NGC\x0c1068")
+
+    assert repr(values) == '<VALUES ref="NGC\x0c1068"/>'

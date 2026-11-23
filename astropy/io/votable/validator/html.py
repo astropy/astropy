@@ -8,7 +8,7 @@ from math import ceil
 
 from astropy import online_docs_root
 from astropy.io.votable import exceptions
-from astropy.utils.xml.writer import XMLWriter, xml_escape
+from astropy.utils.xml.writer import _html_escape, _MarkupWriter
 
 html_header = """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html
@@ -69,9 +69,9 @@ def make_html_header(w):
 
 
 def write_source_line(w, line, nchar=0):
-    part1 = xml_escape(line[:nchar].decode("utf-8"))
-    char = xml_escape(line[nchar : nchar + 1].decode("utf-8"))
-    part2 = xml_escape(line[nchar + 1 :].decode("utf-8"))
+    part1 = _html_escape(line[:nchar].decode("utf-8"))
+    char = _html_escape(line[nchar : nchar + 1].decode("utf-8"))
+    part2 = _html_escape(line[nchar + 1 :].decode("utf-8"))
 
     w.write("  ")
     w.write(part1)
@@ -95,7 +95,7 @@ def write_warning(w, line, xml_lines):
         msg = warning["message"]
         if not isinstance(warning["message"], str):
             msg = msg.decode("utf-8")
-        w.write(xml_escape(msg))
+        w.write(_html_escape(msg))
         w.write("\n")
         if 1 <= warning["nline"] < len(xml_lines):
             write_source_line(w, xml_lines[warning["nline"] - 1], warning["nchar"])
@@ -108,7 +108,9 @@ def write_votlint_warning(w, line, xml_lines):
         line,
     )
     if match:
-        w.write(f"Line {int(match.group('line'))}: {xml_escape(match.group('rest'))}\n")
+        w.write(
+            f"Line {int(match.group('line'))}: {_html_escape(match.group('rest'))}\n"
+        )
         write_source_line(
             w, xml_lines[int(match.group("line")) - 1], int(match.group("column")) - 1
         )
@@ -127,7 +129,7 @@ def write_result(result):
     path = os.path.join(result.get_dirpath(), "index.html")
 
     with open(path, "w", encoding="utf-8") as fd:
-        w = XMLWriter(fd)
+        w = _MarkupWriter(fd)
         with make_html_header(w):
             with w.tag("p"):
                 with w.tag("a", href="vo.xml"):
@@ -249,7 +251,7 @@ def write_table(basename, name, results, root="results", chunk_size=500):
         subresults = results[j : j + chunk_size]
         path = os.path.join(root, f"{basename}_{i:02d}.html")
         with open(path, "w", encoding="utf-8") as fd:
-            w = XMLWriter(fd)
+            w = _MarkupWriter(fd)
             with make_html_header(w):
                 write_page_links(i)
 
@@ -293,7 +295,7 @@ def add_subset(w, basename, name, subresults, inside=["p"], total=None):  # ruff
 def write_index(subsets, results, root="results"):
     path = os.path.join(root, "index.html")
     with open(path, "w", encoding="utf-8") as fd:
-        w = XMLWriter(fd)
+        w = _MarkupWriter(fd)
         with make_html_header(w):
             w.element("h1", "VO Validation results")
 
