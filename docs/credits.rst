@@ -109,10 +109,10 @@ Core Package Contributors
 * Carl Osterwisch
 * Carl Schaffer
 * Caspar van Leeuwen
+* cgarling
 * Charalampos Stratakis
 * Chiara Marmo
 * Chris Beaumont
-* Chris Garling
 * Chris Hanley
 * Chris Osborne
 * Chris Simpson
@@ -162,6 +162,7 @@ Core Package Contributors
 * disha
 * Dmitry Rantovov
 * Dominik Klaes
+* dormando
 * Doron Behar
 * Doug Branton
 * Douglas Burke
@@ -583,6 +584,7 @@ Core Package Contributors
 * srirajshukla
 * Stefan Becker
 * Stefan Nelson
+* Stelios V\.
 * Stelios Voutsinas
 * Stephen Bailey
 * Stephen Portillo
@@ -623,6 +625,7 @@ Core Package Contributors
 * Tom Kooij
 * Tomas Babej
 * Tyler Finethy
+* Vanshaj Poonia
 * Varun Kasyap Pentamaraju
 * Varun Nikam
 * Vatsala Swaroop
