@@ -421,8 +421,8 @@ supply the ``base`` (representation)::
 
 For the angular components, the spherical and cylindrical differentials hold
 rates of change of the angles (e.g., ``d_phi`` in angular speed units). For
-physical velocities, i.e. velocities along the unit vectors, instead (e.g.,
-``v_phi = rho * dphi/dt`` in km/s), use the physical differential classes
+physical velocities, i.e. velocities along the unit vectors (e.g.,
+``v_phi = rho * dphi/dt`` in km/s), instead use the physical differential classes
 `~astropy.coordinates.SphericalPhysicalDifferential`,
 `~astropy.coordinates.PhysicsSphericalPhysicalDifferential` or
 `~astropy.coordinates.CylindricalPhysicalDifferential`, in which all components

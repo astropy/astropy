@@ -668,7 +668,7 @@ class BaseRepresentation(BaseRepresentationOrDifferential):
     Also note that representations and differentials in astropy.coordinates
     assume that the unit vectors returned by unit_vectors() are orthonormal
     (i.e., the coordinate system is orthogonal) and custom representations that
-    do not satisfy this will not work correctly with differentials.
+    do not satisfy this will cause unexpected results with differentials.
     """
 
     info = RepresentationInfo()
