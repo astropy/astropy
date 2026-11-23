@@ -16,7 +16,7 @@ from astropy.io.votable.converters import (
     get_converter,
     table_column_to_votable_datatype,
 )
-from astropy.io.votable.exceptions import E01, E02, W46, W62
+from astropy.io.votable.exceptions import E01, E02, W46, W62, conf
 from astropy.table import Column, Table
 
 DATATYPES = ["char", "unicodeChar"]
@@ -334,6 +334,7 @@ def test_write_too_long_string_warns():
     """
     votable = parse(io.BytesIO(_votable("char", "3x2", ["abcdef"])))
     table = votable.get_first_table()
+    # Read strings hold at most 3 characters, and numpy would cut "abcd" to "abc"
     table.array = np.ma.array([(["abcd", "ef"],)], dtype=[("c", "U4", (2,))])
     written = io.BytesIO()
 
@@ -341,6 +342,25 @@ def test_write_too_long_string_warns():
         votable.to_xml(written)
 
     assert b"<TD>abcef </TD>" in written.getvalue()
+
+
+@pytest.mark.parametrize("tabledata_format", FORMATS)
+def test_write_too_long_strings_warn_up_to_max_warnings(tabledata_format):
+    """
+    to_xml() in each format of 5 rows with a 4-character string in an
+    arraysize="3x2" FIELD warns W46 only max_warnings times, here 2.
+    """
+    votable = parse(io.BytesIO(_votable("char", "3x2", ["abcdef"] * 5)))
+    table = votable.get_first_table()
+    # Strings read from the file hold at most 3 characters, and numpy would
+    # cut "abcd" to "abc", so replace the whole array. The FIELD stays "3x2".
+    table.array = np.ma.array([(["abcd", "ef"],)] * 5, dtype=[("c", "U4", (2,))])
+    table.format = tabledata_format
+
+    with conf.set_temp("max_warnings", 2), pytest.warns(W46) as record:
+        votable.to_xml(io.BytesIO())
+
+    assert len(record) == 2
 
 
 @pytest.mark.parametrize("tabledata_format", FORMATS)
@@ -352,6 +372,7 @@ def test_write_non_bmp_string_counts_utf16_units(tabledata_format):
     """
     votable = parse(io.BytesIO(_votable("unicodeChar", "6x2", ["abcdefghijkl"])))
     table = votable.get_first_table()
+    # The strings to write; the file only supplies the FIELD
     table.array = np.ma.array([(["𝜆_obs", "flux"],)], dtype=[("c", "U6", (2,))])
     table.format = tabledata_format
     written = io.BytesIO()
@@ -371,6 +392,7 @@ def test_write_cut_drops_whole_non_bmp_character(tabledata_format):
     """
     votable = parse(io.BytesIO(_votable("unicodeChar", "3x2", ["abcdef"])))
     table = votable.get_first_table()
+    # The strings to write; the file only supplies the FIELD
     table.array = np.ma.array([(["F_𝜆", "F_ν"],)], dtype=[("c", "U3", (2,))])
     table.format = tabledata_format
     written = io.BytesIO()
@@ -470,6 +492,18 @@ def test_utf8_read_character_wider_than_string():
     assert column.tolist() == [["Λ", "Λ"]]
 
 
+def test_utf8_read_character_crossing_string_end():
+    """
+    parse() with verify="warn" of a 1.6 arraysize="3x*" char cell "abΛcd",
+    where the 2 bytes of "Λ" cross the end of the first string, warns W46 and
+    keeps "Λ" in the first string.
+    """
+    with pytest.warns(W46, match="length of 3"):
+        column = _column(_v16(_votable("char", "3x*", ["abΛcd"])), verify="warn")
+
+    assert column[0].tolist() == ["abΛ", "cd"]
+
+
 @pytest.mark.parametrize("tabledata_format", FORMATS)
 def test_utf8_roundtrip(tabledata_format):
     t = Table({"c": np.array([["Λ", "ab"], ["ΛΛ", "c"]], dtype="U2")})
@@ -519,6 +553,7 @@ def test_utf8_write_cut_drops_whole_character(tabledata_format):
     """
     votable = parse(io.BytesIO(_v16(_votable("char", "4x2", ["abcdefgh"]))))
     table = votable.get_first_table()
+    # The strings to write; the file only supplies the FIELD
     table.array = np.ma.array([(["aΛΛ", "b"],)], dtype=[("c", "U4", (2,))])
     table.format = tabledata_format
     written = io.BytesIO()

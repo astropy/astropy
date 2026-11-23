@@ -1,0 +1,4 @@
+Writing a table to VOTable 1.5 or earlier no longer cuts the end off strings
+that contain characters outside the Unicode Basic Multilingual Plane (BMP).
+The ``arraysize`` of a ``unicodeChar`` FIELD now counts UTF-16 code units, as
+the VOTable standard says, rather than characters.

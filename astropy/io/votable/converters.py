@@ -366,7 +366,7 @@ class Char(Converter):
 
         Converter.__init__(self, field, config, pos)
 
-        self.is_utf8_version = self._config.get("version_1_6_or_later", False)
+        self._is_utf8_version = self._config.get("version_1_6_or_later", False)
         self.field_name = field.name
 
         if field.arraysize is None:
@@ -391,7 +391,7 @@ class Char(Converter):
                 vo_raise(E01, (numeric_part, "char", field.ID), config)
 
             n_chars = self.arraysize
-            if self.is_utf8_version and field.width is not None:
+            if self._is_utf8_version and field.width is not None:
                 # A string never has more characters than UTF-8 bytes.
                 n_chars = min(field.width, self.arraysize)
                 if n_chars < self.arraysize:
@@ -412,7 +412,7 @@ class Char(Converter):
     def parse(self, value, config=None, pos=None):
         if self.arraysize != "*" and self._length(value) > self.arraysize:
             vo_warn(W46, ("char", self.arraysize), config, pos)
-        if not self.is_utf8_version and not value.isascii():
+        if not self._is_utf8_version and not value.isascii():
             vo_warn(W55, (self.field_name, value), config, pos)
         self._check_width(value, config, pos)
         return value, False
@@ -424,13 +424,13 @@ class Char(Converter):
     def _length(self, value):
         """Length of *value* in the units of arraysize."""
         # UTF-8 bytes from VOTable 1.6 (section 2.2), characters before
-        if self.is_utf8_version:
+        if self._is_utf8_version:
             return len(value.encode("utf-8"))
         return len(value)
 
     def _cut(self, value, n):
         """Drop characters from the end of *value* until it fits in *n* units."""
-        if self.is_utf8_version:
+        if self._is_utf8_version:
             return _truncate_utf8(value.encode("utf-8"), n).decode("utf-8")
         return value[:n]
 
@@ -441,7 +441,7 @@ class Char(Converter):
         if not isinstance(value, str):
             value = value.decode("utf-8")
 
-        if not self.is_utf8_version and not value.isascii():
+        if not self._is_utf8_version and not value.isascii():
             warn_or_raise(E24, E24, (value, self.field_name), self._write_config)
 
         if self.arraysize != "*" and self._length(value) > self.arraysize:
@@ -456,12 +456,12 @@ class Char(Converter):
         except UnicodeDecodeError:
             vo_warn(W60, (self.field_name, data), self._config)
             return data.decode("utf-8", errors="replace")
-        if not self.is_utf8_version and not value.isascii():
+        if not self._is_utf8_version and not value.isascii():
             vo_warn(W55, (self.field_name, value), self._config)
         return value
 
     def _encode(self, value):
-        if not self.is_utf8_version and not value.isascii():
+        if not self._is_utf8_version and not value.isascii():
             warn_or_raise(E24, E24, (value, self.field_name), self._write_config)
         return value.encode("utf-8", errors="replace")
 
@@ -583,22 +583,18 @@ class UnicodeChar(Converter):
         if not value.isascii() and max(value) > "\uffff":
             vo_warn(W62, (self.field_name, value), self._write_config)
 
-    def _encode(self, value, n_units):
+    def _fit(self, value):
+        """*value* checked for writing (W62), and cut to arraysize (W46)."""
         self._check_bmp(value)
-        if n_units is not None and self._length(value) > n_units:
-            vo_warn(W46, ("unicodeChar", n_units), self._write_config)
-            value = self._cut(value, n_units)
-        return value.encode("utf_16_be")
+        if self.arraysize != "*" and self._length(value) > self.arraysize:
+            vo_warn(W46, ("unicodeChar", self.arraysize), self._write_config)
+            value = self._cut(value, self.arraysize)
+        return value
 
     def output(self, value, mask):
         if mask:
             return ""
-        value = str(value)
-        if self.arraysize == "*":
-            self._check_bmp(value)
-        else:
-            value = self._encode(value, self.arraysize).decode("utf_16_be")
-        return xml_escape_cdata(value)
+        return xml_escape_cdata(self._fit(str(value)))
 
     def _binparse_var(self, read):
         length = self._parse_length(read)
@@ -620,15 +616,14 @@ class UnicodeChar(Converter):
         if mask or value is None or value == "":
             return _zero_int
 
-        n_units = None if self.arraysize == "*" else self.arraysize
-        encoded = self._encode(value, n_units)
+        encoded = self._fit(value).encode("utf_16_be")
 
         return self._write_length(len(encoded) // 2) + encoded
 
     def _binoutput_fixed(self, value, mask):
         if mask:
             value = ""
-        encoded = self._encode(value, self.arraysize)
+        encoded = self._fit(value).encode("utf_16_be")
         return encoded.ljust(2 * self.arraysize, _zero_byte)
 
 
@@ -746,16 +741,20 @@ class _StringArrayMixin:
             return [
                 value[i : i + width].rstrip(" ") for i in range(0, len(value), width)
             ]
+        length = self._scalar._length
         cut = self._scalar._cut
         parts = []
         start = 0
         while start < len(value):
-            # A string of width units never has more than width characters.
-            # A character wider than width units only comes from a broken
-            # file; taking it whole keeps the loop moving.
-            part = cut(value[start : start + width], width) or value[start]
-            parts.append(part.rstrip(" "))
-            start += len(part)
+            # A string of width units never has more than width characters
+            end = start + len(cut(value[start : start + width], width))
+            if end < len(value) and length(value[start:end]) < width:
+                # A character crosses the end of the string, which only a
+                # broken file has. Keeping it in this string makes parse()
+                # warn that the string is too long (W46).
+                end += 1
+            parts.append(value[start:end].rstrip(" "))
+            start = end
         return parts
 
     def _parse_strings(self, parts, shape, config, pos):
