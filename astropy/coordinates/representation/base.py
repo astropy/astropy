@@ -19,7 +19,7 @@ from astropy.utils.exceptions import DuplicateRepresentationWarning
 from astropy.utils.masked import MaskableShapedLikeNDArray, Masked, combine_masks
 
 if TYPE_CHECKING:
-    from .cartesian import CartesianRepresentation
+    import astropy.coordinates
 
 # Module-level dict mapping representation string alias names to classes.
 # This is populated by __init_subclass__ when called by Representation or
@@ -1688,10 +1688,12 @@ class BasePhysicalDifferential(BaseDifferential):
     @classmethod
     def _get_base_vectors(
         cls, base: BaseRepresentation
-    ) -> tuple[dict[str, "CartesianRepresentation"], dict[str, u.Quantity]]:
+    ) -> tuple[
+        dict[str, "astropy.coordinates.CartesianRepresentation"], dict[str, u.Quantity]
+    ]:
         """Get unit vectors and (unity) scale factors from base."""
         cls._check_base(base)
-        one = np.broadcast_to(1.0 * u.one, base.shape, subok=True)
+        one = np.broadcast_to(1.0, base.shape) << u.one
         # For the physical differentials, the unit vectors are things like ``r_hat``,
         # ``theta_hat``, ``phi_hat`` but the scale factors are all 1.
         return base.unit_vectors(), dict.fromkeys(base.components, one)

@@ -646,11 +646,7 @@ class SphericalRepresentation(BaseRepresentation):
         # For a physical differential, all components scale by the scale (which comes
         # from d_op), and d_lat also changes sign with the scale, since the lat
         # unit vector does not flip.
-        phys_ops = (
-            d_op,
-            lambda x: lat_op(d_op(x)),
-            d_op,
-        )
+        phys_ops = (d_op, lambda x: lat_op(d_op(x)), d_op)
 
         result = self.__class__(
             lon_op(self.lon),

@@ -1460,7 +1460,9 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
                             data_diff.attr_classes
                         )
 
-                for comp, new_attr_unit in zip(diff.components, new_attrs["units"]):
+                for comp, new_attr_unit in zip(
+                    diff.components, new_attrs["units"], strict=True
+                ):
                     # Only convert the units of the components that the input data
                     # determines, so we skip on components that are undetermined from
                     # the above checks.
@@ -1763,7 +1765,11 @@ class BaseCoordinateFrame(MaskableShapedLikeNDArray):
         # which may differ from the frame's differential class (e.g., for data
         # without distance or radial velocity).
         names = dict(
-            zip(diff.components, self.representation_info[type(diff)]["names"])
+            zip(
+                diff.components,
+                self.representation_info[type(diff)]["names"],
+                strict=True,
+            )
         )
         # String parsing to swap in the frame-specific names. This is a bit fragile, and
         # would need to be updated if the repr format of the differential changes.
