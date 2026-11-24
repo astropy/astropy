@@ -8,6 +8,7 @@ from numpy.testing import assert_allclose, assert_equal
 from astropy.io import fits
 from astropy.io.fits.hdu.compressed._codecs import PLIO1, HCompress1, Rice1
 from astropy.io.fits.hdu.compressed._compression import CfitsioException
+from astropy.io.fits.hdu.compressed._quantization import Quantize
 from astropy.utils.exceptions import AstropyUserWarning
 
 from .conftest import fitsio_param_to_astropy_param
@@ -252,6 +253,133 @@ def test_plio_1_out_of_range():
 
     with pytest.raises(ValueError):
         pc.encode(data)
+
+
+@pytest.mark.parametrize("tilesize", [1, 4, 5, 100, 4096, 10000])
+def test_plio_1_incompressible(tilesize):
+    # Regression test for a bug that caused a buffer overflow when compressing
+    # data for which consecutive pixels differ by more than 4095, since the
+    # compressed data then requires three 16-bit words per pixel.
+
+    codec = PLIO1(tilesize=tilesize)
+
+    data = np.ones(tilesize, dtype=np.int32)
+    data[::2] = 2**24 - 1
+    cbytes = codec.encode(data)
+    assert len(cbytes) > 4 * tilesize
+    assert_equal(codec.decode(_as_array(cbytes)), data)
+
+    data = np.random.default_rng(12345).integers(0, 2**24, tilesize, dtype=np.int32)
+    assert_equal(codec.decode(_as_array(codec.encode(data))), data)
+
+
+def test_plio_1_incompressible_image(tmp_path):
+    data = np.random.default_rng(12345).integers(0, 2**15, (256, 256), dtype=np.int32)
+    filename = tmp_path / "test.fits"
+    fits.CompImageHDU(data, compression_type="PLIO_1", tile_shape=(256, 256)).writeto(
+        filename
+    )
+    with fits.open(filename) as hdul:
+        assert_equal(hdul[1].data, data)
+
+
+def test_plio_1_encode_inconsistent_tilesize():
+    data = np.arange(10, dtype=np.int32)
+    with pytest.raises(ValueError, match="inconsistent with the size of the data"):
+        PLIO1(tilesize=11).encode(data)
+    with pytest.raises(ValueError, match="inconsistent with the size of the data"):
+        PLIO1(tilesize=-1).encode(data)
+
+
+def test_plio_1_decode_truncated():
+    # Regression test for out-of-bounds reads when the compressed data is
+    # shorter than the length given in the header of the line list.
+
+    codec = PLIO1(tilesize=100)
+    data = np.arange(1, 101, dtype=np.int32)
+    cbytes = codec.encode(data)
+
+    assert_equal(codec.decode(_as_array(cbytes)), data)
+
+    for length in range(1, len(cbytes) - 1):
+        with pytest.raises(ValueError, match="truncated or corrupt"):
+            codec.decode(_as_array(cbytes[:length]))
+
+    # Trailing bytes after the end of the line list are ignored
+    assert_equal(codec.decode(_as_array(cbytes + b"\x00" * 7)), data)
+
+
+@pytest.mark.parametrize("tilesize", [0, -1])
+def test_plio_1_decode_invalid_tilesize(tilesize):
+    cbytes = PLIO1(tilesize=10).encode(np.arange(10, dtype=np.int32))
+    with pytest.raises(ValueError, match="tile size is invalid"):
+        PLIO1(tilesize=tilesize).decode(_as_array(cbytes))
+
+
+def test_rice_1_invalid_decode_settings():
+    # Regression test for crashes when decoding RICE_1 tiles with a tile size
+    # or block size taken from a crafted header that does not match the data.
+    codec = Rice1(blocksize=32, bytepix=4, tilesize=100)
+    cbytes = codec.encode(np.arange(100, dtype=np.int32))
+
+    # A huge tile size used to result in an unchecked allocation followed by an
+    # out-of-bounds write rather than a clean error.
+    # Depending on the allocator this raises MemoryError, or cfitsio detects the
+    # short stream; either way it no longer crashes the interpreter.
+    with pytest.raises((ValueError, MemoryError, CfitsioException)):
+        Rice1(blocksize=32, bytepix=4, tilesize=2**30 + 1).decode(_as_array(cbytes))
+
+    for tilesize in (0, -1):
+        with pytest.raises(ValueError, match="tile size is invalid"):
+            Rice1(blocksize=32, bytepix=4, tilesize=tilesize).decode(_as_array(cbytes))
+
+    for blocksize in (0, -1):
+        with pytest.raises(ValueError, match="block size is invalid"):
+            Rice1(blocksize=blocksize, bytepix=4, tilesize=100).decode(
+                _as_array(cbytes)
+            )
+
+
+def test_rice_1_invalid_encode_settings():
+    data = np.arange(100, dtype=np.int32)
+    for blocksize in (0, -1):
+        with pytest.raises(ValueError, match="block size is invalid"):
+            Rice1(blocksize=blocksize, bytepix=4, tilesize=100).encode(data)
+
+
+@pytest.mark.parametrize("seed", [0, -1, -37, -9999])
+def test_non_positive_dither_seed(tmp_path, seed):
+    # Regression test for an out-of-bounds read of the table of random numbers
+    # used for dithering when ZDITHER0 is zero or negative. The random number
+    # sequence repeats every 10000 rows, so such seeds should give the same
+    # result as the seed shifted by 10000.
+    data = np.random.default_rng(0).normal(size=(64, 64)).astype(np.float32)
+
+    def read_with_seed(dither_seed):
+        filename = tmp_path / f"seed_{dither_seed}.fits"
+        fits.CompImageHDU(
+            data,
+            compression_type="RICE_1",
+            tile_shape=(16, 64),
+            quantize_method=1,
+            dither_seed=500,
+        ).writeto(filename)
+        with fits.open(filename, mode="update", disable_image_compression=True) as hdul:
+            hdul[1].header["ZDITHER0"] = dither_seed
+        with fits.open(filename) as hdul:
+            return hdul[1].data.copy()
+
+    assert_equal(read_with_seed(seed), read_with_seed(seed + 10000))
+
+
+@pytest.mark.parametrize("bitpix", [-32, -64])
+def test_unquantize_invalid_bytepix(bitpix):
+    # Regression test for uninitialized memory being returned when unquantizing
+    # tiles stored as 8-byte integers, which can happen for GZIP_1 or
+    # NOCOMPRESS tiles in a crafted file.
+    q = Quantize(row=1, dither_method=1, quantize_level=None, bitpix=bitpix)
+    with pytest.raises(ValueError, match="1, 2 or 4 byte integers"):
+        q.decode_quantized(np.arange(100, dtype=np.int64), 1.0, 0.0)
 
 
 def test_invalid_tile(tmp_path):
