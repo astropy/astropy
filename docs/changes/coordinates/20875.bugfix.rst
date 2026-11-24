@@ -1,0 +1,1 @@
+Now passing infinite values to ``Longitude`` raises no warnings.
