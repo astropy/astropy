@@ -404,6 +404,12 @@ class TestShapeFunctions(ShapeSetup):
         assert np.all(representation_equal(s0d[:2], self.s0[:2]))
         assert np.all(representation_equal(s0d[2:], self.s0[4:]))
 
+    def test_take_along_axis(self):
+        s0_tal = np.take_along_axis(self.s0, np.array([[4, 0, 2]]), axis=1)
+        assert np.all(representation_equal(s0_tal, self.s0[:, [4, 0, 2]]))
+        s1_tal = np.take_along_axis(self.s1, np.array([[5], [2]]), axis=0)
+        assert np.all(representation_equal(s1_tal, self.s1[[5, 2]]))
+
     @pytest.mark.parametrize("attribute", ["shape", "ndim", "size"])
     def test_shape_attribute_functions(self, attribute):
         function = getattr(np, attribute)
