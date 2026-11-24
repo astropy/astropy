@@ -52,9 +52,9 @@ MRT_TEMPLATE = [
 
 _LIMITS_PATTERN = (
     r"(?P<opener>\[|\])"
-    r"(?P<lo>[^/\[\]]+)?"
-    r"(?P<sep>/)?"
-    r"(?P<hi>[^/\[\]]+)?"
+    r"(?P<lo>[^/,\[\]]+)?"
+    r"(?P<sep>/|,)?"
+    r"(?P<hi>[^/,\[\]]+)?"
     r"(?P<closer>\[|\])"
 )
 _LIMITS_REGEXP = re.compile(_LIMITS_PATTERN)
