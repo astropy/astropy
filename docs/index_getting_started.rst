@@ -4,7 +4,7 @@
 Getting Started
 ***************
 
-:ref:`whatsnew-8.1`
+:ref:`whatsnew-9.0`
 
 .. toctree::
    :maxdepth: 1
