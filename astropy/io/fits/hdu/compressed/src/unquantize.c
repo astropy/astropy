@@ -62,6 +62,22 @@ int fits_init_randoms(void) {
     }
 }
 
+
+/*
+    Return the index into fits_rand_value of the first random number to use
+    for the given row. The row is derived from ZDITHER0, which comes from the
+    file header and may be zero or negative, so the result is wrapped into
+    the range [0, N_RANDOM) instead of relying on the sign of the C modulo.
+    Taking the modulo before subtracting one also avoids overflowing for the
+    most negative long value.
+*/
+static int initial_random_seed(long row)
+{
+    int iseed = (int) (row % N_RANDOM) - 1;
+    if (iseed < 0) iseed += N_RANDOM;
+    return iseed;
+}
+
 /*--------------------------------------------------------------------------*/
 int unquantize_i1r4(long row, /* tile number = row number in table  */
             unsigned char *input, /* I - array of values to be converted     */
@@ -89,7 +105,7 @@ int unquantize_i1r4(long row, /* tile number = row number in table  */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
@@ -171,7 +187,7 @@ int unquantize_i2r4(long row, /* seed for random values  */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
@@ -253,7 +269,7 @@ int unquantize_i4r4(long row, /* tile number = row number in table    */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
@@ -331,7 +347,7 @@ int unquantize_i1r8(long row, /* tile number = row number in table  */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
@@ -413,7 +429,7 @@ int unquantize_i2r8(long row, /* tile number = row number in table  */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
@@ -494,7 +510,7 @@ int unquantize_i4r8(long row, /* tile number = row number in table    */
        if (fits_init_randoms()) return(MEMORY_ALLOCATION);
 
     /* initialize the index to the next random number in the list */
-    iseed = (int) ((row - 1) % N_RANDOM);
+    iseed = initial_random_seed(row);
     nextrand = (int) (fits_rand_value[iseed] * 500);
 
     if (nullcheck == 0)     /* no null checking required */
