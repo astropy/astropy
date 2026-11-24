@@ -162,6 +162,7 @@ Core Package Contributors
 * disha
 * Dmitry Rantovov
 * Dominik Klaes
+* dormando
 * Doron Behar
 * Doug Branton
 * Douglas Burke
@@ -623,6 +624,7 @@ Core Package Contributors
 * Tom Kooij
 * Tomas Babej
 * Tyler Finethy
+* Vanshaj Poonia
 * Varun Kasyap Pentamaraju
 * Varun Nikam
 * Vatsala Swaroop
