@@ -105,6 +105,9 @@ _DESC_REGEXP = re.compile(
     rf"(?P<limits>{_LIMITS_PATTERN})?"
     r"\s*"
     r"(?P<null_flag>[\?!])?"
+    r"\s*"
+    r"(?P<order_flag>[+-]=?)?"
+    r"\s*"
     r"(?P<body>.+)?",
     flags=re.DOTALL,
 )
@@ -115,6 +118,7 @@ _DESC_REGEXP = re.compile(
 class _Explanation:
     limits: _Limits | None = None
     null_flag: Literal["?", "!"] | None = None
+    order_flag: Literal["+", "+=", "-", "-="] | None = None
     body: str | None = None
 
     def __post_init__(self) -> None:
@@ -133,7 +137,15 @@ class _Explanation:
             exceptions.append(
                 ValueError(
                     f"invalid null flag {self.null_flag!r} "
-                    "(expected one of {'?', '!', None}) "
+                    "(expected one of {'?', '!', None})"
+                )
+            )
+
+        if self.order_flag not in {"+", "+=", "-", "-=", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid order flag {self.order_flag!r} "
+                    "(expected one of {'+', '+=', '-', '-=', None})"
                 )
             )
 
@@ -195,10 +207,15 @@ class _Explanation:
             body=match.group("body"),
             limits=limits,
             null_flag=match.group("null_flag"),
+            order_flag=match.group("order_flag"),
         )
 
     def normalize(self) -> str:
-        return f"{self.limits or ''}{self.null_flag or ''} {self.body or ''}".strip()
+        return (
+            f"{self.limits or ''}{self.null_flag or ''}{self.order_flag or ''}"
+            " "
+            f"{self.body or ''}"
+        ).strip()
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):

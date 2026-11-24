@@ -105,10 +105,24 @@ class TestDescription:
         d2 = _Explanation.from_str(body)
         assert d2 == d1
 
+    @pytest.mark.parametrize("nf", ["?", "!"])
+    def test_valid_null_flag(self, nf: str) -> None:
+        _Explanation(null_flag=nf, body="body")
+
     @pytest.mark.parametrize("nf", ["", " ", "??", " ?", "? ", "!!", "?!", "!?"])
     def test_invalid_null_flag(self, nf: str) -> None:
         with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
             _Explanation(null_flag=nf, body="body")
+
+    @pytest.mark.parametrize("of", ["+", "+=", "-", "-="])
+    def test_valid_order_flag(self, of: str) -> None:
+        exp = _Explanation(order_flag=of, body="body")
+        assert exp.order_flag == of
+
+    @pytest.mark.parametrize("of", ["", " ", "++", "--", "=", "=+", "=-"])
+    def test_invalid_order_flag(self, of: str) -> None:
+        with pytest.raises(ValueError, match=re.escape(f"invalid order flag {of!r}")):
+            _Explanation(order_flag=of, body="body")
 
     @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
     def test_bracketed_body(self, body: str, subtests: pytest.Subtests) -> None:
@@ -130,6 +144,14 @@ class TestDescription:
         with subtests.test("w/ łimits and nullflag"):
             _Explanation(body=body, limits="[0/1]", null_flag="?")
 
+    def test_multiple_exceptions(self) -> None:
+        with pytest.RaisesGroup(
+            pytest.RaisesExc(ValueError, match=r"invalid null flag"),
+            pytest.RaisesExc(ValueError, match=r"invalid order flag"),
+            match=r"^multiple issues with description fields$",
+        ):
+            _Explanation(null_flag="/", order_flag="+++", body="[body]")
+
     @pytest.mark.filterwarnings("ignore:Description body is missing")
     @pytest.mark.parametrize(
         "s, dkw",
@@ -138,13 +160,20 @@ class TestDescription:
             ("[1/2[", dict(limits=_Limits(expr="[1/2["))),
             ("?", dict(null_flag="?")),
             ("!", dict(null_flag="!")),
+            ("+", dict(order_flag="+")),
+            ("-=", dict(order_flag="-=")),
             ("body", dict(body="body")),
             ("]1/2]?", dict(limits=_Limits(expr="]1/2]"), null_flag="?")),
             ("[1/2] body", dict(limits=_Limits(expr="[1/2]"), body="body")),
             ("? body", dict(null_flag="?", body="body")),
             (
-                "[1/2]? body",
-                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
+                "[1/2]?+= body",
+                dict(
+                    limits=_Limits(expr="[1/2]"),
+                    null_flag="?",
+                    order_flag="+=",
+                    body="body",
+                ),
             ),
         ],
     )
