@@ -17,7 +17,7 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.io.ascii.mrt import Description, Limits
+from astropy.io.ascii.mrt import _Explanation, _Limits
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
@@ -55,7 +55,7 @@ class TestLimits:
         assert expected[0] is None or type(expected[0]) is tp
         assert expected[1] is None or type(expected[1]) is tp
 
-        L = Limits(expr=expr, tp=tp)
+        L = _Limits(expr=expr, tp=tp)
         assert (L.lo, L.hi) == expected
 
         with subtests.test("lo"):
@@ -68,7 +68,7 @@ class TestLimits:
         with pytest.raises(
             ValueError, match=re.escape(f"invalid limits expression {expr!r}")
         ):
-            Limits(expr=expr)
+            _Limits(expr=expr)
 
 
 class DescriptionKwargs(TypedDict, total=False):
@@ -86,7 +86,7 @@ MISSING_BODY_WARNING = (
 class TestDescription:
     def test_init_defaults(self) -> None:
         with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
-            d = Description()
+            d = _Explanation()
         assert d.body is None
         assert d.limits is None
         assert d.null_flag is None
@@ -95,20 +95,20 @@ class TestDescription:
     @pytest.mark.parametrize("body", ["", " ", "\t", " \t ", "\t \t"])
     def test_empty_body(self, body: str) -> None:
         with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
-            d = Description.from_str(body)
+            d = _Explanation.from_str(body)
         assert d.body is None
 
     def test_multiline_body(self) -> None:
         body = "a\nb\nc"
-        d1 = Description(body=body)
+        d1 = _Explanation(body=body)
         assert d1.body == body.replace("\n", " ")
-        d2 = Description.from_str(body)
+        d2 = _Explanation.from_str(body)
         assert d2 == d1
 
     @pytest.mark.parametrize("nf", ["", " ", "??", " ?", "? ", "!!", "?!", "!?"])
     def test_invalid_null_flag(self, nf: str) -> None:
         with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
-            Description(null_flag=nf, body="body")
+            _Explanation(null_flag=nf, body="body")
 
     @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
     def test_bracketed_body(self, body: str, subtests: pytest.Subtests) -> None:
@@ -119,32 +119,32 @@ class TestDescription:
         )
 
         with subtests.test("body-only"), pytest.raises(ValueError, match=msg):
-            Description(body=body)
+            _Explanation(body=body)
 
         with subtests.test("w/ nullflag"):
-            Description(body=body, null_flag="?")
+            _Explanation(body=body, null_flag="?")
 
         with subtests.test("w/ łimits"):
-            Description(body=body, limits="[0/1]")
+            _Explanation(body=body, limits="[0/1]")
 
         with subtests.test("w/ łimits and nullflag"):
-            Description(body=body, limits="[0/1]", null_flag="?")
+            _Explanation(body=body, limits="[0/1]", null_flag="?")
 
     @pytest.mark.filterwarnings("ignore:Description body is missing")
     @pytest.mark.parametrize(
         "s, dkw",
         [
             ("", {}),
-            ("[1/2[", dict(limits=Limits(expr="[1/2["))),
+            ("[1/2[", dict(limits=_Limits(expr="[1/2["))),
             ("?", dict(null_flag="?")),
             ("!", dict(null_flag="!")),
             ("body", dict(body="body")),
-            ("]1/2]?", dict(limits=Limits(expr="]1/2]"), null_flag="?")),
-            ("[1/2] body", dict(limits=Limits(expr="[1/2]"), body="body")),
+            ("]1/2]?", dict(limits=_Limits(expr="]1/2]"), null_flag="?")),
+            ("[1/2] body", dict(limits=_Limits(expr="[1/2]"), body="body")),
             ("? body", dict(null_flag="?", body="body")),
             (
                 "[1/2]? body",
-                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
             ),
         ],
     )
@@ -154,9 +154,9 @@ class TestDescription:
         dkw: DescriptionKwargs,
         subtests: pytest.Subtests,
     ) -> None:
-        d = Description(**dkw)
+        d = _Explanation(**dkw)
         with subtests.test("forward"):
-            assert Description.from_str(s) == d
+            assert _Explanation.from_str(s) == d
         with subtests.test("backward"):
             assert d.normalize() == s
 
@@ -164,28 +164,28 @@ class TestDescription:
     @pytest.mark.parametrize(
         "s, expected_kw",
         [
-            (" [1/2]", dict(limits=Limits(expr="[1/2]"))),
-            ("[1/2] ", dict(limits=Limits(expr="[1/2]"))),
-            (" [1/2] ", dict(limits=Limits(expr="[1/2]"))),
+            (" [1/2]", dict(limits=_Limits(expr="[1/2]"))),
+            ("[1/2] ", dict(limits=_Limits(expr="[1/2]"))),
+            (" [1/2] ", dict(limits=_Limits(expr="[1/2]"))),
             (" ?", dict(null_flag="?")),
             ("? ", dict(null_flag="?")),
             (" ? ", dict(null_flag="?")),
             ("body\t", dict(body="body")),
             ("\tbody", dict(body="body")),
             ("\tbody\t", dict(body="body")),
-            ("[1/2]?", dict(limits=Limits(expr="[1/2]"), null_flag="?")),
-            ("[1/2]body", dict(limits=Limits(expr="[1/2]"), body="body")),
+            ("[1/2]?", dict(limits=_Limits(expr="[1/2]"), null_flag="?")),
+            ("[1/2]body", dict(limits=_Limits(expr="[1/2]"), body="body")),
             (
                 "[1/2]?body",
-                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
             ),
             (
                 "[1/2] ?body",
-                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
             ),
             (
                 "[1/2] ? body",
-                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
             ),
             ("?body", dict(null_flag="?", body="body")),
             ("?  body", dict(null_flag="?", body="body")),
@@ -194,8 +194,8 @@ class TestDescription:
         ],
     )
     def test_from_str(self, s: str, expected_kw: DescriptionKwargs) -> None:
-        expected = Description(**expected_kw)
-        assert Description.from_str(s) == expected
+        expected = _Explanation(**expected_kw)
+        assert _Explanation.from_str(s) == expected
 
 
 test_dat = [

@@ -62,7 +62,7 @@ _LIMITS_REGEXP = re.compile(_LIMITS_PATTERN)
 
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
-class Limits[T: float | int | str]:
+class _Limits[T: float | int | str]:
     expr: str | None = None
     tp: type[T] = str
     _match: re.Match[str] | None = field(init=False, compare=False)
@@ -112,8 +112,8 @@ _DESC_REGEXP = re.compile(
 
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
-class Description:
-    limits: Limits | None = None
+class _Explanation:
+    limits: _Limits | None = None
     null_flag: Literal["?", "!"] | None = None
     body: str | None = None
 
@@ -187,11 +187,11 @@ class Description:
             case None:
                 limits = None
             case str(expr):
-                limits = Limits(expr=expr, tp=tp)
+                limits = _Limits(expr=expr, tp=tp)
             case _ as unreachable:
                 assert_never(unreachable)
 
-        return Description(
+        return _Explanation(
             body=match.group("body"),
             limits=limits,
             null_flag=match.group("null_flag"),
@@ -483,9 +483,9 @@ class MrtHeader(cds.CdsHeader):
 
             # Set column description.
             if col.description is not None:
-                description = Description.from_str(col.description)
+                description = _Explanation.from_str(col.description)
             else:
-                description = Description(body=f"Description of {col.name}")
+                description = _Explanation(body=f"Description of {col.name}")
 
             # Set null flag in column description
             if col.has_null:
