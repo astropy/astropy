@@ -467,6 +467,19 @@ class TestShapeFunctions(ShapeSetup):
         assert_time_all_equal(t0d[:2], self.t0[:2])
         assert_time_all_equal(t0d[2:], self.t0[4:])
 
+    def test_take_along_axis(self, use_mask):
+        self.create_data(use_mask)
+
+        t0_tal = np.take_along_axis(self.t0, np.array([[4, 0, 2]]), axis=1)
+        assert_time_all_equal(t0_tal, self.t0[:, [4, 0, 2]])
+        t1_tal = np.take_along_axis(self.t1, np.array([[7], [2]]), axis=0)
+        assert_time_all_equal(t1_tal, self.t1[[7, 2]])
+        assert t1_tal.location is self.t1.location
+        t2_tal = np.take_along_axis(self.t2, np.array([[4, 0, 2]]), axis=1)
+        assert_time_all_equal(t2_tal, self.t2[:, [4, 0, 2]])
+        assert t2_tal.location.shape == t2_tal.shape
+        assert np.all(t2_tal.location == self.t2.location[:, [4, 0, 2]])
+
 
 @pytest.mark.parametrize("use_mask", ("masked", "not_masked"))
 class TestConcatenateFunctions(ShapeSetup):
