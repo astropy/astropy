@@ -106,7 +106,7 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
     Py_ssize_t count;
     PyObject *result;
 
-    int maxelem;
+    size_t maxelem;
     int tilesize;
     short *compressed_values;
     int compressed_length;
@@ -114,6 +114,13 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "y#i", &str, &count, &tilesize)) {
         return NULL;
+    }
+
+    if (tilesize < 0 || (size_t)count / sizeof(int) < (size_t)tilesize) {
+        PyErr_SetString(
+            PyExc_ValueError, "PLIO tile size is inconsistent with the size of the data."
+        );
+        return (PyObject *)NULL;
     }
 
     decompressed_values = (int *)str;
@@ -126,16 +133,20 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
         }
     }
 
-    // For PLIO imcomp_calc_max_elem in cfitsio does this to calculate max memory:
-    maxelem = tilesize;
-    // However, when compressing small numbers of random integers you can end up
-    // using more memory for the compressed bytes.  In the worst case scenario we
-    // tested, compressing a single 4 byte integer will compress to 16 bytes.  We
-    // therefore allocate a buffer 4 ints larger than we need here to give that
-    // margin of error.
-    compressed_values = (short *)calloc(maxelem + 4, sizeof(int));
+    // For PLIO imcomp_calc_max_elem in cfitsio assumes that the line list will
+    // not need more than two 16-bit words per pixel, but this is not enough
+    // for data in which many consecutive pixels differ by more than 4095, as
+    // each such pixel is encoded as two words that set the new value followed
+    // by one word for the run of pixels with that value. The line list also
+    // starts with a seven word header, so the worst case scenario is a list
+    // with 3 * tilesize + 7 words.
+    maxelem = (size_t)tilesize * 3 + 7;
 
-    decompressed_values = (int *)str;
+    compressed_values = (short *)calloc(maxelem, sizeof(short));
+
+    if (compressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
 
     compressed_length = pl_p2li(decompressed_values, 1, compressed_values, tilesize);
 
@@ -143,12 +154,13 @@ static PyObject *compress_plio_1_c(PyObject *self, PyObject *args)
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(compressed_values);
         return (PyObject *)NULL;
     }
 
     buf = (char *)compressed_values;
 
-    result = Py_BuildValue("y#", buf, compressed_length * 2);
+    result = Py_BuildValue("y#", buf, (Py_ssize_t)compressed_length * 2);
     free(buf);
     return result;
 }
@@ -162,6 +174,8 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args)
     PyObject *result;
 
     int tilesize;
+    int npix;
+    size_t srclen;
 
     short *compressed_values;
     int *decompressed_values;
@@ -170,24 +184,50 @@ static PyObject *decompress_plio_1_c(PyObject *self, PyObject *args)
         return NULL;
     }
 
+    if (tilesize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "PLIO tile size is invalid.");
+        return (PyObject *)NULL;
+    }
+
     compressed_values = (short *)str;
+    srclen = (size_t)count / sizeof(short);
+
+    // pl_l2pi reads the length of the line list from its header before doing
+    // any bounds checking. The third word is the length for the old format
+    // of the header, and if it is not positive the length is instead stored
+    // in the fourth and fifth words, so we make sure these are present.
+    if (srclen < 3 || (compressed_values[2] <= 0 && srclen < 5)) {
+        PyErr_SetString(PyExc_ValueError, "PLIO compressed data is truncated or corrupt.");
+        return (PyObject *)NULL;
+    }
 
     decompressed_values = (int *)calloc(tilesize, sizeof(int));
 
-    pl_l2pi(
-        compressed_values, count * sizeof(char) / sizeof(short), 1, decompressed_values, tilesize
-    );
+    if (decompressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    npix = pl_l2pi(compressed_values, srclen, 1, decompressed_values, tilesize);
 
     if (PyErr_Occurred() != NULL) {
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(decompressed_values);
+        return (PyObject *)NULL;
+    }
+
+    // pl_l2pi returns a negative value if the line list extends beyond the
+    // end of the compressed data.
+    if (npix < 0) {
+        PyErr_SetString(PyExc_ValueError, "PLIO compressed data is truncated or corrupt.");
+        free(decompressed_values);
         return (PyObject *)NULL;
     }
 
     buf = (char *)decompressed_values;
 
-    result = Py_BuildValue("y#", buf, tilesize * sizeof(int));
+    result = Py_BuildValue("y#", buf, (Py_ssize_t)tilesize * sizeof(int));
     free(buf);
     return result;
 }
@@ -214,26 +254,45 @@ static PyObject *compress_rice_1_c(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS
+    // cfitsio only provides Rice encoders for 1, 2 and 4 byte integers
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(PyExc_ValueError, "Rice can only work with 1, 2 or 4 byte integers.");
+        return (PyObject *)NULL;
+    }
 
-        // maxelem adapted from cfitsio's imcomp_calc_max_elem function
-        maxelem = count + count / bytepix / blocksize + 2 + 4;
+    // A zero block size would lead to a division by zero below.
+    if (blocksize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice block size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    // maxelem adapted from cfitsio's imcomp_calc_max_elem function
+    maxelem = count + count / bytepix / blocksize + 2 + 4;
 
     compressed_values = (unsigned char *)malloc(maxelem);
 
-    if (bytepix == 1) {
+    if (compressed_values == NULL) {
+        return PyErr_NoMemory();
+    }
+
+    Py_BEGIN_ALLOW_THREADS
+
+        if (bytepix == 1)
+    {
         decompressed_values_byte = (signed char *)str;
         compressed_length = fits_rcomp_byte(
             decompressed_values_byte, (int)count, compressed_values, count * 16, blocksize
         );
     }
-    else if (bytepix == 2) {
+    else if (bytepix == 2)
+    {
         decompressed_values_short = (short *)str;
         compressed_length = fits_rcomp_short(
             decompressed_values_short, (int)count / 2, compressed_values, count * 16, blocksize
         );
     }
-    else {
+    else
+    {
         decompressed_values_int = (int *)str;
         compressed_length = fits_rcomp(
             decompressed_values_int, (int)count / 4, compressed_values, count * 16, blocksize
@@ -280,28 +339,49 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
         return (PyObject *)NULL;
     }
 
+    if (tilesize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice tile size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    if (blocksize <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Rice block size is invalid.");
+        return (PyObject *)NULL;
+    }
+
+    // Allocate the output buffer up front and outside the thread-released
+    // block so that we can report an allocation failure as a Python
+    // exception. On 32-bit platforms the size in bytes of a large tile does
+    // not fit in a size_t, so we check this before computing it.
+    if ((size_t)tilesize > (size_t)PY_SSIZE_T_MAX / (size_t)bytepix) {
+        return PyErr_NoMemory();
+    }
+
+    dbytes = (char *)malloc((size_t)tilesize * bytepix);
+
+    if (dbytes == NULL) {
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
         compressed_values = (unsigned char *)str;
 
     if (bytepix == 1) {
-        decompressed_values_byte = (unsigned char *)malloc(tilesize);
+        decompressed_values_byte = (unsigned char *)dbytes;
         fits_rdecomp_byte(
             compressed_values, (int)count, decompressed_values_byte, tilesize, blocksize
         );
-        dbytes = (char *)decompressed_values_byte;
     }
     else if (bytepix == 2) {
-        decompressed_values_short = (unsigned short *)malloc(tilesize * 2);
+        decompressed_values_short = (unsigned short *)dbytes;
         fits_rdecomp_short(
             compressed_values, (int)count, decompressed_values_short, tilesize, blocksize
         );
-        dbytes = (char *)decompressed_values_short;
     }
     else {
-        decompressed_values_int = (unsigned int *)malloc(tilesize * 4);
+        decompressed_values_int = (unsigned int *)dbytes;
         fits_rdecomp(compressed_values, (int)count, decompressed_values_int, tilesize, blocksize);
-        dbytes = (char *)decompressed_values_int;
     }
 
     Py_END_ALLOW_THREADS
@@ -311,10 +391,11 @@ static PyObject *decompress_rice_1_c(PyObject *self, PyObject *args)
         // If an error condition inside the cfitsio function, the call inside
         // cfitsio should have called the ffpmsg function which sets the Python
         // exception, so we just return here to raise an error.
+        free(dbytes);
         return (PyObject *)NULL;
     }
 
-    result = Py_BuildValue("y#", dbytes, tilesize * bytepix);
+    result = Py_BuildValue("y#", dbytes, (Py_ssize_t)tilesize * bytepix);
     free(dbytes);
     return result;
 }
@@ -472,6 +553,12 @@ static PyObject *decompress_hcompress_1_c(PyObject *self, PyObject *args)
 
     // Number of elements (not bytes) in the output buffer
     na = nx * ny;
+
+    // On 32-bit platforms the size in bytes of a large tile does not fit in a
+    // size_t, so we check this before computing it.
+    if ((size_t)na > (size_t)PY_SSIZE_T_MAX / (size_t)bytepix) {
+        return PyErr_NoMemory();
+    }
 
     dbytes = malloc((size_t)na * (size_t)bytepix);
 
@@ -723,13 +810,41 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
 
     // TODO: add support, if needed, for nullcheck=1
 
+    // The unquantize functions only exist for 1, 2 and 4 byte integers, and
+    // any other value would leave the output buffer uninitialized.
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(
+            PyExc_ValueError, "Quantized data can only be stored as 1, 2 or 4 byte integers."
+        );
+        return (PyObject *)NULL;
+    }
+
+    // Make sure we do not read past the end of the input buffer.
+    if (npix < 0 || npix > nbytes / bytepix) {
+        PyErr_SetString(PyExc_ValueError, "Number of pixels does not match the input buffer.");
+        return (PyObject *)NULL;
+    }
+
+    // On 32-bit platforms the size in bytes of the output may not fit in a
+    // size_t even if the input does.
+    if ((size_t)npix > (size_t)PY_SSIZE_T_MAX / sizeof(float)) {
+        return PyErr_NoMemory();
+    }
+
+    anynull = (int *)calloc(npix > 0 ? npix : 1, sizeof(int));
+    output_data = (float *)calloc(npix > 0 ? npix : 1, sizeof(float));
+
+    if (anynull == NULL || output_data == NULL) {
+        free(anynull);
+        free(output_data);
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
-        anynull = (int *)malloc(npix * sizeof(int));
-    output_data = (float *)calloc(npix, sizeof(float));
-
-    if (bytepix == 1) {
-        unquantize_i1r4(
+        if (bytepix == 1)
+    {
+        status = unquantize_i1r4(
             row,
             (unsigned char *)input_bytes,
             npix,
@@ -745,8 +860,9 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 2) {
-        unquantize_i2r4(
+    else if (bytepix == 2)
+    {
+        status = unquantize_i2r4(
             row,
             (short *)input_bytes,
             npix,
@@ -762,8 +878,9 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 4) {
-        unquantize_i4r4(
+    else if (bytepix == 4)
+    {
+        status = unquantize_i4r4(
             row,
             (int *)input_bytes,
             npix,
@@ -784,7 +901,15 @@ static PyObject *unquantize_float_c(PyObject *self, PyObject *args)
 
     Py_END_ALLOW_THREADS
 
-        result = Py_BuildValue("y#", output_bytes, npix * sizeof(float));
+        if (status != 0)
+    {
+        free(output_bytes);
+        free(anynull);
+        PyErr_SetString(CfitsioException, "Failed to unquantize data.");
+        return (PyObject *)NULL;
+    }
+
+    result = Py_BuildValue("y#", output_bytes, (Py_ssize_t)(npix * sizeof(float)));
     free(output_bytes);
     free(anynull);
     return result;
@@ -831,13 +956,41 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
 
     // TODO: add support, if needed, for nullcheck=1
 
+    // The unquantize functions only exist for 1, 2 and 4 byte integers, and
+    // any other value would leave the output buffer uninitialized.
+    if (bytepix != 1 && bytepix != 2 && bytepix != 4) {
+        PyErr_SetString(
+            PyExc_ValueError, "Quantized data can only be stored as 1, 2 or 4 byte integers."
+        );
+        return (PyObject *)NULL;
+    }
+
+    // Make sure we do not read past the end of the input buffer.
+    if (npix < 0 || npix > nbytes / bytepix) {
+        PyErr_SetString(PyExc_ValueError, "Number of pixels does not match the input buffer.");
+        return (PyObject *)NULL;
+    }
+
+    // On 32-bit platforms the size in bytes of the output may not fit in a
+    // size_t even if the input does.
+    if ((size_t)npix > (size_t)PY_SSIZE_T_MAX / sizeof(double)) {
+        return PyErr_NoMemory();
+    }
+
+    anynull = (int *)calloc(npix > 0 ? npix : 1, sizeof(int));
+    output_data = (double *)calloc(npix > 0 ? npix : 1, sizeof(double));
+
+    if (anynull == NULL || output_data == NULL) {
+        free(anynull);
+        free(output_data);
+        return PyErr_NoMemory();
+    }
+
     Py_BEGIN_ALLOW_THREADS
 
-        anynull = (int *)malloc(npix * sizeof(int));
-    output_data = (double *)malloc(npix * sizeof(double));
-
-    if (bytepix == 1) {
-        unquantize_i1r8(
+        if (bytepix == 1)
+    {
+        status = unquantize_i1r8(
             row,
             (unsigned char *)input_bytes,
             npix,
@@ -853,8 +1006,9 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 2) {
-        unquantize_i2r8(
+    else if (bytepix == 2)
+    {
+        status = unquantize_i2r8(
             row,
             (short *)input_bytes,
             npix,
@@ -870,8 +1024,9 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
             &status
         );
     }
-    else if (bytepix == 4) {
-        unquantize_i4r8(
+    else if (bytepix == 4)
+    {
+        status = unquantize_i4r8(
             row,
             (int *)input_bytes,
             npix,
@@ -892,7 +1047,15 @@ static PyObject *unquantize_double_c(PyObject *self, PyObject *args)
 
     Py_END_ALLOW_THREADS
 
-        result = Py_BuildValue("y#", output_bytes, npix * sizeof(double));
+        if (status != 0)
+    {
+        free(output_bytes);
+        free(anynull);
+        PyErr_SetString(CfitsioException, "Failed to unquantize data.");
+        return (PyObject *)NULL;
+    }
+
+    result = Py_BuildValue("y#", output_bytes, (Py_ssize_t)(npix * sizeof(double)));
     free(output_bytes);
     free(anynull);
     return result;
