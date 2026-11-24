@@ -306,6 +306,7 @@ class ShapedLikeNDArray(NDArrayShapeMethods, metaclass=abc.ABCMeta):
         np.rot90,
         np.roll,
         np.delete,
+        np.take_along_axis,
     }
     # TODO: use astropy.units.quantity_helpers.function_helpers.FunctionAssigner?
     # Maybe better after moving that to astropy.utils, since Masked uses it too.
