@@ -26,18 +26,6 @@ from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
 
 
-class DescriptionKwargs(TypedDict, total=False):
-    limits: str | None = None
-    null_flag: Literal["?", "!"] | None = None
-    body: str | None = None
-
-
-MISSING_BODY_WARNING = (
-    r"^Description body is missing \(could be empty or pure whitespace\)\. "
-    r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
-)
-
-
 class TestLimits:
     @pytest.mark.parametrize(
         "expr, tp, expected",
@@ -81,6 +69,18 @@ class TestLimits:
             ValueError, match=re.escape(f"invalid limits expression {expr!r}")
         ):
             Limits(expr=expr)
+
+
+class DescriptionKwargs(TypedDict, total=False):
+    limits: str | None = None
+    null_flag: Literal["?", "!"] | None = None
+    body: str | None = None
+
+
+MISSING_BODY_WARNING = (
+    r"^Description body is missing \(could be empty or pure whitespace\)\. "
+    r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
+)
 
 
 class TestDescription:
