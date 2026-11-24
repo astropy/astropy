@@ -340,6 +340,20 @@ class TestManipulation(ShapeSetup):
         assert np.all(s1_broadcast.data.lon == self.s1.data.lon[np.newaxis])
         assert np.may_share_memory(s1_broadcast.data.lat, self.s1.data.lat)
 
+    def test_take_along_axis(self):
+        indices = np.array([[4, 0, 2]])
+        s1_tal = np.take_along_axis(self.s1, indices, axis=1)
+        assert s1_tal.shape == (6, 3)
+        assert np.all(s1_tal.data.lon == self.s1.data.lon[:, [4, 0, 2]])
+        assert np.all(s1_tal.obstime == self.s1.obstime[:, [4, 0, 2]])
+        assert np.all(s1_tal.location == self.s1.location[:, [4, 0, 2]])
+        assert np.all(s1_tal.temperature == self.s1.temperature[:, [4, 0, 2]])
+        assert s1_tal.pressure == self.s1.pressure
+        sc_tal = np.take_along_axis(self.sc, indices, axis=1)
+        assert sc_tal.shape == (6, 3)
+        assert np.all(sc_tal.data.lon == self.sc.data.lon[:, [4, 0, 2]])
+        assert np.all(sc_tal.obstime == self.sc.obstime[:, [4, 0, 2]])
+
 
 class TestConcatenateFunctions(ShapeSetup):
     @classmethod
