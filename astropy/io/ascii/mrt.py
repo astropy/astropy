@@ -10,11 +10,11 @@ Ref: https://journals.aas.org/mrt-standards
 
 import re
 import warnings
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from io import StringIO
 from string import Template
 from textwrap import wrap
-from typing import Literal, Self, final
+from typing import Literal, Self, assert_never, final
 
 import numpy as np
 
@@ -50,9 +50,59 @@ MRT_TEMPLATE = [
     "--------------------------------------------------------------------------------",
 ]
 
+_LIMITS_PATTERN = (
+    r"(?P<opener>\[|\])"
+    r"(?P<lo>[^/\[\]]+)?"
+    r"(?P<sep>/)?"
+    r"(?P<hi>[^/\[\]]+)?"
+    r"(?P<closer>\[|\])"
+)
+_LIMITS_REGEXP = re.compile(_LIMITS_PATTERN)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class Limits[T: float | int | str]:
+    expr: str | None = None
+    tp: type[T] = str
+    _match: re.Match[str] | None = field(init=False, compare=False)
+
+    def __post_init__(self):
+        if self.expr is None:
+            object.__setattr__(self, "_match", None)
+            return
+
+        if (match := _LIMITS_REGEXP.fullmatch(self.expr)) is None:
+            raise ValueError(
+                f"invalid limits expression {self.expr!r} "
+                "(expected opening and closing square brackets)"
+            )
+
+        object.__setattr__(self, "_match", match)
+
+    @property
+    def lo(self) -> T | None:
+        match self._match.group("lo"):
+            case None:
+                return None
+            case lo:
+                return self.tp(lo)
+
+    @property
+    def hi(self) -> T | None:
+        match self._match.group("hi"):
+            case None:
+                return None
+            case hi:
+                return self.tp(hi)
+
+    def __str__(self) -> str:
+        return self.expr or ""
+
+
 _DESC_REGEXP = re.compile(
     r"\s*"
-    r"(?P<limits>(\[|\])[\w/]*(\[|\]))?"
+    rf"(?P<limits>{_LIMITS_PATTERN})?"
     r"\s*"
     r"(?P<null_flag>[\?!])?"
     r"(?P<body>.+)?",
@@ -63,7 +113,7 @@ _DESC_REGEXP = re.compile(
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
 class Description:
-    limits: str | None = None
+    limits: Limits | None = None
     null_flag: Literal["?", "!"] | None = None
     body: str | None = None
 
@@ -79,15 +129,6 @@ class Description:
         # (in)validation
         warnings_: tuple[str, type[Warning]] = []
         exceptions: list[Exception] = []
-        if self.limits is not None and not re.fullmatch(
-            r"(\[|\]).+(\[|\])", self.limits
-        ):
-            exceptions.append(
-                ValueError(
-                    f"invalid limits expression {self.limits!r} "
-                    "(expected opening and closing square brackets)"
-                )
-            )
         if self.null_flag not in {"?", "!", None}:
             exceptions.append(
                 ValueError(
@@ -132,7 +173,7 @@ class Description:
             raise exceptions[0]
 
     @classmethod
-    def from_str(cls, s: str, /) -> Self:
+    def from_str(cls, s: str, /, *, tp: type[int | float | str] = str) -> Self:
         if (match := _DESC_REGEXP.match(s)) is None:  # pragma: no coverage
             # the 'body' group is supposed to accept any valid *single-line* str
             # thus, we don't *expect* this branch to be reachable,
@@ -142,9 +183,17 @@ class Description:
                 "Please report this as a bug."
             )
 
+        match match.group("limits"):
+            case None:
+                limits = None
+            case str(expr):
+                limits = Limits(expr=expr, tp=tp)
+            case _ as unreachable:
+                assert_never(unreachable)
+
         return Description(
             body=match.group("body"),
-            limits=match.group("limits"),
+            limits=limits,
             null_flag=match.group("null_flag"),
         )
 

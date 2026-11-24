@@ -17,7 +17,7 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.io.ascii.mrt import Description
+from astropy.io.ascii.mrt import Description, Limits
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
@@ -36,6 +36,50 @@ MISSING_BODY_WARNING = (
     r"^Description body is missing \(could be empty or pure whitespace\)\. "
     r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
 )
+
+
+class TestLimits:
+    @pytest.mark.parametrize(
+        "expr, tp, expected",
+        [
+            ("[]", str, (None, None)),
+            ("[-1/0]", int, (-1, 0)),
+            ("[-1.0/0.0]", float, (-1.0, 0.0)),
+            ("[-0/1]", int, (0, 1)),
+            ("[+0/1]", int, (0, 1)),
+            ("[0/+1]", int, (0, 1)),
+            ("[0./1]", float, (0.0, 1.0)),
+            ("[-0.0/1.0]", float, (0.0, 1.0)),
+            ("[0./+1.0]", float, (0.0, 1.0)),
+            ("[-1.02/3.004]", float, (-1.02, 3.004)),
+            ("[-1e2/+3e4]", float, (-100.0, 30_000.0)),
+        ],
+    )
+    def test_valid_examples[T: int | float | str](
+        self,
+        expr: str,
+        tp: type[T],
+        expected: tuple[T | None, T | None],
+        subtests: pytest.Subtests,
+    ) -> None:
+        # test case consistency check
+        assert expected[0] is None or type(expected[0]) is tp
+        assert expected[1] is None or type(expected[1]) is tp
+
+        L = Limits(expr=expr, tp=tp)
+        assert (L.lo, L.hi) == expected
+
+        with subtests.test("lo"):
+            assert expected[0] is None or type(L.lo) is tp
+        with subtests.test("hi"):
+            assert expected[1] is None or type(L.hi) is tp
+
+    @pytest.mark.parametrize("expr", ["", " ", "[", "]", "[[[", "]]]", "{1/2}"])
+    def test_invalid_examples(self, expr: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid limits expression {expr!r}")
+        ):
+            Limits(expr=expr)
 
 
 class TestDescription:
@@ -60,13 +104,6 @@ class TestDescription:
         d2 = Description.from_str(body)
         assert d2 == d1
 
-    @pytest.mark.parametrize("limits", ["", " ", "[", "]", "[[", "]]", "{1/2}"])
-    def test_invalid_limits(self, limits: str) -> None:
-        with pytest.raises(
-            ValueError, match=re.escape(f"invalid limits expression {limits!r}")
-        ):
-            Description(limits=limits, body="body")
-
     @pytest.mark.parametrize("nf", ["", " ", "??", " ?", "? ", "!!", "?!", "!?"])
     def test_invalid_null_flag(self, nf: str) -> None:
         with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
@@ -74,7 +111,6 @@ class TestDescription:
 
     @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
     def test_bracketed_body(self, body: str, subtests: pytest.Subtests) -> None:
-
         msg = re.escape(
             f"Description body ({body!r}) cannot start with a square bracket "
             "if limits and null flags are omitted, because it would be read as "
@@ -93,27 +129,22 @@ class TestDescription:
         with subtests.test("w/ łimits and nullflag"):
             Description(body=body, limits="[0/1]", null_flag="?")
 
-    def test_multiple_exceptions(self) -> None:
-        with pytest.RaisesGroup(
-            pytest.RaisesExc(ValueError, match=r"invalid limits expression"),
-            pytest.RaisesExc(ValueError, match=r"invalid null flag"),
-            match=r"^multiple issues with description fields$",
-        ):
-            Description(limits="[[", null_flag="/", body="[body]")
-
     @pytest.mark.filterwarnings("ignore:Description body is missing")
     @pytest.mark.parametrize(
         "s, dkw",
         [
             ("", {}),
-            ("[1/2[", dict(limits="[1/2[")),
+            ("[1/2[", dict(limits=Limits(expr="[1/2["))),
             ("?", dict(null_flag="?")),
             ("!", dict(null_flag="!")),
             ("body", dict(body="body")),
-            ("]1/2]?", dict(limits="]1/2]", null_flag="?")),
-            ("[1/2] body", dict(limits="[1/2]", body="body")),
+            ("]1/2]?", dict(limits=Limits(expr="]1/2]"), null_flag="?")),
+            ("[1/2] body", dict(limits=Limits(expr="[1/2]"), body="body")),
             ("? body", dict(null_flag="?", body="body")),
-            ("[1/2]? body", dict(limits="[1/2]", null_flag="?", body="body")),
+            (
+                "[1/2]? body",
+                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+            ),
         ],
     )
     def test_stable_roundtrip(
@@ -132,20 +163,29 @@ class TestDescription:
     @pytest.mark.parametrize(
         "s, expected_kw",
         [
-            (" [1/2]", dict(limits="[1/2]")),
-            ("[1/2] ", dict(limits="[1/2]")),
-            (" [1/2] ", dict(limits="[1/2]")),
+            (" [1/2]", dict(limits=Limits(expr="[1/2]"))),
+            ("[1/2] ", dict(limits=Limits(expr="[1/2]"))),
+            (" [1/2] ", dict(limits=Limits(expr="[1/2]"))),
             (" ?", dict(null_flag="?")),
             ("? ", dict(null_flag="?")),
             (" ? ", dict(null_flag="?")),
             ("body\t", dict(body="body")),
             ("\tbody", dict(body="body")),
             ("\tbody\t", dict(body="body")),
-            ("[1/2]?", dict(limits="[1/2]", null_flag="?")),
-            ("[1/2]body", dict(limits="[1/2]", body="body")),
-            ("[1/2]?body", dict(limits="[1/2]", null_flag="?", body="body")),
-            ("[1/2] ?body", dict(limits="[1/2]", null_flag="?", body="body")),
-            ("[1/2] ? body", dict(limits="[1/2]", null_flag="?", body="body")),
+            ("[1/2]?", dict(limits=Limits(expr="[1/2]"), null_flag="?")),
+            ("[1/2]body", dict(limits=Limits(expr="[1/2]"), body="body")),
+            (
+                "[1/2]?body",
+                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+            ),
+            (
+                "[1/2] ?body",
+                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+            ),
+            (
+                "[1/2] ? body",
+                dict(limits=Limits(expr="[1/2]"), null_flag="?", body="body"),
+            ),
             ("?body", dict(null_flag="?", body="body")),
             ("?  body", dict(null_flag="?", body="body")),
             ("?\tbody", dict(null_flag="?", body="body")),
