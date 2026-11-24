@@ -1110,6 +1110,20 @@ def test_longitude_nan():
     Longitude([0, np.nan, 1] * u.deg)
 
 
+def test_longitude_inf():
+    # Check that passing an infinity to Longitude doesn't raise a warning
+    Longitude([0, np.inf, 1] * u.deg)
+
+
+def test_longitude_setitem_inf_elsewhere():
+    # Setting an item wraps the whole array, so check that an infinity
+    # being set as an item doesn't raise a warning.
+    lon = Longitude([0, 1] * u.deg)
+    lon.view(np.ndarray)[1] = np.inf
+    lon[0] = 2 * u.deg
+    assert lon[0] == 2 * u.deg
+
+
 def test_latitude_nan():
     # Check that passing a NaN to Latitude doesn't raise a warning
     Latitude([0, np.nan, 1] * u.deg)
