@@ -10,7 +10,7 @@ import pytest
 
 from astropy.io import fits
 from astropy.io.fits.card import _pad
-from astropy.io.fits.header import _pad_length
+from astropy.io.fits.header import _BasicHeader, _pad_length
 from astropy.io.fits.scripts import fitsheader
 from astropy.io.fits.util import encode_ascii
 from astropy.io.fits.verify import VerifyError, VerifyWarning
@@ -2431,6 +2431,79 @@ class TestHeaderFunctions(FitsTestCase):
 
         with fits.open(self.temp("test2.fits")) as hdul:
             assert hdul[0].header["HISTORY"] == history
+
+    def test_duplicate_keyword_first_wins_in_basic_header(self):
+        """
+        Regression test for gh-20798: the fast Cython header parser must
+        keep the first occurrence of a duplicate keyword, matching Header,
+        which returns the first card for duplicate keywords.
+        """
+        cards = [
+            fits.Card("SIMPLE", True),
+            fits.Card("BITPIX", 16),
+            fits.Card("BITPIX", 32),
+            fits.Card("NAXIS", 1),
+            fits.Card("NAXIS1", 3),
+            fits.Card("NAXIS1", 6),
+        ]
+        raw = "".join(c.image for c in cards) + "END".ljust(80)
+        raw = raw + " " * (-len(raw) % 2880)
+
+        assert fits.Header.fromstring(raw)["NAXIS1"] == 3
+        assert fits.Header.fromstring(raw)["BITPIX"] == 16
+        _, basic = _BasicHeader.fromfile(BytesIO(raw.encode("ascii")))
+        assert basic["NAXIS1"] == 3
+        assert basic["BITPIX"] == 16
+
+    def test_duplicate_keyword_fits_open_matches_header(self):
+        """
+        Regression test for gh-20798: fits.open() must interpret the data
+        with the same (first) duplicate-keyword values it exposes on
+        hdu.header, and agree with HDUList.fromstring() on the same bytes.
+        """
+        cards = [
+            fits.Card("SIMPLE", True),
+            fits.Card("BITPIX", 16),
+            fits.Card("NAXIS", 1),
+            fits.Card("NAXIS1", 3),
+            fits.Card("NAXIS1", 6),
+        ]
+        header_bytes = "".join(c.image for c in cards) + "END".ljust(80)
+        header_bytes = header_bytes + " " * (-len(header_bytes) % 2880)
+        blob = header_bytes.encode("ascii") + np.arange(1, 7, dtype=">i2").tobytes()
+        blob = blob + b"\0" * (-len(blob) % 2880)
+
+        with fits.open(BytesIO(blob)) as hdul:
+            assert hdul[0].header["NAXIS1"] == 3
+            assert hdul[0].shape == (3,)
+            np.testing.assert_array_equal(hdul[0].data, np.arange(1, 4))
+
+        with fits.HDUList.fromstring(blob) as hdul:
+            assert hdul[0].header["NAXIS1"] == 3
+            assert hdul[0].shape == (3,)
+            np.testing.assert_array_equal(hdul[0].data, np.arange(1, 4))
+
+    def test_duplicate_keyword_first_wins_short_keyword(self):
+        """
+        Regression test for gh-20798: duplicate short keywords whose ``=``
+        falls before column 9 (handled by the second branch of the fast
+        parser) must also keep the first occurrence, matching Header --
+        including when the second copy uses the standard layout.
+        """
+        cards = [
+            "SIMPLE  =                    T",
+            "BITPIX  =                   16",
+            "NAXIS   =                    1",
+            "NAXIS1  =                    3",
+            "A= 1",
+            "A       =                    2",
+        ]
+        raw = "".join(c.ljust(80) for c in cards) + "END".ljust(80)
+        raw = raw + " " * (-len(raw) % 2880)
+
+        assert fits.Header.fromstring(raw)["A"] == 1
+        _, basic = _BasicHeader.fromfile(BytesIO(raw.encode("ascii")))
+        assert basic["A"] == 1
 
     def test_invalid_keyword_cards(self):
         """
