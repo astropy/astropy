@@ -119,7 +119,7 @@ class TestLimits:
 
 
 class NullKwargs[T](TypedDict, total=False):
-    flag: Literal["[", "]"] | None
+    flag: Literal["?", "!"] | None
     value: T
     tp: type[T]
 
