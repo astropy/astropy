@@ -204,7 +204,7 @@ class HTMLHeader(core.BaseHeader):
         for name in self.names:
             if isinstance(name, tuple):
                 col = core.Column(name=name[0])
-                col.colspan = int(name[1])
+                col.colspan = max(min(int(name[1]), 1000), 1)
                 self.cols.append(col)
                 new_names.append(name[0])
                 for i in range(1, int(name[1])):
