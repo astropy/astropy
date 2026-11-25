@@ -75,9 +75,7 @@ def _header_to_settings(header):
     """
     settings = {}
     compression_type = header["ZCMPTYPE"]
-    if compression_type == "GZIP_2":
-        settings["itemsize"] = abs(header["ZBITPIX"]) // 8
-    elif compression_type in ("RICE_1", "RICE_ONE"):
+    if compression_type in ("RICE_1", "RICE_ONE"):
         settings["blocksize"] = _get_compression_setting(header, "BLOCKSIZE", 32)
         settings["bytepix"] = _get_compression_setting(header, "BYTEPIX", 4)
     elif compression_type == "HCOMPRESS_1":
@@ -92,9 +90,12 @@ def _update_tile_settings(settings, compression_type, actual_tile_shape):
     """
     Update the settings with tile-specific settings
     """
-    if compression_type in ("PLIO_1", "RICE_1", "RICE_ONE"):
+    if compression_type in ("PLIO_1", "RICE_1", "RICE_ONE", "GZIP_2"):
         # We have to calculate the tilesize from the shape of the tile not the
-        # header, so that it's correct for edge tiles etc.
+        # header, so that it's correct for edge tiles etc. For GZIP_2 the
+        # tile size is used to infer the number of bytes per value, which is
+        # not always given by ZBITPIX (quantized floating-point data are
+        # stored as 32-bit integers).
         settings["tilesize"] = prod(actual_tile_shape)
     elif compression_type == "HCOMPRESS_1":
         # HCOMPRESS requires 2D tiles, so to find the shape of the 2D tile we
@@ -462,13 +463,6 @@ def decompress_image_data_section(
                 compressed_data_dtype,
                 heap_cache=heap_cache,
             )
-
-            if compression_type == "GZIP_2":
-                # Decompress with GZIP_1 just to find the total number of
-                # elements in the uncompressed data.
-                # TODO: find a way to avoid doing this for all tiles
-                tile_data = np.asarray(_decompress_tile(cdata, algorithm="GZIP_1"))
-                settings["itemsize"] = tile_data.size // int(prod(actual_tile_shape))
 
             tile_buffer = _decompress_tile(
                 cdata, algorithm=compression_type, **settings

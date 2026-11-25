@@ -183,15 +183,33 @@ class Gzip2(Codec):
     Parameters
     ----------
     itemsize
-        The number of buffer per value (e.g. 2 for a 16-bit integer)
+        The number of bytes per value (e.g. 2 for a 16-bit integer). If not
+        given, ``tilesize`` must be given and the number of bytes per value is
+        inferred from the size of the decompressed buffer when decoding.
+    tilesize
+        The number of values in the buffer. This is used to infer the number
+        of bytes per value when ``itemsize`` is not given, which is needed
+        when the stored data type is not known in advance (e.g. quantized
+        floating-point data are stored as 32-bit integers).
+    gzip_level
+        The gzip compression level to use when encoding.
 
     """
 
     codec_id = "FITS_GZIP2"
 
-    def __init__(self, *, itemsize: int, gzip_level: int = DEFAULT_GZIP_LEVEL):
+    def __init__(
+        self,
+        *,
+        itemsize: int | None = None,
+        tilesize: int | None = None,
+        gzip_level: int = DEFAULT_GZIP_LEVEL,
+    ):
         super().__init__()
+        if itemsize is None and tilesize is None:
+            raise ValueError("Either itemsize or tilesize must be given")
         self.itemsize = itemsize
+        self.tilesize = tilesize
         self.gzip_level = gzip_level
 
     def decode(self, buf):
@@ -209,10 +227,14 @@ class Gzip2(Codec):
             The decompressed buffer.
         """
         cbytes = np.frombuffer(buf, dtype=np.uint8).tobytes()
-        # Start off by unshuffling buffer
         unshuffled_buffer = gzip_decompress(cbytes)
+        if self.itemsize is None:
+            itemsize = len(unshuffled_buffer) // self.tilesize
+        else:
+            itemsize = self.itemsize
+        # Reverse the byte shuffling
         array = np.frombuffer(unshuffled_buffer, dtype=np.uint8)
-        return array.reshape((self.itemsize, -1)).T.ravel()
+        return array.reshape((itemsize, -1)).T.ravel()
 
     def encode(self, buf):
         """
