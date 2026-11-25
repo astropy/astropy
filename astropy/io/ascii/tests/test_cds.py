@@ -8,7 +8,7 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 
 import re
 from io import StringIO
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import numpy as np
 import pytest
@@ -118,31 +118,53 @@ class TestLimits:
             _Limits.from_str(expr)
 
 
+class NullKwargs[T](TypedDict, total=False):
+    flag: Literal["[", "]"] | None
+    value: T
+    tp: type[T]
+
+
 class TestNull:
     @pytest.mark.parametrize(
-        "expr, expected",
+        "expr, nkws",
         [
-            ("!", _Null(flag="!")),
-            ("?", _Null(flag="?")),
-            ("?=1", _Null(flag="?", value="1")),
+            ("!", dict(flag="!")),
+            ("?", dict(flag="?")),
+            ("?=1", dict(flag="?", value="1")),
+            pytest.param(
+                "?=-1e6",
+                dict(flag="?", value="-1e6"),
+                marks=pytest.mark.xfail(strict=False),
+            ),
         ],
     )
     def test_stable_roundtrip(
-        self, expr: str, expected: _Null, subtests: pytest.Subtests
+        self, expr: str, nkws: NullKwargs, subtests: pytest.Subtests
     ) -> None:
+        expected = _Null(**nkws)
         with subtests.test("forward"):
             assert _Null.from_str(expr) == expected
         with subtests.test("backward"):
             assert expected.normalize() == expr
 
     @pytest.mark.parametrize(
-        "expr, expected",
+        "expr, nkws",
         [
-            ('?="1"', _Null(flag="?", value="1")),
+            pytest.param('?="z"', dict(flag="?", value="z"), marks=pytest.mark.xfail),
+            ('?="1"', dict(flag="?", value="1")),
+            pytest.param(
+                "?=-1e6", dict(flag="?", value=-1e6, tp=float), marks=pytest.mark.xfail
+            ),
+            pytest.param(
+                "?=+99.00",
+                dict(flag="?", value=99.0, tp=float),
+                marks=pytest.mark.xfail,
+            ),
         ],
     )
-    def test_valid_example(self, expr: str, expected: _Null) -> None:
-        assert _Null.from_str(expr) == expected
+    def test_valid_example(self, expr: str, nkws: NullKwargs) -> None:
+        expected = _Null(**nkws)
+        assert _Null.from_str(expr, tp=nkws.get("tp", str)) == expected
 
     @pytest.mark.parametrize("expr", [" ", "??", " ?", "? ", "!!", "?!", "!?"])
     def test_invalid_examples(self, expr: str) -> None:

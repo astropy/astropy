@@ -201,7 +201,12 @@ class _Null[T: int | float | str]:
                 )
             )
         if self.value is not None and (tp_value := type(self.value)) is not self.tp:
-            exceptions.append(TypeError())
+            exceptions.append(
+                TypeError(
+                    f"expected null value with type {self.tp.__name__}, "
+                    f"got {tp_value.__name__}"
+                )
+            )
 
         if len(exceptions) > 1:
             raise ExceptionGroup("multiple issues with null expression", exceptions)
