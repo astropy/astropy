@@ -8,7 +8,7 @@ Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 
 import re
 from io import StringIO
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 import numpy as np
 import pytest
@@ -17,7 +17,7 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
-from astropy.io.ascii.mrt import _Explanation, _Limits
+from astropy.io.ascii.mrt import _Explanation, _Limits, _Null
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
@@ -118,10 +118,44 @@ class TestLimits:
             _Limits.from_str(expr)
 
 
-class DescriptionKwargs(TypedDict, total=False):
-    limits: str | None = None
-    null_flag: Literal["?", "!"] | None = None
-    body: str | None = None
+class TestNull:
+    @pytest.mark.parametrize(
+        "expr, expected",
+        [
+            ("!", _Null(flag="!")),
+            ("?", _Null(flag="?")),
+            ("?=1", _Null(flag="?", value="1")),
+        ],
+    )
+    def test_stable_roundtrip(
+        self, expr: str, expected: _Null, subtests: pytest.Subtests
+    ) -> None:
+        with subtests.test("forward"):
+            assert _Null.from_str(expr) == expected
+        with subtests.test("backward"):
+            assert expected.normalize() == expr
+
+    @pytest.mark.parametrize(
+        "expr, expected",
+        [
+            ('?="1"', _Null(flag="?", value="1")),
+        ],
+    )
+    def test_valid_example(self, expr: str, expected: _Null) -> None:
+        assert _Null.from_str(expr) == expected
+
+    @pytest.mark.parametrize("expr", [" ", "??", " ?", "? ", "!!", "?!", "!?"])
+    def test_invalid_examples(self, expr: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid null expression {expr!r}")
+        ):
+            _Null.from_str(expr)
+
+
+class ExplanationKwargs(TypedDict, total=False):
+    limits: _Limits
+    null: _Null
+    body: str | None
 
 
 MISSING_BODY_WARNING = (
@@ -136,7 +170,7 @@ class TestDescription:
             d = _Explanation()
         assert d.body is None
         assert not d.limits
-        assert d.null_flag is None
+        assert not d.null
         assert d.normalize() == ""
 
     @pytest.mark.parametrize("body", ["", " ", "\t", " \t ", "\t \t"])
@@ -152,15 +186,6 @@ class TestDescription:
         d2 = _Explanation.from_str(body)
         assert d2 == d1
 
-    @pytest.mark.parametrize("nf", ["?", "!"])
-    def test_valid_null_flag(self, nf: str) -> None:
-        _Explanation(null_flag=nf, body="body")
-
-    @pytest.mark.parametrize("nf", ["", " ", "??", " ?", "? ", "!!", "?!", "!?"])
-    def test_invalid_null_flag(self, nf: str) -> None:
-        with pytest.raises(ValueError, match=re.escape(f"invalid null flag {nf!r}")):
-            _Explanation(null_flag=nf, body="body")
-
     @pytest.mark.parametrize("of", ["+", "+=", "-", "-="])
     def test_valid_order_flag(self, of: str) -> None:
         exp = _Explanation(order_flag=of, body="body")
@@ -172,32 +197,16 @@ class TestDescription:
             _Explanation(order_flag=of, body="body")
 
     @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
-    def test_bracketed_body(self, body: str, subtests: pytest.Subtests) -> None:
-        msg = re.escape(
-            f"Description body ({body!r}) cannot start with a square bracket "
-            "if limits and null flags are omitted, because it would be read as "
-            "(potentially invalid) limits."
-        )
-
-        with subtests.test("body-only"), pytest.raises(ValueError, match=msg):
-            _Explanation(body=body)
-
-        with subtests.test("w/ nullflag"):
-            _Explanation(body=body, null_flag="?")
-
-        with subtests.test("w/ łimits"):
-            _Explanation(body=body, limits="[0/1]")
-
-        with subtests.test("w/ łimits and nullflag"):
-            _Explanation(body=body, limits="[0/1]", null_flag="?")
-
-    def test_multiple_exceptions(self) -> None:
-        with pytest.RaisesGroup(
-            pytest.RaisesExc(ValueError, match=r"invalid null flag"),
-            pytest.RaisesExc(ValueError, match=r"invalid order flag"),
-            match=r"^multiple issues with explanation fields$",
+    def test_bracketed_body(self, body: str) -> None:
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                f"Description body ({body!r}) cannot start with a square bracket "
+                "if limits and null flags are omitted, because it would be read as "
+                "(potentially invalid) limits."
+            ),
         ):
-            _Explanation(null_flag="/", order_flag="+++", body="[body]")
+            _Explanation(body=body)
 
     @pytest.mark.filterwarnings("ignore:Description body is missing")
     @pytest.mark.parametrize(
@@ -205,19 +214,19 @@ class TestDescription:
         [
             ("", {}),
             ("[1/2[", dict(limits=_Limits.from_str("[1/2["))),
-            ("?", dict(null_flag="?")),
-            ("!", dict(null_flag="!")),
+            ("?", dict(null=_Null(flag="?"))),
+            ("!", dict(null=_Null(flag="!"))),
             ("+", dict(order_flag="+")),
             ("-=", dict(order_flag="-=")),
             ("body", dict(body="body")),
-            ("]1/2]?", dict(limits=_Limits.from_str("]1/2]"), null_flag="?")),
+            ("]1/2]?", dict(limits=_Limits.from_str("]1/2]"), null=_Null(flag="?"))),
             ("[1/2] body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
-            ("? body", dict(null_flag="?", body="body")),
+            ("? body", dict(null=_Null(flag="?"), body="body")),
             (
-                "[1/2]?+= body",
+                "[1/2]?=0+= body",
                 dict(
                     limits=_Limits.from_str("[1/2]"),
-                    null_flag="?",
+                    null=_Null(flag="?", value="0"),
                     order_flag="+=",
                     body="body",
                 ),
@@ -227,7 +236,7 @@ class TestDescription:
     def test_stable_roundtrip(
         self,
         s: str,
-        dkw: DescriptionKwargs,
+        dkw: ExplanationKwargs,
         subtests: pytest.Subtests,
     ) -> None:
         d = _Explanation(**dkw)
@@ -243,33 +252,39 @@ class TestDescription:
             (" [1/2]", dict(limits=_Limits.from_str("[1/2]"))),
             ("[1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
             (" [1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
-            (" ?", dict(null_flag="?")),
-            ("? ", dict(null_flag="?")),
-            (" ? ", dict(null_flag="?")),
+            (" ?", dict(null=_Null(flag="?"))),
+            ("? ", dict(null=_Null(flag="?"))),
+            (" ? ", dict(null=_Null(flag="?"))),
             ("body\t", dict(body="body")),
             ("\tbody", dict(body="body")),
             ("\tbody\t", dict(body="body")),
-            ("[1/2]?", dict(limits=_Limits.from_str("[1/2]"), null_flag="?")),
+            ("[1/2]?", dict(limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"))),
             ("[1/2]body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
             (
                 "[1/2]?body",
-                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
             ),
             (
                 "[1/2] ?body",
-                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
             ),
             (
                 "[1/2] ? body",
-                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
             ),
-            ("?body", dict(null_flag="?", body="body")),
-            ("?  body", dict(null_flag="?", body="body")),
-            ("?\tbody", dict(null_flag="?", body="body")),
-            ("?\nbody", dict(null_flag="?", body="body")),
+            ("?body", dict(null=_Null(flag="?"), body="body")),
+            ("?  body", dict(null=_Null(flag="?"), body="body")),
+            ("?\tbody", dict(null=_Null(flag="?"), body="body")),
+            ("?\nbody", dict(null=_Null(flag="?"), body="body")),
         ],
     )
-    def test_from_str(self, s: str, expected_kw: DescriptionKwargs) -> None:
+    def test_from_str(self, s: str, expected_kw: ExplanationKwargs) -> None:
         expected = _Explanation(**expected_kw)
         assert _Explanation.from_str(s) == expected
 

@@ -170,6 +170,71 @@ _NULL_EXPR_PATTERN = (
     r"(?P<nv_opener>\"?)(?P<null_value>\d)(?P=nv_opener)"
     r")?"
 )
+_NULL_EXPR_REGEXP = re.compile(_NULL_EXPR_PATTERN)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class _Null[T: int | float | str]:
+    flag: Literal["?", "!"] | None = None
+    value: T | None = None
+    tp: type[T] = field(default=str, compare=False)
+
+    def __post_init__(self) -> None:
+        exceptions: list[Exception] = []
+        if self.flag not in {"?", "!", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid null flag {self.flag!r} "
+                    "(expected one of {'?', '!', None})"
+                )
+            )
+        if self.flag != "?" and self.value is not None:
+            exceptions.append(
+                ValueError(
+                    f"did not except null value {self.value!r} "
+                    f"following null flag {self.flag!r}"
+                )
+            )
+        if self.value is not None and (tp_value := type(self.value)) is not self.tp:
+            exceptions.append(TypeError())
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with null expression", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> Self[T]:
+        if (m := _NULL_EXPR_REGEXP.fullmatch(expr)) is None:
+            raise ValueError(f"invalid null expression {expr!r}")
+
+        value: T | None
+        match m.group("null_value"):
+            case str(s):
+                value = tp(s)
+            case None:
+                value = None
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        match flag := m.group("null_flag"):
+            case None:
+                return cls(tp=tp)
+            case "?":
+                return cls(flag=flag, value=value, tp=tp)
+            case "!":
+                assert value is None  # redundant sanity check
+                return cls(flag=flag, tp=tp)
+            case _:
+                raise AssertionError()
+
+    def __bool__(self) -> bool:
+        return self != _Null()
+
+    def normalize(self) -> str:
+        return f"{self.flag or ''}{f'={self.value}' if self.value is not None else ''}"
+
 
 _EXPLANATIONS_REGEXP = re.compile(
     r"\s*"
@@ -187,7 +252,7 @@ _EXPLANATIONS_REGEXP = re.compile(
 @dataclass(kw_only=True, frozen=True, slots=True)
 class _Explanation:
     limits: _Limits = _Limits()
-    null_flag: Literal["?", "!"] | None = None
+    null: _Null = _Null()
     order_flag: Literal["+", "+=", "-", "-="] | None = None
     body: str | None = None
 
@@ -203,14 +268,6 @@ class _Explanation:
         # (in)validation
         warnings_: tuple[str, type[Warning]] = []
         exceptions: list[Exception] = []
-        if self.null_flag not in {"?", "!", None}:
-            exceptions.append(
-                ValueError(
-                    f"invalid null flag {self.null_flag!r} "
-                    "(expected one of {'?', '!', None})"
-                )
-            )
-
         if self.order_flag not in {"+", "+=", "-", "-=", None}:
             exceptions.append(
                 ValueError(
@@ -230,11 +287,7 @@ class _Explanation:
                 AstropyDeprecationWarning,
             )
             warnings_.append(w)
-        elif (
-            not self.limits
-            and self.null_flag is None
-            and re.match(r"[\[\]]", self.body)
-        ):
+        elif not self.limits and not self.null and re.match(r"[\[\]]", self.body):
             exceptions.append(
                 ValueError(
                     f"Description body ({original_body!r}) cannot start with a square bracket "
@@ -273,16 +326,24 @@ class _Explanation:
             case _ as unreachable:
                 assert_never(unreachable)
 
+        match match.group("null_expr"):
+            case None:
+                null = None
+            case str(expr):
+                null = _Null.from_str(expr, tp=tp)
+            case _ as unreachable:
+                assert_never(unreachable)
+
         return _Explanation(
             body=match.group("body"),
             limits=limits,
-            null_flag=match.group("null_flag"),
+            null=null,
             order_flag=match.group("order_flag"),
         )
 
     def normalize(self) -> str:
         return (
-            f"{self.limits.normalize()}{self.null_flag or ''}{self.order_flag or ''}"
+            f"{self.limits.normalize()}{self.null.normalize()}{self.order_flag or ''}"
             " "
             f"{self.body or ''}"
         ).strip()
@@ -576,7 +637,9 @@ class MrtHeader(cds.CdsHeader):
 
             # Set null flag in column description
             if col.has_null:
-                description = replace(description, null_flag="?")
+                description = replace(
+                    description, null=replace(description.null, flag="?")
+                )
 
             normalized_description = description.normalize()
 
