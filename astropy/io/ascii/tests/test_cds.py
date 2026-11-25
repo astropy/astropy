@@ -56,11 +56,11 @@ class TestLimits:
         with pytest.RaisesGroup(
             pytest.RaisesExc(
                 TypeError,
-                match=r"expected lower limit to be of type int, got float",
+                match=r"expected lower limit with type int, got float",
             ),
             pytest.RaisesExc(
                 TypeError,
-                match=r"expected upper limit to be of type int, got str",
+                match=r"expected upper limit with type int, got str",
             ),
             pytest.RaisesExc(
                 ValueError,

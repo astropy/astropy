@@ -75,13 +75,15 @@ class _Limits[T: float | int | str]:
         if self.lo is not None and (tp_lo := type(self.lo)) is not self.tp:
             exceptions.append(
                 TypeError(
-                    f"expected lower limit to be of type {self.tp.__name__}, got {tp_lo.__name__}"
+                    f"expected lower limit with type {self.tp.__name__}, "
+                    f"got {tp_lo.__name__}"
                 )
             )
         if self.hi is not None and (tp_hi := type(self.hi)) is not self.tp:
             exceptions.append(
                 TypeError(
-                    f"expected upper limit to be of type {self.tp.__name__}, got {tp_hi.__name__}"
+                    f"expected upper limit with type {self.tp.__name__}, "
+                    f"got {tp_hi.__name__}"
                 )
             )
         if self.opener not in {"[", "]", None}:
@@ -103,16 +105,18 @@ class _Limits[T: float | int | str]:
         if missing_brackets_count == 1:
             exceptions.append(
                 ValueError(
-                    "opening and closing brackets are both required because one of them "
-                    f"is specified. Got {self.opener!r} and {self.closer!r}"
+                    "opening and closing brackets are both required "
+                    "because one of them is specified. "
+                    f"Got {self.opener!r} and {self.closer!r}"
                 )
             )
 
         if (self.lo is not None or self.hi is not None) and missing_brackets_count:
             exceptions.append(
                 ValueError(
-                    "opening and closing brackets are both required because either "
-                    f"a lower or an upper limit was specified. Got {self.opener!r} and {self.closer!r}"
+                    "opening and closing brackets are both required "
+                    "because either a lower or an upper limit was specified. "
+                    f"Got {self.opener!r} and {self.closer!r}"
                 )
             )
 
