@@ -12,7 +12,7 @@ the 8.01 release.
 
 In particular, this release includes:
 
-*
+* :ref:`whatsnew-9.0-scipy-special-quantity`
 *
 *
 
@@ -27,6 +27,18 @@ By the numbers:
 * X distinct people have contributed code
 
 .. release-summary-end
+
+.. _whatsnew-9.0-scipy-special-quantity:
+
+``scipy.special`` support for `~astropy.units.Quantity`
+=======================================================
+
+Most ufuncs from ``scipy.special`` can now be used directly with
+:class:`~astropy.units.Quantity`. Functions are classified by their physical
+semantics: angle-accepting functions (such as ``cosdg``, ``cosm1`` and
+``ellipkinc``) correctly handle angle quantities, arithmetic-like functions
+(such as ``agm``) preserve units, and the majority enforce dimensionless
+inputs and outputs.
 
 Full change log
 ===============
