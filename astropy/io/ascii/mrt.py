@@ -108,8 +108,7 @@ _DESC_REGEXP = re.compile(
     r"\s*"
     r"(?P<order_flag>[+-]=?)?"
     r"\s*"
-    r"(?P<body>.+)?",
-    flags=re.DOTALL,
+    r"(?P<body>(?s:.+))?",
 )
 
 
