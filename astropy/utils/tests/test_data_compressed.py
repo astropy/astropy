@@ -10,6 +10,7 @@ import pytest
 
 from astropy.utils.compat.optional_deps import HAS_BZ2, HAS_LZMA, HAS_UNCOMPRESSPY
 from astropy.utils.data import conf, get_readable_fileobj
+from astropy.utils.exceptions import AstropyDeprecationWarning
 
 
 @pytest.fixture(
@@ -142,16 +143,19 @@ def test_decompressed_size_limit_is_enforced_incrementally(
     peak Python memory stays far below the size of the full bomb.  The latter
     catches implementations that decompress everything (in memory or to a
     temporary file via a single ``read()``) and only then check the size.
+
+    At the current time, we are in a deprecations period, so the limit is not
+    enforced, but a warning is issued.
     """
     path = bad_factory(suffix, compressor)
     with (
         conf.set_temp("max_decompressed_size", TOO_BIG_LIMIT),
         conf.set_temp("max_decompression_ratio", 0),
     ):
-        delivered, error, peak = _read_until_failure(path, encoding)
+        with pytest.warns(AstropyDeprecationWarning, match="max_decompressed_size"):
+            delivered, error, peak = _read_until_failure(path, encoding)
 
-    assert isinstance(error, ValueError)
-    assert "max_decompressed_size" in str(error)  # tells the user how to override
+    assert error is None
     assert delivered <= TOO_BIG_LIMIT + READ_CHUNK
     assert peak < TOO_BIG_SIZE // 4
 
@@ -161,23 +165,33 @@ def test_decompressed_size_limit_is_enforced_incrementally(
 def test_decompression_ratio_limit_is_enforced_incrementally(
     bad_factory, suffix, compressor, encoding
 ):
-    """Same as above, but triggered by the compression ratio alone."""
+    """Same as above, but triggered by the compression ratio alone.
+
+    At the current time, we are in a deprecations period, so the limit is not
+    enforced, but a warning is issued.
+    """
     path = bad_factory(suffix, compressor)
     with (
         conf.set_temp("max_decompressed_size", 0),
         conf.set_temp("max_decompression_ratio", 20),
     ):
-        delivered, error, peak = _read_until_failure(path, encoding)
+        with pytest.warns(AstropyDeprecationWarning, match="max_decompression_ratio"):
+            delivered, error, peak = _read_until_failure(path, encoding)
 
-    assert isinstance(error, ValueError)
-    assert "max_decompression_ratio" in str(error)
-    assert delivered < TOO_BIG_SIZE // 2
-    assert peak < TOO_BIG_SIZE // 4
+    assert error is None
+    # assert isinstance(error, ValueError)
+    # assert "max_decompression_ratio" in str(error)
+    # assert delivered < TOO_BIG_SIZE // 2
+    # assert peak < TOO_BIG_SIZE // 4
 
 
 @pytest.mark.parametrize(("suffix", "compressor"), BAD_COMPRESSORS)
 def test_decompression_limit_seek_is_counted(bad_factory, suffix, compressor):
-    """Seeking forward (or to the end) decompresses data, so it must be limited."""
+    """Seeking forward (or to the end) decompresses data, so it must be limited.
+
+    At the current time, we are in a deprecations period, so the limit is not
+    enforced, but a warning is issued.
+    """
     path = bad_factory(suffix, compressor)
     with (
         conf.set_temp("max_decompressed_size", TOO_BIG_LIMIT),
@@ -185,7 +199,9 @@ def test_decompression_limit_seek_is_counted(bad_factory, suffix, compressor):
     ):
         for seek_args in [(TOO_BIG_SIZE // 2,), (0, io.SEEK_END)]:
             with get_readable_fileobj(path, encoding="binary") as f:
-                with pytest.raises(ValueError, match="max_decompressed_size"):
+                with pytest.warns(
+                    AstropyDeprecationWarning, match="max_decompressed_size"
+                ):
                     f.seek(*seek_args)
 
 

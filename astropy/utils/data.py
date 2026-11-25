@@ -237,7 +237,9 @@ class _LimitedDecompressedReader(io.RawIOBase):
                 self._max_ratio,
                 f"a decompressed-to-compressed size ratio above {self._max_ratio}",
             )
-        return ValueError(
+        message = (
+            "Reading large files unchecked was deprecated in version 8.1.  "
+            "For now, reading will succeed with a warning, but in a future version it will raise an error.  "
             f"Decompressing {self.name!r} would produce {what}, which exceeds "
             f"the limit set by the configuration item "
             f"`astropy.utils.data.conf.{item}` ({value}). This could be a "
@@ -249,9 +251,9 @@ class _LimitedDecompressedReader(io.RawIOBase):
             f"(section [utils.data], key {item}). A value of 0 disables the "
             "limit."
         )
+        warn(message, AstropyDeprecationWarning, stacklevel=2)
 
     def _check_ratio(self):
-        print(self._max_ratio, self._high_water, self._compressed.tell())
         if (
             self._max_ratio
             # Only when decompressing new data: after rewinding, the compressed
@@ -260,7 +262,7 @@ class _LimitedDecompressedReader(io.RawIOBase):
             and self._high_water >= _MIN_BYTES_FOR_RATIO_CHECK
             and self._high_water / max(self._compressed.tell(), 1) > self._max_ratio
         ):
-            raise self._error("ratio")
+            self._error("ratio")
 
     def readinto(self, b):
         size = min(len(b), _MAX_DECOMPRESS_CHUNK)
@@ -269,7 +271,7 @@ class _LimitedDecompressedReader(io.RawIOBase):
             # without ever decompressing more than that.
             size = min(size, self._max_size - self._pos + 1)
             if size <= 0:
-                raise self._error("size")
+                self._error("size")
         view = memoryview(b)[:size]
         try:
             readinto = self._decompressor.readinto
@@ -282,7 +284,7 @@ class _LimitedDecompressedReader(io.RawIOBase):
         self._pos += n
         self._high_water = max(self._high_water, self._pos)
         if self._max_size and self._pos > self._max_size:
-            raise self._error("size")
+            self._error("size")
         self._check_ratio()
         return n
 
