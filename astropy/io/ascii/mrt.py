@@ -167,7 +167,7 @@ class _Limits[T: float | int | str]:
 
 
 _NULL_EXPR_PATTERN = (
-    r"(?P<null_flag>[\?!])?"
+    r"(?P<null_flag>[\?!])"
     # if the null flag is '?' we can match what follows as a null value
     r"("
     r"(?<=\?)="  # positive lookbehind
@@ -245,6 +245,13 @@ class _Null[T: int | float | str]:
         return f"{self.flag or ''}{f'={self.value}' if self.value is not None else ''}"
 
 
+_MARKUP_REGEXPS = frozenset(
+    {
+        _NULL_EXPR_REGEXP,
+        _LIMITS_REGEXP,
+    }
+)
+
 _EXPLANATIONS_REGEXP = re.compile(
     r"\s*"
     rf"(?P<limits>{_LIMITS_PATTERN})?"
@@ -296,14 +303,21 @@ class _Explanation[T: int | float | str]:
                 AstropyDeprecationWarning,
             )
             warnings_.append(w)
-        elif not self.limits and not self.null and re.match(r"[\[\]]", self.body):
-            exceptions.append(
-                ValueError(
-                    f"Explanation body ({original_body!r}) cannot start with a square bracket "
-                    "if limits and null flags are omitted, because it would be read as "
-                    "(potentially invalid) limits."
-                )
+
+        elif (not self.null and not self.limits and self.order_flag is None) and (
+            any(regexp.match(self.body) for regexp in _MARKUP_REGEXPS)
+        ):
+            w = (
+                (
+                    "Explanation object doesn't appear stable to export/import "
+                    "roundtrips. This may indicate misuse of special characters. "
+                    "This will be a hard error in a future version.\n"
+                    "If you believe this warning to be spurious, "
+                    "please report this as a bug to astropy developers."
+                ),
+                AstropyDeprecationWarning,
             )
+            warnings_.append(w)
 
         for msg, category in warnings_:
             # stacklevel=1 is the only somewhat useful value possible within
@@ -337,7 +351,7 @@ class _Explanation[T: int | float | str]:
 
         match match.group("null_expr"):
             case None:
-                null = None
+                null = _Null()
             case str(expr):
                 null = _Null.from_str(expr, tp=tp)
             case _ as unreachable:

@@ -218,14 +218,13 @@ class TestDescription:
         with pytest.raises(ValueError, match=re.escape(f"invalid order flag {of!r}")):
             _Explanation(order_flag=of, body="body")
 
-    @pytest.mark.parametrize("body", ["[", "]", "[[", "]]", "[body]", "[Fe/H]"])
-    def test_bracketed_body(self, body: str) -> None:
-        with pytest.raises(
-            ValueError,
-            match=re.escape(
-                f"Explanation body ({body!r}) cannot start with a square bracket "
-                "if limits and null flags are omitted, because it would be read as "
-                "(potentially invalid) limits."
+    @pytest.mark.parametrize("body", ["[]", "[[", "]]", "][", "[body]", "[Fe/H]"])
+    def test_unlikely_to_roundtrip(self, body: str) -> None:
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match=(
+                r"Explanation object doesn't appear stable to export/import "
+                r"roundtrips\. This may indicate misuse of special characters\. "
             ),
         ):
             _Explanation(body=body)
