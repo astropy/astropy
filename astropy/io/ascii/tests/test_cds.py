@@ -159,7 +159,7 @@ class ExplanationKwargs(TypedDict, total=False):
 
 
 MISSING_BODY_WARNING = (
-    r"^Description body is missing \(could be empty or pure whitespace\)\. "
+    r"^Explanation body is missing \(could be empty or pure whitespace\)\. "
     r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
 )
 
@@ -201,14 +201,14 @@ class TestDescription:
         with pytest.raises(
             ValueError,
             match=re.escape(
-                f"Description body ({body!r}) cannot start with a square bracket "
+                f"Explanation body ({body!r}) cannot start with a square bracket "
                 "if limits and null flags are omitted, because it would be read as "
                 "(potentially invalid) limits."
             ),
         ):
             _Explanation(body=body)
 
-    @pytest.mark.filterwarnings("ignore:Description body is missing")
+    @pytest.mark.filterwarnings("ignore:Explanation body is missing")
     @pytest.mark.parametrize(
         "s, dkw",
         [
@@ -245,7 +245,7 @@ class TestDescription:
         with subtests.test("backward"):
             assert d.normalize() == s
 
-    @pytest.mark.filterwarnings("ignore:Description body is missing")
+    @pytest.mark.filterwarnings("ignore:Explanation body is missing")
     @pytest.mark.parametrize(
         "s, expected_kw",
         [

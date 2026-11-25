@@ -15,7 +15,7 @@ from dataclasses import dataclass, field, replace
 from io import StringIO
 from string import Template
 from textwrap import wrap
-from typing import Literal, Self, assert_never, final
+from typing import Literal, assert_never, final
 
 import numpy as np
 
@@ -250,9 +250,9 @@ _EXPLANATIONS_REGEXP = re.compile(
 
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
-class _Explanation:
-    limits: _Limits = _Limits()
-    null: _Null = _Null()
+class _Explanation[T: int | float | str]:
+    limits: _Limits[T] = _Limits()
+    null: _Null[T] = _Null()
     order_flag: Literal["+", "+=", "-", "-="] | None = None
     body: str | None = None
 
@@ -266,7 +266,7 @@ class _Explanation:
             )
 
         # (in)validation
-        warnings_: tuple[str, type[Warning]] = []
+        warnings_: list[tuple[str, type[Warning]]] = []
         exceptions: list[Exception] = []
         if self.order_flag not in {"+", "+=", "-", "-=", None}:
             exceptions.append(
@@ -279,7 +279,7 @@ class _Explanation:
         if self.body is None:
             w = (
                 (
-                    "Description body is missing "
+                    "Explanation body is missing "
                     "(could be empty or pure whitespace). "
                     "This is deprecated since astropy 9.0.0 and "
                     "will be rejected in a future version."
@@ -290,7 +290,7 @@ class _Explanation:
         elif not self.limits and not self.null and re.match(r"[\[\]]", self.body):
             exceptions.append(
                 ValueError(
-                    f"Description body ({original_body!r}) cannot start with a square bracket "
+                    f"Explanation body ({original_body!r}) cannot start with a square bracket "
                     "if limits and null flags are omitted, because it would be read as "
                     "(potentially invalid) limits."
                 )
@@ -308,7 +308,7 @@ class _Explanation:
             raise exceptions[0]
 
     @classmethod
-    def from_str(cls, s: str, /, *, tp: type[int | float | str] = str) -> Self:
+    def from_str(cls, s: str, /, *, tp: type[T] = str) -> "_Explanation[T]":
         if (match := _EXPLANATIONS_REGEXP.match(s)) is None:  # pragma: no coverage
             # the 'body' group is supposed to accept any valid *single-line* str
             # thus, we don't *expect* this branch to be reachable,
@@ -334,7 +334,7 @@ class _Explanation:
             case _ as unreachable:
                 assert_never(unreachable)
 
-        return _Explanation(
+        return cls(
             body=match.group("body"),
             limits=limits,
             null=null,
