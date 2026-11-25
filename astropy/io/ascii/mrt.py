@@ -100,11 +100,20 @@ class _Limits[T: float | int | str]:
         return self.expr or ""
 
 
+_NULL_EXPR_PATTERN = (
+    r"(?P<null_flag>[\?!])?"
+    # if the null flag is '?' we can match what follows as a null value
+    r"("
+    r"(?<=\?)="  # positive lookbehind
+    r"(?P<nv_opener>\"?)(?P<null_value>\d)(?P=nv_opener)"
+    r")?"
+)
+
 _DESC_REGEXP = re.compile(
     r"\s*"
     rf"(?P<limits>{_LIMITS_PATTERN})?"
     r"\s*"
-    r"(?P<null_flag>[\?!])?"
+    rf"(?P<null_expr>{_NULL_EXPR_PATTERN})?"
     r"\s*"
     r"(?P<order_flag>[+-]=?)?"
     r"\s*"
