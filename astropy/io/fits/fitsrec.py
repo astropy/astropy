@@ -1172,9 +1172,12 @@ class FITS_rec(np.recarray):
             if _str:
                 fmt = field.dtype.char
                 dtype = (f"|{fmt}{dim[-1]}", dim[:-1])
-                field.dtype = dtype
+                # Setting .dtype on an ndarray is deprecated in NumPy 2.5;
+                # a view expresses the same reinterpretation without mutation.
+                field = field.view(dtype)
             else:
-                field.shape = (field.shape[0],) + dim
+                # Likewise for in-place .shape assignment.
+                field = field.reshape((field.shape[0],) + dim)
 
         return field
 
