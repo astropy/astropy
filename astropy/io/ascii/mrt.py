@@ -122,7 +122,7 @@ class _Limits[T: float | int | str]:
             raise exceptions[0]
 
     @classmethod
-    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> Self[T]:
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> "_Limits[T]":
         if (m := _LIMITS_REGEXP.fullmatch(expr)) is None:
             raise ValueError(f"invalid limits expression {expr!r}")
 
@@ -205,7 +205,7 @@ class _Null[T: int | float | str]:
             raise exceptions[0]
 
     @classmethod
-    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> Self[T]:
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> "_Null[T]":
         if (m := _NULL_EXPR_REGEXP.fullmatch(expr)) is None:
             raise ValueError(f"invalid null expression {expr!r}")
 
