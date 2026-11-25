@@ -10,6 +10,7 @@ Ref: https://journals.aas.org/mrt-standards
 
 import re
 import warnings
+from collections import Counter
 from dataclasses import dataclass, field, replace
 from io import StringIO
 from string import Template
@@ -63,41 +64,102 @@ _LIMITS_REGEXP = re.compile(_LIMITS_PATTERN)
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
 class _Limits[T: float | int | str]:
-    expr: str | None = None
-    tp: type[T] = str
-    _match: re.Match[str] | None = field(init=False, compare=False)
+    lo: T | None = None
+    hi: T | None = None
+    opener: Literal["[", "]"] | None = None
+    closer: Literal["[", "]"] | None = None
+    tp: type[T] = field(default=str, compare=False)
 
     def __post_init__(self):
-        if self.expr is None:
-            object.__setattr__(self, "_match", None)
-            return
-
-        if (match := _LIMITS_REGEXP.fullmatch(self.expr)) is None:
-            raise ValueError(
-                f"invalid limits expression {self.expr!r} "
-                "(expected opening and closing square brackets)"
+        exceptions: list[Exception] = []
+        if self.lo is not None and (tp_lo := type(self.lo)) is not self.tp:
+            exceptions.append(
+                TypeError(
+                    f"expected lower limit to be of type {self.tp.__name__}, got {tp_lo.__name__}"
+                )
+            )
+        if self.hi is not None and (tp_hi := type(self.hi)) is not self.tp:
+            exceptions.append(
+                TypeError(
+                    f"expected upper limit to be of type {self.tp.__name__}, got {tp_hi.__name__}"
+                )
+            )
+        if self.opener not in {"[", "]", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid opening bracket {self.opener!r} "
+                    "(expected one of {'[', ']', None})"
+                )
+            )
+        if self.closer not in {"[", "]", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid closing bracket {self.closer!r} "
+                    "(expected one of {'[', ']', None})"
+                )
             )
 
-        object.__setattr__(self, "_match", match)
+        missing_brackets_count = Counter([self.opener, self.closer])[None]
+        if missing_brackets_count == 1:
+            exceptions.append(
+                ValueError(
+                    "opening and closing brackets are both required because one of them "
+                    f"is specified. Got {self.opener!r} and {self.closer!r}"
+                )
+            )
 
-    @property
-    def lo(self) -> T | None:
-        match self._match.group("lo"):
+        if (self.lo is not None or self.hi is not None) and missing_brackets_count:
+            exceptions.append(
+                ValueError(
+                    "opening and closing brackets are both required because either "
+                    f"a lower or an upper limit was specified. Got {self.opener!r} and {self.closer!r}"
+                )
+            )
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with limits", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> Self[T]:
+        if (m := _LIMITS_REGEXP.fullmatch(expr)) is None:
+            raise ValueError(f"invalid limits expression {expr!r}")
+
+        lo: T | None
+        match m.group("lo"):
+            case str(s):
+                lo = tp(s)
             case None:
-                return None
-            case lo:
-                return self.tp(lo)
+                lo = None
+            case _ as unreachable:
+                assert_never(unreachable)
 
-    @property
-    def hi(self) -> T | None:
-        match self._match.group("hi"):
+        hi: T | None
+        match m.group("hi"):
+            case str(s):
+                hi = tp(s)
             case None:
-                return None
-            case hi:
-                return self.tp(hi)
+                hi = None
+            case _ as unreachable:
+                assert_never(unreachable)
 
-    def __str__(self) -> str:
-        return self.expr or ""
+        return cls(
+            lo=lo, hi=hi, opener=m.group("opener"), closer=m.group("closer"), tp=tp
+        )
+
+    def __bool__(self) -> bool:
+        return self != _Limits()
+
+    def normalize(self) -> str:
+        match self.lo, self.hi:
+            case None, None:
+                sep = ""
+            case _:
+                sep = "/"
+        return (
+            f"{self.opener or ''}{self.lo or ''}{sep}{self.hi or ''}{self.closer or ''}"
+        )
 
 
 _NULL_EXPR_PATTERN = (
@@ -109,7 +171,7 @@ _NULL_EXPR_PATTERN = (
     r")?"
 )
 
-_DESC_REGEXP = re.compile(
+_EXPLANATIONS_REGEXP = re.compile(
     r"\s*"
     rf"(?P<limits>{_LIMITS_PATTERN})?"
     r"\s*"
@@ -124,7 +186,7 @@ _DESC_REGEXP = re.compile(
 @final
 @dataclass(kw_only=True, frozen=True, slots=True)
 class _Explanation:
-    limits: _Limits | None = None
+    limits: _Limits = _Limits()
     null_flag: Literal["?", "!"] | None = None
     order_flag: Literal["+", "+=", "-", "-="] | None = None
     body: str | None = None
@@ -169,7 +231,7 @@ class _Explanation:
             )
             warnings_.append(w)
         elif (
-            self.limits is None
+            not self.limits
             and self.null_flag is None
             and re.match(r"[\[\]]", self.body)
         ):
@@ -188,26 +250,26 @@ class _Explanation:
             warnings.warn(msg, category, stacklevel=1)
 
         if len(exceptions) > 1:
-            raise ExceptionGroup("multiple issues with description fields", exceptions)
+            raise ExceptionGroup("multiple issues with explanation fields", exceptions)
         elif exceptions:
             raise exceptions[0]
 
     @classmethod
     def from_str(cls, s: str, /, *, tp: type[int | float | str] = str) -> Self:
-        if (match := _DESC_REGEXP.match(s)) is None:  # pragma: no coverage
+        if (match := _EXPLANATIONS_REGEXP.match(s)) is None:  # pragma: no coverage
             # the 'body' group is supposed to accept any valid *single-line* str
             # thus, we don't *expect* this branch to be reachable,
             # though it is useful in debugging and static analysis
             raise ValueError(
-                f"Failed to match {s!r} against description regexp. "
+                f"Failed to match {s!r} against explanation regexp. "
                 "Please report this as a bug."
             )
 
         match match.group("limits"):
             case None:
-                limits = None
+                limits = _Limits(tp=tp)
             case str(expr):
-                limits = _Limits(expr=expr, tp=tp)
+                limits = _Limits.from_str(expr, tp=tp)
             case _ as unreachable:
                 assert_never(unreachable)
 
@@ -220,7 +282,7 @@ class _Explanation:
 
     def normalize(self) -> str:
         return (
-            f"{self.limits or ''}{self.null_flag or ''}{self.order_flag or ''}"
+            f"{self.limits.normalize()}{self.null_flag or ''}{self.order_flag or ''}"
             " "
             f"{self.body or ''}"
         ).strip()

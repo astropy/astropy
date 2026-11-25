@@ -27,6 +27,53 @@ from astropy.utils.masked import Masked
 
 
 class TestLimits:
+    @pytest.mark.parametrize("bracket", ["[", "]"])
+    def test_single_bracket(self, bracket: str, subtests: pytest.Subtests) -> None:
+        with (
+            subtests.test("missing closer"),
+            pytest.raises(
+                ValueError,
+                match=re.escape(
+                    r"opening and closing brackets are both required "
+                    rf"because one of them is specified. Got '{bracket}' and None"
+                ),
+            ),
+        ):
+            _Limits(opener=bracket)
+        with (
+            subtests.test("missing opener"),
+            pytest.raises(
+                ValueError,
+                match=re.escape(
+                    r"opening and closing brackets are both required "
+                    rf"because one of them is specified. Got None and '{bracket}'"
+                ),
+            ),
+        ):
+            _Limits(closer=bracket)
+
+    def test_multiple_exceptions(self) -> None:
+        with pytest.RaisesGroup(
+            pytest.RaisesExc(
+                TypeError,
+                match=r"expected lower limit to be of type int, got float",
+            ),
+            pytest.RaisesExc(
+                TypeError,
+                match=r"expected upper limit to be of type int, got str",
+            ),
+            pytest.RaisesExc(
+                ValueError,
+                match=r"invalid opening bracket '{'",
+            ),
+            pytest.RaisesExc(
+                ValueError,
+                match=r"invalid closing bracket '\)'",
+            ),
+            match=r"^multiple issues with limits$",
+        ):
+            _Limits(tp=int, lo=1.0, hi="2.0", opener="{", closer=")")
+
     @pytest.mark.parametrize(
         "expr, tp, expected",
         [
@@ -55,7 +102,7 @@ class TestLimits:
         assert expected[0] is None or type(expected[0]) is tp
         assert expected[1] is None or type(expected[1]) is tp
 
-        L = _Limits(expr=expr, tp=tp)
+        L = _Limits.from_str(expr, tp=tp)
         assert (L.lo, L.hi) == expected
 
         with subtests.test("lo"):
@@ -68,7 +115,7 @@ class TestLimits:
         with pytest.raises(
             ValueError, match=re.escape(f"invalid limits expression {expr!r}")
         ):
-            _Limits(expr=expr)
+            _Limits.from_str(expr)
 
 
 class DescriptionKwargs(TypedDict, total=False):
@@ -88,7 +135,7 @@ class TestDescription:
         with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
             d = _Explanation()
         assert d.body is None
-        assert d.limits is None
+        assert not d.limits
         assert d.null_flag is None
         assert d.normalize() == ""
 
@@ -148,7 +195,7 @@ class TestDescription:
         with pytest.RaisesGroup(
             pytest.RaisesExc(ValueError, match=r"invalid null flag"),
             pytest.RaisesExc(ValueError, match=r"invalid order flag"),
-            match=r"^multiple issues with description fields$",
+            match=r"^multiple issues with explanation fields$",
         ):
             _Explanation(null_flag="/", order_flag="+++", body="[body]")
 
@@ -157,19 +204,19 @@ class TestDescription:
         "s, dkw",
         [
             ("", {}),
-            ("[1/2[", dict(limits=_Limits(expr="[1/2["))),
+            ("[1/2[", dict(limits=_Limits.from_str("[1/2["))),
             ("?", dict(null_flag="?")),
             ("!", dict(null_flag="!")),
             ("+", dict(order_flag="+")),
             ("-=", dict(order_flag="-=")),
             ("body", dict(body="body")),
-            ("]1/2]?", dict(limits=_Limits(expr="]1/2]"), null_flag="?")),
-            ("[1/2] body", dict(limits=_Limits(expr="[1/2]"), body="body")),
+            ("]1/2]?", dict(limits=_Limits.from_str("]1/2]"), null_flag="?")),
+            ("[1/2] body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
             ("? body", dict(null_flag="?", body="body")),
             (
                 "[1/2]?+= body",
                 dict(
-                    limits=_Limits(expr="[1/2]"),
+                    limits=_Limits.from_str("[1/2]"),
                     null_flag="?",
                     order_flag="+=",
                     body="body",
@@ -193,28 +240,28 @@ class TestDescription:
     @pytest.mark.parametrize(
         "s, expected_kw",
         [
-            (" [1/2]", dict(limits=_Limits(expr="[1/2]"))),
-            ("[1/2] ", dict(limits=_Limits(expr="[1/2]"))),
-            (" [1/2] ", dict(limits=_Limits(expr="[1/2]"))),
+            (" [1/2]", dict(limits=_Limits.from_str("[1/2]"))),
+            ("[1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
+            (" [1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
             (" ?", dict(null_flag="?")),
             ("? ", dict(null_flag="?")),
             (" ? ", dict(null_flag="?")),
             ("body\t", dict(body="body")),
             ("\tbody", dict(body="body")),
             ("\tbody\t", dict(body="body")),
-            ("[1/2]?", dict(limits=_Limits(expr="[1/2]"), null_flag="?")),
-            ("[1/2]body", dict(limits=_Limits(expr="[1/2]"), body="body")),
+            ("[1/2]?", dict(limits=_Limits.from_str("[1/2]"), null_flag="?")),
+            ("[1/2]body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
             (
                 "[1/2]?body",
-                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
             ),
             (
                 "[1/2] ?body",
-                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
             ),
             (
                 "[1/2] ? body",
-                dict(limits=_Limits(expr="[1/2]"), null_flag="?", body="body"),
+                dict(limits=_Limits.from_str("[1/2]"), null_flag="?", body="body"),
             ),
             ("?body", dict(null_flag="?", body="body")),
             ("?  body", dict(null_flag="?", body="body")),
