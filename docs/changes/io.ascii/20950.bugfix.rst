@@ -1,0 +1,3 @@
+Align astropy with modern browsers by interpreting "colspan=0" as
+"colspan=1" when reading astropy tables.
+Before this bugfix, "colspan=0" could hang the reader.
