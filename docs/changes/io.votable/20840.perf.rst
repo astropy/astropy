@@ -1,0 +1,3 @@
+Reading a VOTable stored as TABLEDATA is faster, mostly for numeric and empty
+cells: about 1.6 times faster for a 75 MB Gaia cone search of 44,000 rows and
+100 columns, and 1.2 to 1.5 times faster for the other tables tried.
