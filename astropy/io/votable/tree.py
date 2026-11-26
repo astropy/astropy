@@ -86,6 +86,7 @@ from .exceptions import (
     W56,
     W57,
     W59,
+    VOWarning,
     vo_raise,
     vo_reraise,
     vo_warn,
@@ -465,7 +466,7 @@ class _BinaryColumnReader:
         if not self.var_fields:
             records = np.ndarray(nrows, self.record_dtype, buffer=buffer, offset=low)
         else:
-            sizes = np.empty((nrows, len(self.is_fixed_part)), dtype=np.int64)
+            sizes = np.empty((nrows, len(self.is_fixed_part)), dtype=np.intp)
             sizes[:, 0::3] = self.run_sizes
             sizes[:, 1::3] = 4
             for k, (item_size, count) in enumerate(
@@ -3561,14 +3562,15 @@ class TableElement(
         -------
         array : `~numpy.ma.MaskedArray` or None
             `None` when a field has a datatype read only value by value, or
-            when anything stops the column reader, such as a value that does
+            when the data stops the column reader, such as a value that does
             not convert.  The value-by-value reader then reads the stream,
-            and gives the warnings and errors for it.
+            and gives the warnings and errors for it.  Any other exception
+            is a bug, and is not caught.
         """
         try:
             reader = _BinaryColumnReader(self.all_fields, mode)
             return reader.read(buffer, colnumbers, self.array.dtype)
-        except Exception:
+        except (_ReadValueByValue, ValueError, VOWarning):
             return None
 
     def _parse_binary(self, mode, iterator, colnumbers, config, pos):
