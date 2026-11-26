@@ -28,7 +28,7 @@ from astropy.modeling.core import (
 )
 from astropy.modeling.parameters import InputParameterError, Parameter
 from astropy.modeling.separable import separability_matrix
-from astropy.tests.helper import assert_quantity_allclose
+from astropy.tests.helper import assert_quantity_allclose, require_subprocess
 from astropy.utils.compat.optional_deps import HAS_SCIPY
 
 
@@ -605,9 +605,7 @@ Fittable parameters: ('amplitude', 'mean', 'stddev')
 """.strip()
 
 
-@pytest.mark.skipif(
-    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
-)
+@require_subprocess
 def test_rename_path(tmp_path):
     # Regression test for a bug that caused the path to the class to be
     # incorrect in a renamed model's __repr__.

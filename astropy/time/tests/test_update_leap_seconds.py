@@ -9,6 +9,7 @@ from textwrap import dedent
 import erfa
 import pytest
 
+from astropy.tests.helper import require_subprocess
 from astropy.time import update_leap_seconds
 from astropy.utils import iers
 from astropy.utils.exceptions import AstropyWarning
@@ -86,9 +87,7 @@ class TestUpdateLeapSeconds:
             update_leap_seconds([expired_file])
 
 
-@pytest.mark.skipif(
-    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
-)
+@require_subprocess
 def test_utc_conversion_does_not_update_erfa():
     """Leap seconds were discontinued, so Time no longer updates ERFA's table.
 

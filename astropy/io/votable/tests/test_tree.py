@@ -28,6 +28,7 @@ from astropy.io.votable.exceptions import (
 from astropy.io.votable.table import parse, parse_single_table
 from astropy.io.votable.tree import MivotBlock, Resource, VOTableFile
 from astropy.table import Table
+from astropy.tests.helper import require_subprocess
 from astropy.utils.data import get_pkg_data_filename
 
 
@@ -720,9 +721,7 @@ def test_votablefile_write(tmp_path):
     vot.write(str(out), format="votable")
 
 
-@pytest.mark.skipif(
-    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
-)
+@require_subprocess
 def test_write_tabledata_row_as_long_as_buffer():
     """
     Test that Table.write to TABLEDATA, for a table whose one row is 256 bytes
