@@ -1,0 +1,4 @@
+Headers with ``CONTINUE`` cards that have no space between the keyword and
+the string, such as ``CONTINUE'text'``, can now be read. Verification reports
+these cards as not FITS standard, and fixing them rewrites them with two
+spaces after ``CONTINUE``.
