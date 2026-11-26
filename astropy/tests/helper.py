@@ -21,12 +21,18 @@ __all__ = [
     "check_pickling_recovery",
     "generic_recursive_equality_test",
     "pickle_protocol",
+    "require_subprocess",
 ]
 
 
 # https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
 CI = os.environ.get("CI", "false") == "true"
 IS_CRON = os.environ.get("IS_CRON", "false") == "true"
+
+require_subprocess = pytest.mark.skipif(
+    sys.platform in {"android", "emscripten", "ios", "wasi"},
+    reason=f"subprocesses are not supported on {sys.platform=!r}",
+)
 
 
 def assert_follows_unicode_guidelines(x, roundtrip=None):
