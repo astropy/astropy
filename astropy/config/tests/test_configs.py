@@ -34,6 +34,7 @@ from astropy.config.paths import (
     _resolve,
     _SpecSource,
 )
+from astropy.tests.helper import require_subprocess
 from astropy.utils.data import get_pkg_data_filename
 from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyUserWarning
 
@@ -954,9 +955,7 @@ def test_warning_move_to_top_level() -> None:
         conf.max_lines
 
 
-@pytest.mark.skipif(
-    sys.platform == "emscripten", reason="subprocesses not supported on emscripten"
-)
+@require_subprocess
 def test_no_home() -> None:
     # "import astropy" fails when neither $HOME or $XDG_CONFIG_HOME
     # are set.  To test, we unset those environment variables for a
