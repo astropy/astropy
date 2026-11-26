@@ -1,0 +1,2 @@
+Fix checksum that were not updated when a file containing checksum is modified
+and saved to a new file.
