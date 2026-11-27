@@ -6,7 +6,9 @@ reader/writer.
 Requires `pyyaml <https://pyyaml.org/>`_ to be installed.
 """
 
+import re
 from io import StringIO
+from typing import Literal, TypedDict
 
 import numpy as np
 import pytest
@@ -15,12 +17,288 @@ from numpy.testing import assert_allclose
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii
+from astropy.io.ascii.mrt import _Explanation, _Limits, _Null
 from astropy.table import Column, MaskedColumn, QTable, Table
 from astropy.time import Time
 from astropy.units import Quantity
 from astropy.utils.data import get_pkg_data_filename
-from astropy.utils.exceptions import AstropyWarning
+from astropy.utils.exceptions import AstropyDeprecationWarning, AstropyWarning
 from astropy.utils.masked import Masked
+
+
+class TestLimits:
+    @pytest.mark.parametrize("bracket", ["[", "]"])
+    def test_single_bracket(self, bracket: str, subtests: pytest.Subtests) -> None:
+        with (
+            subtests.test("missing closer"),
+            pytest.raises(
+                ValueError,
+                match=re.escape(
+                    r"opening and closing brackets are both required "
+                    rf"because one of them is specified. Got '{bracket}' and None"
+                ),
+            ),
+        ):
+            _Limits(opener=bracket)
+        with (
+            subtests.test("missing opener"),
+            pytest.raises(
+                ValueError,
+                match=re.escape(
+                    r"opening and closing brackets are both required "
+                    rf"because one of them is specified. Got None and '{bracket}'"
+                ),
+            ),
+        ):
+            _Limits(closer=bracket)
+
+    def test_multiple_exceptions(self) -> None:
+        with pytest.RaisesGroup(
+            pytest.RaisesExc(
+                TypeError,
+                match=r"expected lower limit with type int, got float",
+            ),
+            pytest.RaisesExc(
+                TypeError,
+                match=r"expected upper limit with type int, got str",
+            ),
+            pytest.RaisesExc(
+                ValueError,
+                match=r"invalid opening bracket '{'",
+            ),
+            pytest.RaisesExc(
+                ValueError,
+                match=r"invalid closing bracket '\)'",
+            ),
+            match=r"^multiple issues with limits$",
+        ):
+            _Limits(tp=int, lo=1.0, hi="2.0", opener="{", closer=")")
+
+    @pytest.mark.parametrize(
+        "expr, tp, expected",
+        [
+            ("[]", str, (None, None)),
+            ("[-1/0]", int, (-1, 0)),
+            ("[-1,0]", int, (-1, 0)),
+            ("[-1.0/0.0]", float, (-1.0, 0.0)),
+            ("[-0/1]", int, (0, 1)),
+            ("[+0/1]", int, (0, 1)),
+            ("[0/+1]", int, (0, 1)),
+            ("[0./1]", float, (0.0, 1.0)),
+            ("[-0.0/1.0]", float, (0.0, 1.0)),
+            ("[0./+1.0]", float, (0.0, 1.0)),
+            ("[-1.02/3.004]", float, (-1.02, 3.004)),
+            ("[-1e2/+3e4]", float, (-100.0, 30_000.0)),
+        ],
+    )
+    def test_valid_examples[T: int | float | str](
+        self,
+        expr: str,
+        tp: type[T],
+        expected: tuple[T | None, T | None],
+        subtests: pytest.Subtests,
+    ) -> None:
+        # test case consistency check
+        assert expected[0] is None or type(expected[0]) is tp
+        assert expected[1] is None or type(expected[1]) is tp
+
+        L = _Limits.from_str(expr, tp=tp)
+        assert (L.lo, L.hi) == expected
+
+        with subtests.test("lo"):
+            assert expected[0] is None or type(L.lo) is tp
+        with subtests.test("hi"):
+            assert expected[1] is None or type(L.hi) is tp
+
+    @pytest.mark.parametrize("expr", ["", " ", "[", "]", "[[[", "]]]", "{1/2}"])
+    def test_invalid_examples(self, expr: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid limits expression {expr!r}")
+        ):
+            _Limits.from_str(expr)
+
+
+class NullKwargs[T](TypedDict, total=False):
+    flag: Literal["?", "!"] | None
+    value: T
+    tp: type[T]
+
+
+class TestNull:
+    @pytest.mark.parametrize(
+        "expr, nkws",
+        [
+            ("!", dict(flag="!")),
+            ("?", dict(flag="?")),
+            ("?=1", dict(flag="?", value="1")),
+            ("?=-1e6", dict(flag="?", value="-1e6")),
+        ],
+    )
+    def test_stable_roundtrip(
+        self, expr: str, nkws: NullKwargs, subtests: pytest.Subtests
+    ) -> None:
+        expected = _Null(**nkws)
+        with subtests.test("forward"):
+            assert _Null.from_str(expr) == expected
+        with subtests.test("backward"):
+            assert expected.normalize() == expr
+
+    @pytest.mark.parametrize(
+        "expr, nkws",
+        [
+            ('?="z"', dict(flag="?", value="z")),
+            ('?="1"', dict(flag="?", value="1")),
+            ("?=-1e6", dict(flag="?", value=-1e6, tp=float)),
+            ("?=+99.00", dict(flag="?", value=99.0, tp=float)),
+        ],
+    )
+    def test_valid_example(self, expr: str, nkws: NullKwargs) -> None:
+        expected = _Null(**nkws)
+        assert _Null.from_str(expr, tp=nkws.get("tp", str)) == expected
+
+    @pytest.mark.parametrize("expr", [" ", "??", " ?", "? ", "!!", "?!", "!?"])
+    def test_invalid_examples(self, expr: str) -> None:
+        with pytest.raises(
+            ValueError, match=re.escape(f"invalid null expression {expr!r}")
+        ):
+            _Null.from_str(expr)
+
+
+class ExplanationKwargs(TypedDict, total=False):
+    limits: _Limits
+    null: _Null
+    body: str | None
+
+
+MISSING_BODY_WARNING = (
+    r"^Explanation body is missing \(could be empty or pure whitespace\)\. "
+    r"This is deprecated since astropy 9\.0\.0 and will be rejected in a future version\.$"
+)
+
+
+class TestDescription:
+    def test_init_defaults(self) -> None:
+        with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
+            d = _Explanation()
+        assert d.body is None
+        assert not d.limits
+        assert not d.null
+        assert d.normalize() == ""
+
+    @pytest.mark.parametrize("body", ["", " ", "\t", " \t ", "\t \t"])
+    def test_empty_body(self, body: str) -> None:
+        with pytest.warns(AstropyDeprecationWarning, match=MISSING_BODY_WARNING):
+            d = _Explanation.from_str(body)
+        assert d.body is None
+
+    def test_multiline_body(self) -> None:
+        body = "a\nb\nc"
+        d1 = _Explanation(body=body)
+        assert d1.body == body.replace("\n", " ")
+        d2 = _Explanation.from_str(body)
+        assert d2 == d1
+
+    @pytest.mark.parametrize("of", ["+", "+=", "-", "-="])
+    def test_valid_order_flag(self, of: str) -> None:
+        exp = _Explanation(order_flag=of, body="body")
+        assert exp.order_flag == of
+
+    @pytest.mark.parametrize("of", ["", " ", "++", "--", "=", "=+", "=-"])
+    def test_invalid_order_flag(self, of: str) -> None:
+        with pytest.raises(ValueError, match=re.escape(f"invalid order flag {of!r}")):
+            _Explanation(order_flag=of, body="body")
+
+    @pytest.mark.parametrize("body", ["[]", "[[", "]]", "][", "[body]", "[Fe/H]"])
+    def test_unlikely_to_roundtrip(self, body: str) -> None:
+        with pytest.warns(
+            AstropyDeprecationWarning,
+            match=(
+                r"Explanation object doesn't appear stable to export/import "
+                r"roundtrips\. This may indicate misuse of special characters\. "
+            ),
+        ):
+            _Explanation(body=body)
+
+    @pytest.mark.filterwarnings("ignore:Explanation body is missing")
+    @pytest.mark.parametrize(
+        "s, dkw",
+        [
+            ("", {}),
+            ("[1/2[", dict(limits=_Limits.from_str("[1/2["))),
+            ("?", dict(null=_Null(flag="?"))),
+            ("!", dict(null=_Null(flag="!"))),
+            ("+", dict(order_flag="+")),
+            ("-=", dict(order_flag="-=")),
+            ("body", dict(body="body")),
+            ("]1/2] ?", dict(limits=_Limits.from_str("]1/2]"), null=_Null(flag="?"))),
+            ("[1/2] body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
+            ("? body", dict(null=_Null(flag="?"), body="body")),
+            (
+                "[1/2] ?=0 += body",
+                dict(
+                    limits=_Limits.from_str("[1/2]"),
+                    null=_Null(flag="?", value="0"),
+                    order_flag="+=",
+                    body="body",
+                ),
+            ),
+        ],
+    )
+    def test_stable_roundtrip(
+        self,
+        s: str,
+        dkw: ExplanationKwargs,
+        subtests: pytest.Subtests,
+    ) -> None:
+        d = _Explanation(**dkw)
+        with subtests.test("forward"):
+            assert _Explanation.from_str(s) == d
+        with subtests.test("backward"):
+            assert d.normalize() == s
+
+    @pytest.mark.filterwarnings("ignore:Explanation body is missing")
+    @pytest.mark.parametrize(
+        "s, expected_kw",
+        [
+            (" [1/2]", dict(limits=_Limits.from_str("[1/2]"))),
+            ("[1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
+            (" [1/2] ", dict(limits=_Limits.from_str("[1/2]"))),
+            (" ?", dict(null=_Null(flag="?"))),
+            ("? ", dict(null=_Null(flag="?"))),
+            (" ? ", dict(null=_Null(flag="?"))),
+            ("body\t", dict(body="body")),
+            ("\tbody", dict(body="body")),
+            ("\tbody\t", dict(body="body")),
+            ("[1/2]?", dict(limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"))),
+            ("[1/2]body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
+            (
+                "[1/2]?body",
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
+            ),
+            (
+                "[1/2] ?body",
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
+            ),
+            (
+                "[1/2] ? body",
+                dict(
+                    limits=_Limits.from_str("[1/2]"), null=_Null(flag="?"), body="body"
+                ),
+            ),
+            ("?body", dict(null=_Null(flag="?"), body="body")),
+            ("?  body", dict(null=_Null(flag="?"), body="body")),
+            ("?\tbody", dict(null=_Null(flag="?"), body="body")),
+            ("?\nbody", dict(null=_Null(flag="?"), body="body")),
+        ],
+    )
+    def test_from_str(self, s: str, expected_kw: ExplanationKwargs) -> None:
+        expected = _Explanation(**expected_kw)
+        assert _Explanation.from_str(s) == expected
+
 
 test_dat = [
     "names e d s i",
@@ -646,3 +924,18 @@ def test_qtable_masked_invalid_quantity(val):
     t_r = QTable(data={"B": Masked(Quantity(data[::-1], "m"), mask=mask[::-1])})
     t_r.write(out_r, format="ascii.mrt")
     assert out_r.getvalue().splitlines()[-2:] == expected_out[::-1]
+
+
+def test_masked_col_with_description():
+    # regression test for a bug where the null flag would be prepended
+    # to the user-specified description instead of inserting
+    col = MaskedColumn(
+        [1.5, 2.5],
+        description="[0/10] desc",
+        mask=[0, 1],
+    )
+    t = Table({"a": col})
+    buffer = StringIO()
+    t.write(buffer, format="ascii.mrt")
+    lines = [L.rstrip() for L in buffer.getvalue().splitlines()]
+    assert "1-3  F3.1   ---    a       [0/10] ? desc" in lines

@@ -1,0 +1,6 @@
+On export to MRT, columns' descriptions are now validated against a
+subset of the format specification, so obviously invalid cases can be
+rejected at runtime. In addition, exporting columns with empty
+description bodies (excluding data limits and null flags) to MRT is
+now deprecated and emits a warning. A hard error will be raised
+instead in a future version.

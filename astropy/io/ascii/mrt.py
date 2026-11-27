@@ -10,14 +10,18 @@ Ref: https://journals.aas.org/mrt-standards
 
 import re
 import warnings
+from collections import Counter
+from dataclasses import dataclass, field, replace
 from io import StringIO
 from string import Template
 from textwrap import wrap
+from typing import Literal, assert_never, final
 
 import numpy as np
 
 from astropy import units as u
 from astropy.table import Column, MaskedColumn, Table
+from astropy.utils.exceptions import AstropyDeprecationWarning
 from astropy.utils.masked import Masked
 
 from . import cds, core, fixedwidth
@@ -46,6 +50,332 @@ MRT_TEMPLATE = [
     "Notes:",
     "--------------------------------------------------------------------------------",
 ]
+
+_LIMITS_PATTERN = (
+    r"(?P<opener>\[|\])"
+    r"(?P<lo>[^/,\[\]]+)?"
+    r"(?P<sep>/|,)?"
+    r"(?P<hi>[^/,\[\]]+)?"
+    r"(?P<closer>\[|\])"
+)
+_LIMITS_REGEXP = re.compile(_LIMITS_PATTERN)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class _Limits[T: float | int | str]:
+    lo: T | None = None
+    hi: T | None = None
+    opener: Literal["[", "]"] | None = None
+    closer: Literal["[", "]"] | None = None
+    tp: type[T] = field(default=str, compare=False)
+
+    def __post_init__(self):
+        exceptions: list[Exception] = []
+        if self.lo is not None and (tp_lo := type(self.lo)) is not self.tp:
+            exceptions.append(
+                TypeError(
+                    f"expected lower limit with type {self.tp.__name__}, "
+                    f"got {tp_lo.__name__}"
+                )
+            )
+        if self.hi is not None and (tp_hi := type(self.hi)) is not self.tp:
+            exceptions.append(
+                TypeError(
+                    f"expected upper limit with type {self.tp.__name__}, "
+                    f"got {tp_hi.__name__}"
+                )
+            )
+        if self.opener not in {"[", "]", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid opening bracket {self.opener!r} "
+                    "(expected one of {'[', ']', None})"
+                )
+            )
+        if self.closer not in {"[", "]", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid closing bracket {self.closer!r} "
+                    "(expected one of {'[', ']', None})"
+                )
+            )
+
+        missing_brackets_count = Counter([self.opener, self.closer])[None]
+        if missing_brackets_count == 1:
+            exceptions.append(
+                ValueError(
+                    "opening and closing brackets are both required "
+                    "because one of them is specified. "
+                    f"Got {self.opener!r} and {self.closer!r}"
+                )
+            )
+
+        if (self.lo is not None or self.hi is not None) and missing_brackets_count:
+            exceptions.append(
+                ValueError(
+                    "opening and closing brackets are both required "
+                    "because either a lower or an upper limit was specified. "
+                    f"Got {self.opener!r} and {self.closer!r}"
+                )
+            )
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with limits", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> "_Limits[T]":
+        if (m := _LIMITS_REGEXP.fullmatch(expr)) is None:
+            raise ValueError(f"invalid limits expression {expr!r}")
+
+        lo: T | None
+        match m.group("lo"):
+            case str(s):
+                lo = tp(s)
+            case None:
+                lo = None
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        hi: T | None
+        match m.group("hi"):
+            case str(s):
+                hi = tp(s)
+            case None:
+                hi = None
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        return cls(
+            lo=lo, hi=hi, opener=m.group("opener"), closer=m.group("closer"), tp=tp
+        )
+
+    def __bool__(self) -> bool:
+        return self != _Limits()
+
+    def normalize(self) -> str:
+        match self.lo, self.hi:
+            case None, None:
+                sep = ""
+            case _:
+                sep = "/"
+        return (
+            f"{self.opener or ''}{self.lo or ''}{sep}{self.hi or ''}{self.closer or ''}"
+        )
+
+
+_NULL_EXPR_PATTERN = (
+    r"(?P<null_flag>[\?!])"
+    # if the null flag is '?' we can match what follows as a null value
+    r"("
+    r"(?<=\?)="  # positive lookbehind
+    r"(?P<nv_opener>\"?)(?P<null_value>\S+)(?P=nv_opener)"
+    r")?"
+)
+_NULL_EXPR_REGEXP = re.compile(_NULL_EXPR_PATTERN)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class _Null[T: int | float | str]:
+    flag: Literal["?", "!"] | None = None
+    value: T | None = None
+    tp: type[T] = field(default=str, compare=False)
+
+    def __post_init__(self) -> None:
+        exceptions: list[Exception] = []
+        if self.flag not in {"?", "!", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid null flag {self.flag!r} "
+                    "(expected one of {'?', '!', None})"
+                )
+            )
+        if self.flag != "?" and self.value is not None:
+            exceptions.append(
+                ValueError(
+                    f"did not except null value {self.value!r} "
+                    f"following null flag {self.flag!r}"
+                )
+            )
+        if self.value is not None and (tp_value := type(self.value)) is not self.tp:
+            exceptions.append(
+                TypeError(
+                    f"expected null value with type {self.tp.__name__}, "
+                    f"got {tp_value.__name__}"
+                )
+            )
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with null expression", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, expr: str, /, *, tp: type[T] = str) -> "_Null[T]":
+        if (m := _NULL_EXPR_REGEXP.fullmatch(expr)) is None:
+            raise ValueError(f"invalid null expression {expr!r}")
+
+        value: T | None
+        match m.group("null_value"):
+            case str(s):
+                value = tp(s)
+            case None:
+                value = None
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        match flag := m.group("null_flag"):
+            case None:
+                return cls(tp=tp)
+            case "?":
+                return cls(flag=flag, value=value, tp=tp)
+            case "!":
+                assert value is None  # redundant sanity check
+                return cls(flag=flag, tp=tp)
+            case _:
+                raise AssertionError()
+
+    def __bool__(self) -> bool:
+        return self != _Null()
+
+    def normalize(self) -> str:
+        return f"{self.flag or ''}{f'={self.value}' if self.value is not None else ''}"
+
+
+_MARKUP_REGEXPS = frozenset(
+    {
+        _NULL_EXPR_REGEXP,
+        _LIMITS_REGEXP,
+    }
+)
+
+_EXPLANATIONS_REGEXP = re.compile(
+    r"\s*"
+    rf"(?P<limits>{_LIMITS_PATTERN})?"
+    r"\s*"
+    rf"(?P<null_expr>{_NULL_EXPR_PATTERN})?"
+    r"\s*"
+    r"(?P<order_flag>[+-]=?)?"
+    r"\s*"
+    r"(?P<body>(?s:.+))?",
+)
+
+
+@final
+@dataclass(kw_only=True, frozen=True, slots=True)
+class _Explanation[T: int | float | str]:
+    limits: _Limits[T] = _Limits()
+    null: _Null[T] = _Null()
+    order_flag: Literal["+", "+=", "-", "-="] | None = None
+    body: str | None = None
+
+    @staticmethod
+    def _normalize_whitespace(s: str) -> str:
+        return re.sub(r"\s+", " ", s).strip()
+
+    def __post_init__(self) -> None:
+        # init-level normalization
+        original_body = self.body
+        if self.body is not None:
+            # normalize whitespace and newlines
+            object.__setattr__(
+                self, "body", self._normalize_whitespace(self.body) or None
+            )
+
+        # (in)validation
+        warnings_: list[tuple[str, type[Warning]]] = []
+        exceptions: list[Exception] = []
+        if self.order_flag not in {"+", "+=", "-", "-=", None}:
+            exceptions.append(
+                ValueError(
+                    f"invalid order flag {self.order_flag!r} "
+                    "(expected one of {'+', '+=', '-', '-=', None})"
+                )
+            )
+
+        if self.body is None:
+            w = (
+                (
+                    "Explanation body is missing "
+                    "(could be empty or pure whitespace). "
+                    "This is deprecated since astropy 9.0.0 and "
+                    "will be rejected in a future version."
+                ),
+                AstropyDeprecationWarning,
+            )
+            warnings_.append(w)
+
+        elif (not self.null and not self.limits and self.order_flag is None) and (
+            any(regexp.match(self.body) for regexp in _MARKUP_REGEXPS)
+        ):
+            w = (
+                (
+                    "Explanation object doesn't appear stable to export/import "
+                    "roundtrips. This may indicate misuse of special characters. "
+                    "This will be a hard error in a future version.\n"
+                    "If you believe this warning to be spurious, "
+                    "please report this as a bug to astropy developers."
+                ),
+                AstropyDeprecationWarning,
+            )
+            warnings_.append(w)
+
+        for msg, category in warnings_:
+            # stacklevel=1 is the only somewhat useful value possible within
+            # this method, because __init__ is generated and cannot be
+            # included in tracebacks
+            warnings.warn(msg, category, stacklevel=1)
+
+        if len(exceptions) > 1:
+            raise ExceptionGroup("multiple issues with explanation fields", exceptions)
+        elif exceptions:
+            raise exceptions[0]
+
+    @classmethod
+    def from_str(cls, s: str, /, *, tp: type[T] = str) -> "_Explanation[T]":
+        if (match := _EXPLANATIONS_REGEXP.match(s)) is None:  # pragma: no coverage
+            # the 'body' group is supposed to accept any valid *single-line* str
+            # thus, we don't *expect* this branch to be reachable,
+            # though it is useful in debugging and static analysis
+            raise ValueError(
+                f"Failed to match {s!r} against explanation regexp. "
+                "Please report this as a bug."
+            )
+
+        match match.group("limits"):
+            case None:
+                limits = _Limits(tp=tp)
+            case str(expr):
+                limits = _Limits.from_str(expr, tp=tp)
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        match match.group("null_expr"):
+            case None:
+                null = _Null()
+            case str(expr):
+                null = _Null.from_str(expr, tp=tp)
+            case _ as unreachable:
+                assert_never(unreachable)
+
+        return cls(
+            body=match.group("body"),
+            limits=limits,
+            null=null,
+            order_flag=match.group("order_flag"),
+        )
+
+    def normalize(self) -> str:
+        elements = [
+            self.limits.normalize(),
+            self.null.normalize(),
+            f"{self.order_flag or ''}",
+            f"{self.body or ''}",
+        ]
+        return self._normalize_whitespace(" ".join(elements))
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):
@@ -330,14 +660,17 @@ class MrtHeader(cds.CdsHeader):
 
             # Set column description.
             if col.description is not None:
-                description = col.description
+                description = _Explanation.from_str(col.description)
             else:
-                description = "Description of " + col.name
+                description = _Explanation(body=f"Description of {col.name}")
 
             # Set null flag in column description
-            nullflag = ""
             if col.has_null:
-                nullflag = "?"
+                description = replace(
+                    description, null=replace(description.null, flag="?")
+                )
+
+            normalized_description = description.normalize()
 
             # Set column unit
             if col.unit is not None:
@@ -353,12 +686,9 @@ class MrtHeader(cds.CdsHeader):
             else:
                 col_unit = "---"
 
-            if nullflag != "":
-                description = f"{nullflag} {description}"
-
             # Find the maximum label and description column widths.
             max_label_width = max(len(col.name), max_label_width)
-            max_descrip_size = max(len(description), max_descrip_size)
+            max_descrip_size = max(len(normalized_description), max_descrip_size)
 
             # Add a row for the Sign of Declination in the bbb table
             if col.name == "DEd":
@@ -380,10 +710,10 @@ class MrtHeader(cds.CdsHeader):
                     singlebfmt.format(startb)
                     if startb == endb
                     else fmtb.format(startb, endb),
-                    "" if col.fortran_format is None else col.fortran_format,
+                    col.fortran_format or "",
                     col_unit,
-                    "" if col.name is None else col.name,
-                    description,
+                    col.name or "",
+                    normalized_description,
                 ]
             )
             startb = endb + 2
