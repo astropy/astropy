@@ -79,7 +79,15 @@ _EPHEMERIS_NOTE = """You can either give an explicit ephemeris or use a default,
         ('earth', 'sun', 'moon', 'mercury', 'venus', 'earth-moon-barycenter', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune')"""
 
 
-class solar_system_ephemeris(ScienceState):
+class _KernelFinalizer(type):
+    # ensure that no resources is leaked at shutdown, which could manifest
+    # as unraisable warnings in a pytest session.
+    def __del__(cls) -> None:
+        if cls._kernel is not None:
+            cls._kernel.close()
+
+
+class solar_system_ephemeris(ScienceState, metaclass=_KernelFinalizer):
     """Default ephemerides for calculating positions of Solar-System bodies.
 
     This can be one of the following:
