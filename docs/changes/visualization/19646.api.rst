@@ -1,0 +1,1 @@
+Created ``ImShowNormSimpleResult``, a class inheriting from ``NamedTuple``, and added it as the return type of ``imshow_norm`` and ``imshow_norm_simple``.
