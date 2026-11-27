@@ -520,6 +520,21 @@ class TestChecksumFunctions(BaseChecksumTests):
                 assert "DATASUM" in hdul[1].header
                 assert hdul[1].header["DATASUM"] == ref[1].header["DATASUM"]
 
+    def test_modify_and_write(self):
+        # check that modifying a header with a checksum forces the update of
+        # the checksum when saved to a new file
+        testfile = self.temp("test.fits")
+        with fits.open(self.data("checksum.fits")) as hdul:
+            ref_checksum = hdul[1].header["CHECKSUM"]
+            hdul[1].header.comments["CHECKSUM"] = "my super comment"
+            hdul.writeto(testfile)
+
+        with fits.open(testfile) as hdul:
+            # checksum was updated and comment contains the date that is
+            # monkey patched in _get_timestamp
+            assert ref_checksum != hdul[1].header["CHECKSUM"]
+            assert "2013-12-20T13:36:10" in hdul[1].header.comments["CHECKSUM"]
+
     def _check_checksums(self, hdu):
         if not (hasattr(hdu, "_datasum") and hdu._datasum):
             pytest.fail("Missing DATASUM keyword")

@@ -1062,7 +1062,7 @@ class HDUList(list, _Verify):
         try:
             with _free_space_check(self, dirname=dirname):
                 for hdu in self:
-                    hdu._output_checksum = checksum
+                    hdu._output_checksum = hdu._output_checksum or checksum
                     hdu._prewriteto()
                     hdu._writeto(hdulist._file)
                     hdu._postwriteto()
