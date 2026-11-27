@@ -1463,6 +1463,38 @@ def test_unicodechar_non_bmp(fmt, arraysize):
     assert parse(bio).get_first_table().array[0]["s"] == "ab"
 
 
+@pytest.mark.parametrize("fmt", ["tabledata", "binary", "binary2"])
+def test_table_write_non_bmp_string_column(fmt):
+    """
+    Table.write() of the strings ["𝜆_obs", "flux"] writes a unicodeChar FIELD
+    with arraysize="6", in UTF-16 code units, and warns W62; the strings read
+    back unchanged.
+    """
+    table = Table({"s": ["𝜆_obs", "flux"]})
+    bio = io.BytesIO()
+
+    with pytest.warns(W62):
+        table.write(bio, format="votable", tabledata_format=fmt)
+
+    votable = parse(io.BytesIO(bio.getvalue()))
+    assert votable.get_first_table().fields[0].arraysize == "6"
+    assert votable.get_first_table().array["s"].tolist() == ["𝜆_obs", "flux"]
+
+
+@pytest.mark.parametrize("dtype", ["<U5", ">U5"])
+def test_unicodechar_arraysize_counts_utf16_units(dtype):
+    """
+    table_column_to_votable_datatype() of a column holding "𝜆_obs" gives
+    arraysize="6", in UTF-16 code units, in either byte order.
+    """
+    column = Column(np.array(["𝜆_obs"], dtype=dtype))
+
+    assert table_column_to_votable_datatype(column) == {
+        "datatype": "unicodeChar",
+        "arraysize": "6",
+    }
+
+
 def test_char_utf8_bounded_variable_length():
     votable = tree.VOTableFile()
     votable.version = "1.6"
