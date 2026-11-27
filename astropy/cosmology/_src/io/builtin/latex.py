@@ -54,8 +54,6 @@ By default the parameter names are converted to LaTeX format. To disable this, s
     >>> temp_dir.cleanup()
 """
 
-from typing import Any
-
 import astropy.units as u
 from astropy.cosmology._src.core import Cosmology
 from astropy.cosmology._src.io.connect import readwrite_registry
@@ -88,7 +86,7 @@ def write_latex[T: Table](
     overwrite: bool = False,
     cls: type[T] = QTable,
     latex_names: bool = True,
-    **kwargs: Any,
+    **kwargs,
 ) -> None:
     r"""Serialize the |Cosmology| into a LaTeX.
 

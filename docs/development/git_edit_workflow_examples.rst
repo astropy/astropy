@@ -359,7 +359,7 @@ see :ref:`astropy-fix-add-tests`.
 
 .. _astropy-fix-add-tests:
 
-Stop and think: Any more tests or other changes?
+Stop and think more tests or other changes?
 ================================================
 
 It never hurts to pause at this point and review whether your proposed

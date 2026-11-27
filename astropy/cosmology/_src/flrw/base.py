@@ -8,7 +8,7 @@ from dataclasses import field
 from functools import cached_property
 from inspect import signature
 from math import floor, pi, sqrt
-from typing import Any, Final, NamedTuple, TypeVar, overload
+from typing import Final, NamedTuple, TypeVar, overload
 
 import numpy as np
 from numpy import inf, sin
@@ -288,7 +288,7 @@ class FLRW(  # numpydoc ignore=PR02
     # Parameter details
 
     @m_nu.validator
-    def m_nu(self, param: Parameter, value: Any) -> FArray | None:
+    def m_nu(self, param: Parameter, value) -> FArray | None:
         """Validate neutrino masses to right value, units, and shape.
 
         There are no neutrinos if floor(Neff) or Tcmb0 are 0. The number of
@@ -333,7 +333,7 @@ class FLRW(  # numpydoc ignore=PR02
     # Baryons
 
     @Ob0.validator
-    def Ob0(self, param: Parameter, value: Any) -> float:
+    def Ob0(self, param: Parameter, value) -> float:
         """Validate baryon density to a non-negative float > matter density.
 
         Parameters
@@ -1370,7 +1370,7 @@ class FlatFLRWMixin(FlatCosmologyMixin):
         return np.ones_like(aszarr(z), subok=True)
 
     def clone(
-        self, *, meta: CosmoMeta | None = None, to_nonflat: bool = False, **kwargs: Any
+        self, *, meta: CosmoMeta | None = None, to_nonflat: bool = False, **kwargs
     ) -> "FLRW":
         if not to_nonflat and kwargs.get("Ode0") is not None:
             msg = "Cannot set 'Ode0' in clone unless 'to_nonflat=True'. "

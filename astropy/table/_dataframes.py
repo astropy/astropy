@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, NewType
+from typing import TYPE_CHECKING, NewType
 
 import numpy as np
 import numpy.typing as npt
@@ -293,7 +293,7 @@ def to_df(
 
 def from_df(
     cls: type[Table],
-    df: Any,
+    df,
     *,
     index: bool = False,
     units: Mapping[str, UnitLike] | None = None,
@@ -474,7 +474,7 @@ def to_pandas(
 
 def from_pandas(
     cls: type[Table],
-    dataframe: Any,
+    dataframe,
     index: bool = False,
     units: Mapping[str, UnitLike] | None = None,
 ) -> Table:

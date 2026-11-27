@@ -12,7 +12,7 @@ import inspect
 from abc import ABCMeta, abstractmethod
 from dataclasses import KW_ONLY, dataclass, replace
 from types import MappingProxyType
-from typing import Any, ClassVar, Literal, TypeVar, Union
+from typing import ClassVar, Literal, TypeVar, Union
 
 import numpy as np
 
@@ -235,7 +235,7 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
         """
         raise NotImplementedError("is_flat is not implemented")
 
-    def clone(self, *, meta: CosmoMeta | None = None, **kwargs: Any) -> "Cosmology":
+    def clone(self, *, meta: CosmoMeta | None = None, **kwargs) -> "Cosmology":
         """Returns a copy of this object with updated parameters, as specified.
 
         In general this returns an instance of the same class. For some classes (e.g.
@@ -303,9 +303,7 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
     # ---------------------------------------------------------------
     # comparison methods
 
-    def is_equivalent(
-        self, other: Any, /, *, format: bool | str | None = False
-    ) -> bool:
+    def is_equivalent(self, other, /, *, format: bool | str | None = False) -> bool:
         r"""Check equivalence between Cosmologies.
 
         Two cosmologies may be equivalent even if not the same class.
@@ -384,14 +382,14 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
             # raising an Exception.
             return False
 
-    def __equiv__(self, other: Any, /) -> bool:
+    def __equiv__(self, other, /) -> bool:
         """Cosmology equivalence.
 
         Use ``.is_equivalent()`` for actual check!
 
         Parameters
         ----------
-        other : Any, positional-only
+        other , positional-only
             The object in which to compare.
 
         Returns
@@ -413,7 +411,7 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
             np.all(getattr(self, k) == getattr(other, k)) for k in self._parameters_all
         )
 
-    def __eq__(self, other: Any, /) -> bool:
+    def __eq__(self, other, /) -> bool:
         """Check equality between Cosmologies.
 
         Checks the Parameters and immutable fields (i.e. not "meta").
@@ -454,7 +452,7 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
         param_strs = (f"{k!s}={v!s}" for k, v in self.parameters.items())
         return f"{type(self).__name__}({name_str}{', '.join(param_strs)})"
 
-    def __astropy_table__(self, cls: type[Table], copy: bool, **kwargs: Any) -> Table:
+    def __astropy_table__(self, cls: type[Table], copy: bool, **kwargs) -> Table:
         """Return a `~astropy.table.Table` of type ``cls``.
 
         Parameters
@@ -579,7 +577,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
         *,
         meta: CosmoMeta | None = None,
         to_nonflat: bool = False,
-        **kwargs: Any,
+        **kwargs,
     ) -> "Cosmology":
         """Returns a copy of this object with updated parameters, as specified.
 
@@ -633,7 +631,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
     # ===============================================================
 
-    def __equiv__(self, other: Any, /) -> bool:
+    def __equiv__(self, other, /) -> bool:
         """Flat-|Cosmology| equivalence.
 
         Use `astropy.cosmology.cosmology_equal` with
@@ -641,7 +639,7 @@ class FlatCosmologyMixin(metaclass=ABCMeta):
 
         Parameters
         ----------
-        other : Any, positional-only
+        other , positional-only
             The object to which to compare for equivalence.
 
         Returns

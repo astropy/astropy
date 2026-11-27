@@ -247,7 +247,7 @@ class ECSVEngine(metaclass=abc.ABCMeta):
         cls.engines[cls.name] = cls
 
     @abc.abstractmethod
-    def convert_np_type(self, np_type: str) -> Any:
+    def convert_np_type(self, np_type: str):
         """
         Convert a numpy type string to engine-specific type for parsing.
 
