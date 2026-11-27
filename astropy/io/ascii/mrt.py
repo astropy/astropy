@@ -171,7 +171,7 @@ _NULL_EXPR_PATTERN = (
     # if the null flag is '?' we can match what follows as a null value
     r"("
     r"(?<=\?)="  # positive lookbehind
-    r"(?P<nv_opener>\"?)(?P<null_value>\d)(?P=nv_opener)"
+    r"(?P<nv_opener>\"?)(?P<null_value>\S+)(?P=nv_opener)"
     r")?"
 )
 _NULL_EXPR_REGEXP = re.compile(_NULL_EXPR_PATTERN)

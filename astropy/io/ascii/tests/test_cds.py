@@ -131,11 +131,7 @@ class TestNull:
             ("!", dict(flag="!")),
             ("?", dict(flag="?")),
             ("?=1", dict(flag="?", value="1")),
-            pytest.param(
-                "?=-1e6",
-                dict(flag="?", value="-1e6"),
-                marks=pytest.mark.xfail(strict=False),
-            ),
+            ("?=-1e6", dict(flag="?", value="-1e6")),
         ],
     )
     def test_stable_roundtrip(
@@ -150,16 +146,10 @@ class TestNull:
     @pytest.mark.parametrize(
         "expr, nkws",
         [
-            pytest.param('?="z"', dict(flag="?", value="z"), marks=pytest.mark.xfail),
+            ('?="z"', dict(flag="?", value="z")),
             ('?="1"', dict(flag="?", value="1")),
-            pytest.param(
-                "?=-1e6", dict(flag="?", value=-1e6, tp=float), marks=pytest.mark.xfail
-            ),
-            pytest.param(
-                "?=+99.00",
-                dict(flag="?", value=99.0, tp=float),
-                marks=pytest.mark.xfail,
-            ),
+            ("?=-1e6", dict(flag="?", value=-1e6, tp=float)),
+            ("?=+99.00", dict(flag="?", value=99.0, tp=float)),
         ],
     )
     def test_valid_example(self, expr: str, nkws: NullKwargs) -> None:
