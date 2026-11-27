@@ -275,6 +275,7 @@ text_file_format = "rst"
 remote_data_strict = true
 strict_config = true
 strict_markers = true
+strict_parametrization_ids = true
 strict_xfail = true
 addopts = [
     "--doctest-rst",
