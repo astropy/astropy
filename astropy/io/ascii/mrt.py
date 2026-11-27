@@ -272,13 +272,17 @@ class _Explanation[T: int | float | str]:
     order_flag: Literal["+", "+=", "-", "-="] | None = None
     body: str | None = None
 
+    @staticmethod
+    def _normalize_whitespace(s: str) -> str:
+        return re.sub(r"\s+", " ", s).strip()
+
     def __post_init__(self) -> None:
         # init-level normalization
         original_body = self.body
         if self.body is not None:
             # normalize whitespace and newlines
             object.__setattr__(
-                self, "body", re.sub(r"\s+", " ", self.body).strip() or None
+                self, "body", self._normalize_whitespace(self.body) or None
             )
 
         # (in)validation
@@ -365,11 +369,13 @@ class _Explanation[T: int | float | str]:
         )
 
     def normalize(self) -> str:
-        return (
-            f"{self.limits.normalize()}{self.null.normalize()}{self.order_flag or ''}"
-            " "
-            f"{self.body or ''}"
-        ).strip()
+        elements = [
+            self.limits.normalize(),
+            self.null.normalize(),
+            f"{self.order_flag or ''}",
+            f"{self.body or ''}",
+        ]
+        return self._normalize_whitespace(" ".join(elements))
 
 
 class MrtSplitter(fixedwidth.FixedWidthSplitter):

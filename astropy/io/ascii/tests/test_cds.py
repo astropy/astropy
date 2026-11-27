@@ -240,11 +240,11 @@ class TestDescription:
             ("+", dict(order_flag="+")),
             ("-=", dict(order_flag="-=")),
             ("body", dict(body="body")),
-            ("]1/2]?", dict(limits=_Limits.from_str("]1/2]"), null=_Null(flag="?"))),
+            ("]1/2] ?", dict(limits=_Limits.from_str("]1/2]"), null=_Null(flag="?"))),
             ("[1/2] body", dict(limits=_Limits.from_str("[1/2]"), body="body")),
             ("? body", dict(null=_Null(flag="?"), body="body")),
             (
-                "[1/2]?=0+= body",
+                "[1/2] ?=0 += body",
                 dict(
                     limits=_Limits.from_str("[1/2]"),
                     null=_Null(flag="?", value="0"),
@@ -948,4 +948,4 @@ def test_masked_col_with_description():
     buffer = StringIO()
     t.write(buffer, format="ascii.mrt")
     lines = [L.rstrip() for L in buffer.getvalue().splitlines()]
-    assert "1-3  F3.1   ---    a       [0/10]? desc" in lines
+    assert "1-3  F3.1   ---    a       [0/10] ? desc" in lines
