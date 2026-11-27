@@ -283,7 +283,7 @@ def_unit(
     doc="Kelvin: temperature with a null point at absolute zero.",
 )
 def_unit(
-    ["deg_C", "Celsius"],
+    ["deg_C", "Celsius", "degC"],
     namespace=_ns,
     doc="Degrees Celsius",
     format={"latex": r"{}^{\circ}C", "unicode": "°C", "fits": "Celsius"},

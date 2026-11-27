@@ -1248,7 +1248,8 @@ def test_dask_arrays():
 
     assert_allclose(data2.compute(), [0.001, 0.002, 0.003])
 
-    data3 = u.K.to(u.deg_C, value=data1, equivalencies=u.temperature())
+    # use alternative spelling of Celsius
+    data3 = u.K.to(u.degC, value=data1, equivalencies=u.temperature())
 
     assert isinstance(data3, da.core.Array)
 
@@ -1341,3 +1342,8 @@ def test_parsing_as(format_):
     # The symbol for the attosecond is "as", which can be problematic because it
     # happens to be a Python keyword.
     assert u.Unit("as", format=format_) == u.attosecond
+
+
+@pytest.mark.parametrize("alias", ["degC", "Celsius"])
+def test_celsius_aliases(alias):
+    assert u.Unit(alias) is u.deg_C
