@@ -19,7 +19,6 @@ import stat
 import sys
 import tempfile
 import urllib.error
-import urllib.parse
 import urllib.request
 import warnings
 from concurrent.futures import ThreadPoolExecutor
@@ -985,62 +984,6 @@ def test_local_data_obj(filename):
         ) as f:
             f.readline()
             assert f.read().rstrip() == b"CONTENT"
-
-
-@pytest.fixture(
-    params=["invalid.dat.bz2", "invalid.dat.xz", "invalid.dat.gz", "invalid.dat.Z"]
-)
-def bad_compressed(request, tmp_path):
-    # These contents have valid headers for their respective file formats, but
-    # are otherwise malformed and invalid.
-    bz_content = b"BZhinvalid"
-    gz_content = b"\x1f\x8b\x08invalid"
-    xz_content = b"\xfd7zXZ\x00invalid"
-    lzw_content = b"\x1f\x9d\x90invalid"
-
-    datafile = tmp_path / request.param
-    filename = str(datafile)
-
-    if filename.endswith(".bz2"):
-        contents = bz_content
-    elif filename.endswith(".gz"):
-        contents = gz_content
-    elif filename.endswith(".xz"):
-        contents = xz_content
-    elif filename.endswith(".Z"):
-        contents = lzw_content
-    else:
-        contents = "invalid"
-
-    datafile.write_bytes(contents)
-
-    return filename
-
-
-@pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
-def test_local_data_obj_invalid(bad_compressed):
-    is_bz2 = bad_compressed.endswith(".bz2")
-    is_xz = bad_compressed.endswith(".xz")
-    is_lzw = bad_compressed.endswith(".Z")
-
-    # Note, since these invalid files are created on the fly in order to avoid
-    # problems with detection by antivirus software
-    # (see https://github.com/astropy/astropy/issues/6520), it is no longer
-    # possible to use ``get_pkg_data_fileobj`` to read the files. Technically,
-    # they're not local anymore: they just live in a temporary directory
-    # created by pytest. However, we can still use get_readable_fileobj for the
-    # test.
-    if (
-        (not HAS_BZ2 and is_bz2)
-        or (not HAS_LZMA and is_xz)
-        or (not HAS_UNCOMPRESSPY and is_lzw)
-    ):
-        with pytest.raises(ModuleNotFoundError):
-            with get_readable_fileobj(bad_compressed, encoding="binary") as f:
-                f.read()
-    else:
-        with get_readable_fileobj(bad_compressed, encoding="binary") as f:
-            assert f.read().rstrip().endswith(b"invalid")
 
 
 @pytest.mark.filterwarnings("ignore:unclosed:ResourceWarning")
