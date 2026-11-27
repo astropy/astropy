@@ -1,0 +1,2 @@
+Improve GZIP_2 decompression performance by only doing the decompression once.
+Previously it was run twice: first to calculate the number of bytes to unshuffle and then to do the actual decompression.
