@@ -216,6 +216,19 @@ class CosmologyTest(
         """Test method ``.clone()`` if no (kw)args."""
         assert cosmo.clone() is cosmo
 
+    def test_clone_no_name(self):
+        # create a cosmology with no name
+        cosmo = SubCosmology(
+            H0=70 * (u.km / u.s / u.Mpc), Tcmb0=2.7 * u.K, m_nu=0.6 * u.eV
+        )
+        assert cosmo.name is None
+
+        c = cosmo.clone()
+        assert c.name is None
+
+        c = cosmo.clone(name="cloned cosmo")
+        assert c.name == "cloned cosmo"
+
     def test_clone_name(self, cosmo):
         """Test method ``.clone()`` name argument."""
         # test changing name. clone treats 'name' differently (see next test)

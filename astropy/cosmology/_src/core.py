@@ -279,8 +279,8 @@ class Cosmology(metaclass=ABCMeta):  # numpydoc ignore=PR02
 
         # There are changed parameter or metadata values.
         # The name needs to be changed accordingly, if it wasn't already.
-        _modname = self.name + " (modified)"
-        kwargs.setdefault("name", (_modname if self.name is not None else None))
+        _modname = self.name + " (modified)" if self.name is not None else None
+        kwargs.setdefault("name", _modname)
 
         # mix new meta into existing, preferring the former.
         meta = meta if meta is not None else {}
