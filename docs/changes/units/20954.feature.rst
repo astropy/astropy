@@ -1,0 +1,2 @@
+Add ``degC`` as alias for degrees Celsius, it is commonly used in other software,
+including ``pint``, ``MatLab`` and by the QUDT standard.
