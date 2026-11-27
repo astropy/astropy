@@ -614,6 +614,24 @@ def test_multicolumn_read():
     assert np.all(table == expected)
 
 
+@pytest.mark.skipif(not HAS_BS4, reason="requires BeautifulSoup4")
+def test_multicolumn_read_colspan_0_or_1():
+    """
+    HTML5 doesn't allow colspan=0, and modern browsers treat it as colspan=1.
+    Make sure that the HTML reader behaves the same.
+    """
+
+    table = Table.read("data/html3.html", format="ascii.html")
+    str_type = np.dtype((str, 21))
+    expected = Table(
+        np.array(
+            [(["1"], [3]), (["1a"], [3.5])],
+            dtype=[("A", str_type, (1,)), ("B", "<f8", (1,))],
+        )
+    )
+    assert np.all(table == expected)
+
+
 @pytest.mark.skipif(not HAS_BLEACH, reason="requires bleach")
 def test_raw_html_write():
     """
