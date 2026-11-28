@@ -1,0 +1,8 @@
+Masked elements of variable-length arrays (``arraysize="*"`` or ``"2x*"``)
+are now written as nulls in the VOTable ``TABLEDATA`` format, as for
+fixed-size arrays. They used to be written with their underlying value, so
+the mask was lost. As for fixed-size arrays, a masked integer element in a
+FIELD with no null value is written as ``NaN`` with warning W31, and a masked
+bit, which cannot be null, is written with its value and warning W39. A masked
+complex value is now written as ``NaN NaN`` rather than a single ``NaN``, so
+an array of complex values with a masked element can be read back.
