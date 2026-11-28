@@ -386,11 +386,24 @@ def from_df(
         elif isinstance(dtype, (nw.String, nw.Binary, nw.Object)):
             if data.dtype.kind == "O":
                 # Build a new list since ``data`` may be a view of the dataframe.
-                fill = _get_string_fill_value(data)
+                mask = nw_mask.to_numpy()
+                # An all-missing column has no value to take the type from, so
+                # follow the dataframe dtype: binary, text, or no conversion.
+                # Narwhals reports a pandas ``object`` column as String, so
+                # check the native dtype to leave such a column as objects.
+                native_dtype = getattr(column.to_native(), "dtype", None)
+                native_is_object = (
+                    isinstance(native_dtype, np.dtype) and native_dtype.kind == "O"
+                )
+                if isinstance(dtype, nw.Binary):
+                    default = b""
+                elif isinstance(dtype, nw.String) and not native_is_object:
+                    default = ""
+                else:
+                    default = None
+                fill = _get_string_fill_value(data, mask, default)
                 if fill is not None:
-                    data = np.array(
-                        [fill if m else d for (d, m) in zip(data, nw_mask.to_numpy())]
-                    )
+                    data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
         if nw_mask.any():
             out[name] = MaskedColumn(
@@ -479,6 +492,8 @@ def from_pandas(
     units: Mapping[str, UnitLike] | None = None,
 ) -> Table:
     """Create an instance of ``cls`` from a pandas DataFrame."""
+    import pandas as pd
+
     out = {}
 
     names = list(dataframe.columns)
@@ -522,7 +537,10 @@ def from_pandas(
 
         if data.dtype.kind == "O":
             # Build a new list since ``data`` may be a view of the dataframe.
-            fill = _get_string_fill_value(data, legacy_pandas=True)
+            # An all-missing column has no value to take the type from: a
+            # pandas string dtype becomes text, an ``object`` column stays.
+            default = "" if isinstance(column.dtype, pd.StringDtype) else None
+            fill = _get_string_fill_value(data, mask, default)
             if fill is not None:
                 data = np.array([fill if m else d for (d, m) in zip(data, mask)])
 
