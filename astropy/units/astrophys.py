@@ -74,6 +74,13 @@ def_unit(
     doc="Light year",
 )
 def_unit(
+    ["lday", "lightday"],
+    (_si.c * si.d).to(si.m),
+    namespace=_ns,
+    prefixes=True,
+    doc="Light day",
+)
+def_unit(
     ["lsec", "lightsecond"],
     (_si.c * si.s).to(si.m),
     namespace=_ns,
