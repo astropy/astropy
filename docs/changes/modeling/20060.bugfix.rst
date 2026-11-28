@@ -1,0 +1,5 @@
+Model parameters arrays are now fully initialized at construction rather than
+lazily on first access of the ``parameters`` property. Previously a freshly
+constructed model held uninitialized memory in its internal ``_parameters``
+array, which could make operations that read it directly (such as pickling a
+pristine model) behave non-deterministically.
