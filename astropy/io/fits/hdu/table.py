@@ -189,6 +189,17 @@ class _TableLikeHDU(_ValidHDU):
         """
         raise NotImplementedError
 
+    def _memmap_layout(self):
+        for column in self.columns:
+            if column.format.format in ("P", "Q", "L", "X") or (
+                column.bscale not in (None, 1) or column.bzero not in (None, 0)
+            ):
+                raise ValueError(
+                    f"Column {column.name!r} is scaled, logical, a bit array, or "
+                    "has variable-length arrays."
+                )
+        return (self._nrows,), self.columns.dtype.newbyteorder(">")
+
     def _get_tbdata(self):
         """Get the table data from an input HDU object."""
         columns = self.columns
@@ -497,6 +508,12 @@ class _TableBaseHDU(ExtensionHDU, _TableLikeHDU):
             return self._header.get("NAXIS2", 0)
         else:
             return len(self.data)
+
+    def _memmap_layout(self):
+        shape, dtype = super()._memmap_layout()
+        if dtype.itemsize != self._header["NAXIS1"]:
+            raise ValueError("The columns no longer match the rows in the file.")
+        return shape, dtype
 
     @property
     def _theap(self):
@@ -830,6 +847,9 @@ class TableHDU(_TableBaseHDU):
         data = raw_data.view(np.rec.recarray)
         self._init_tbdata(data)
         return data.view(self._data_type)
+
+    def _memmap_layout(self):
+        raise ValueError("The values in ASCII tables are stored as text.")
 
     def _calculate_datasum(self):
         """
