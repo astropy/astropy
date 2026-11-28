@@ -1,0 +1,9 @@
+Added support for optimizing additional transformations when using
+``ErfaAstromInterpolator``. The following transformations
+now also benefit from the interpolation of Earth orientation parameters
+for large, dense arrays of ``obstime``:
+
+- True-ecliptic transformations
+- GCRS <-> CIRS
+- GCRS <-> TETE
+- TETE <-> ITRS
